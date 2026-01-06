@@ -1,0 +1,44 @@
+{
+  "name": "nox-handle-sdk",
+  "version": "0.0.1",
+  "description": "TypeScript SDK for NOX Handle",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "node": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "src",
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json",
+    "build:watch": "tsc --project tsconfig.build.json --watch",
+    "check-types": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "format": "prettier --write \"src/**/*.ts\" \"*.json\" \"*.md\"",
+    "check-format": "prettier --check \"src/**/*.ts\" \"*.json\" \"*.md\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iExecBlockchainComputing/nox-handle-sdk.git"
+  },
+  "author": "",
+  "license": "",
+  "bugs": {
+    "url": "https://github.com/iExecBlockchainComputing/nox-handle-sdk/issues"
+  },
+  "homepage": "https://github.com/iExecBlockchainComputing/nox-handle-sdk#readme",
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "prettier": "^3.7.4",
+    "typescript": "^5.9.3"
+  }
+}
