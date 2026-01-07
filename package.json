@@ -1,0 +1,55 @@
+{
+  "name": "nox-handle-sdk",
+  "version": "0.0.1",
+  "description": "TypeScript SDK for NOX Handle",
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "node": "./dist/cjs/index.js",
+      "default": "./dist/esm/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npm run clean && npm run build:cjs && npm run build:esm && node scripts/postbuild.js",
+    "build:cjs": "tsc --project tsconfig.cjs.json",
+    "build:esm": "tsc --project tsconfig.esm.json",
+    "build:watch": "npm run build:cjs:watch & npm run build:esm:watch",
+    "build:cjs:watch": "tsc --project tsconfig.cjs.json --watch",
+    "build:esm:watch": "tsc --project tsconfig.esm.json --watch",
+    "check-types": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "format": "prettier --write \"src/**/*.ts\" \"*.json\" \"*.md\"",
+    "check-format": "prettier --check \"src/**/*.ts\" \"*.json\" \"*.md\"",
+    "lint": "eslint src/**/*.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iExecBlockchainComputing/nox-handle-sdk.git"
+  },
+  "author": "",
+  "license": "",
+  "bugs": {
+    "url": "https://github.com/iExecBlockchainComputing/nox-handle-sdk/issues"
+  },
+  "homepage": "https://github.com/iExecBlockchainComputing/nox-handle-sdk#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@types/node": "^25.0.3",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-unicorn": "^62.0.0",
+    "prettier": "^3.7.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.52.0"
+  }
+}
