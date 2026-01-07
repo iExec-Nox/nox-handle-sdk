@@ -3,6 +3,7 @@
   "compilerOptions": {
     "module": "CommonJS",
     "moduleResolution": "Node",
+    "verbatimModuleSyntax": false,
     "outDir": "./dist/cjs",
     "removeComments": true,
     "declaration": false,
