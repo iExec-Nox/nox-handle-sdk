@@ -28,7 +28,7 @@ export default defineConfig(
     files: ['**/*.ts'],
     languageOptions: {
       parserOptions: {
-        project: './tsconfig.build.json',
+        project: './tsconfig.esm.json',
         tsconfigRootDir: import.meta.dirname || process.cwd(),
       },
     },

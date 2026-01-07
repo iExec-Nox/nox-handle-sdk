@@ -3,23 +3,28 @@
   "version": "0.0.1",
   "description": "TypeScript SDK for NOX Handle",
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "node": "./dist/index.js",
-      "default": "./dist/index.js"
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "node": "./dist/cjs/index.js",
+      "default": "./dist/esm/index.js"
     }
   },
   "files": [
-    "src",
     "dist"
   ],
   "scripts": {
-    "build": "tsc --project tsconfig.build.json",
-    "build:watch": "tsc --project tsconfig.build.json --watch",
+    "build": "npm run build:cjs && npm run build:esm && node scripts/postbuild.js",
+    "build:cjs": "tsc --project tsconfig.cjs.json",
+    "build:esm": "tsc --project tsconfig.esm.json",
+    "build:watch": "npm run build:cjs:watch & npm run build:esm:watch",
+    "build:cjs:watch": "tsc --project tsconfig.cjs.json --watch",
+    "build:esm:watch": "tsc --project tsconfig.esm.json --watch",
     "check-types": "tsc --noEmit",
     "clean": "rm -rf dist",
     "format": "prettier --write \"src/**/*.ts\" \"*.json\" \"*.md\"",
