@@ -13,6 +13,24 @@ export default defineConfig(
     rules: {
       'no-console': 'error',
       'unicorn/filename-case': 'off',
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/explicit-module-boundary-types': 'warn',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': ['error'],
+    },
+  },
+
+  {
+    ignores: ['dist/**', 'node_modules/**'],
+  },
+
+  {
+    files: ['**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        project: './tsconfig.build.json',
+        tsconfigRootDir: import.meta.dirname || process.cwd(),
+      },
     },
   }
 );

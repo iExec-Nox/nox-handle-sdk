@@ -1,4 +1,18 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["src/**/*"]
+  "compilerOptions": {
+    /* Build optimizations */
+    "removeComments": true,
+
+    /* Incremental builds for performance */
+    "incremental": true,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
+
+    /* Composite mode enables project references */
+    "composite": true,
+
+    /* Relax unused checks for production (handles conditional code) */
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  }
 }
