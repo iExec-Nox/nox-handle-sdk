@@ -1,19 +1,15 @@
 {
   "compilerOptions": {
     /* Language and Environment */
-    "target": "ES2020",
+    "target": "ES2022",
 
     /* Modules */
+
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "resolveJsonModule": true,
-    "verbatimModuleSyntax": true,
 
     /* Emit */
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "./dist",
+    "noEmit": true,
     "rootDir": "./src",
 
     /* Interop Constraints */
@@ -23,6 +19,7 @@
     "isolatedModules": true,
 
     /* Type Checking */
+
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -38,6 +35,7 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
+    "verbatimModuleSyntax": true,
 
     /* Completeness */
     "skipLibCheck": true,

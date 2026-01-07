@@ -19,7 +19,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "npm run build:cjs && npm run build:esm && node scripts/postbuild.js",
+    "build": "npm run clean && npm run build:cjs && npm run build:esm && node scripts/postbuild.js",
     "build:cjs": "tsc --project tsconfig.cjs.json",
     "build:esm": "tsc --project tsconfig.esm.json",
     "build:watch": "npm run build:cjs:watch & npm run build:esm:watch",

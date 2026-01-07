@@ -14,9 +14,7 @@ export default defineConfig(
       'no-console': 'error',
       'unicorn/filename-case': 'off',
       '@typescript-eslint/no-floating-promises': 'error',
-      '@typescript-eslint/explicit-module-boundary-types': 'warn',
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': ['error'],
+      '@typescript-eslint/explicit-module-boundary-types': 'error',
     },
   },
 
@@ -29,7 +27,6 @@ export default defineConfig(
     languageOptions: {
       parserOptions: {
         project: './tsconfig.esm.json',
-        tsconfigRootDir: import.meta.dirname || process.cwd(),
       },
     },
   }
