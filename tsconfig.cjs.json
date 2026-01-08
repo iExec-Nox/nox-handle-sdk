@@ -6,7 +6,8 @@
     "outDir": "./dist/cjs",
     "removeComments": true,
     "declaration": false,
-    "noEmit": false
+    "noEmit": false,
+    "verbatimModuleSyntax": false
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
