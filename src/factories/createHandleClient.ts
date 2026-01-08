@@ -32,9 +32,9 @@ export type BlockchainClient = EthersClient | ViemClient;
  * import { BrowserProvider } from 'ethers';
  * import { createHandleClient } from 'nox-handle-sdk';
  *
- * const signer = new BrowserProvider(window.ethereum);
+ * const ethersClient = new BrowserProvider(window.ethereum);
  *
- * const handleClient = createHandleClient(signer);
+ * const handleClient = createHandleClient(ethersClient);
  * ```
  *
  * @example
@@ -43,11 +43,11 @@ export type BlockchainClient = EthersClient | ViemClient;
  * import { createWalletClient, custom } from 'viem'
  * import { createHandleClient } from 'nox-handle-sdk';
  *
- * const walletClient = createWalletClient({
+ * const viemClient = createWalletClient({
  *   transport: custom(window.ethereum)
  * })
  *
- * const handleClient = createHandleClient(walletClient);
+ * const handleClient = createHandleClient(viemClient);
  * ```
  */
 export const createHandleClient = (

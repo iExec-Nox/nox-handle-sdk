@@ -7,18 +7,20 @@ export type ViemClient = WalletClient<Transport, Chain | undefined, Account>;
  * ViemBlockchainService
  *
  * Implements IBlockchainService using viem library.
- *
- * @param walletClient - A viem WalletClient instance connected to an account
- * @returns A ViemBlockchainService instance
- * @throws {TypeError} if the provided wallet client is invalid
  */
 export class ViemBlockchainService implements IBlockchainService {
-  constructor(walletClient: ViemClient) {
-    if (isViemWalletClient(walletClient)) {
-      this.walletClient = walletClient;
+  /**
+   * Creates an instance of ViemBlockchainService.
+   * @param client - A viem WalletClient instance connected to an account
+   * @returns A ViemBlockchainService instance
+   * @throws {TypeError} if the provided client is invalid
+   */
+  constructor(client: ViemClient) {
+    if (isViemWalletClient(client)) {
+      this.walletClient = client;
     } else {
       throw new TypeError(
-        'Unsupported wallet client. Expected a viem WalletClient instance connected to an account.'
+        'Unsupported client. Expected a viem WalletClient instance connected to an account.'
       );
     }
   }

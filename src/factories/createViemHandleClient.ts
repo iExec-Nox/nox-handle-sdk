@@ -7,20 +7,20 @@ import { ViemBlockchainService } from '../services/blockchain/ViemBlockchainServ
  *
  * creates a HandleClient from a viem WalletClient
  *
- * @param walletClient - A viem WalletClient instance connected to an account
+ * @param viemClient - A viem WalletClient instance connected to an account
  * @returns A HandleClient instance
- * @throws {TypeError} if the provided walletClient is invalid
+ * @throws {TypeError} if the provided viemClient is invalid
  *
  * @example
  * ```
  * // JSON-RPC Account
  * import { createWalletClient, custom } from 'viem'
  *
- * const walletClient = createWalletClient({
+ * const viemClient = createWalletClient({
  *   transport: custom(window.ethereum)
  * })
  *
- * const handleClient = createViemHandleClient(walletClient);
+ * const handleClient = createViemHandleClient(viemClient);
  * ```
  *
  * @example
@@ -33,17 +33,17 @@ import { ViemBlockchainService } from '../services/blockchain/ViemBlockchainServ
  *
  * const { RPC_URL, PRIVATE_KEY } = process.env;
  *
- * const walletClient = createWalletClient({
+ * const viemClient = createWalletClient({
  *   account: privateKeyToAccount(PRIVATE_KEY),
  *   transport: http(RPC_URL),
  * });
  *
- * const handleClient = createViemHandleClient(walletClient);
+ * const handleClient = createViemHandleClient(viemClient);
  * ```
  */
 export const createViemHandleClient = (
-  walletClient: WalletClient<Transport, Chain | undefined, Account>
+  viemClient: WalletClient<Transport, Chain | undefined, Account>
 ): HandleClient => {
-  const viemBlockchainService = new ViemBlockchainService(walletClient);
+  const viemBlockchainService = new ViemBlockchainService(viemClient);
   return new HandleClient(viemBlockchainService);
 };

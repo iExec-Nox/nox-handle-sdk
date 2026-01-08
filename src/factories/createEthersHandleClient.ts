@@ -7,9 +7,9 @@ import {
 /**
  * createEthersHandleClient
  *
- * creates a HandleClient from an ethers signer
+ * creates a HandleClient from an ethers signer provider
  *
- * @param signer - An ethers AbstractSigner instance connected to a Provider or a BrowserProvider
+ * @param ethersClient - An ethers AbstractSigner instance connected to a Provider or a BrowserProvider instance
  * @returns A HandleClient instance
  * @throws {TypeError} if the provided signer is invalid
  *
@@ -19,9 +19,9 @@ import {
  * import { BrowserProvider } from 'ethers';
  * import { createEthersHandleClient } from 'nox-handle-sdk';
  *
- * const signer = new BrowserProvider(window.ethereum);
+ * const ethersClient = new BrowserProvider(window.ethereum);
  *
- * const handleClient = createEthersHandleClient(signer);
+ * const handleClient = createEthersHandleClient(ethersClient);
  * ```
  *
  * @example
@@ -30,17 +30,17 @@ import {
  * import { JsonRpcProvider, Wallet } from 'ethers';
  * import { createEthersHandleClient } from 'nox-handle-sdk';
  *
- * const { RPC_URL, PRIVATE_KEY } = process.env
+ * const { RPC_URL, PRIVATE_KEY } = process.env;
  *
  * const provider = new JsonRpcProvider(RPC_URL);
- * const signer = new Wallet(PRIVATE_KEY, provider);
+ * const ethersClient = new Wallet(PRIVATE_KEY, provider);
  *
- * const handleClient = createEthersHandleClient(signer);
+ * const handleClient = createEthersHandleClient(ethersClient);
  * ```
  */
 export const createEthersHandleClient = (
-  signer: EthersClient
+  ethersClient: EthersClient
 ): HandleClient => {
-  const ethersBlockchainService = new EthersBlockchainService(signer);
+  const ethersBlockchainService = new EthersBlockchainService(ethersClient);
   return new HandleClient(ethersBlockchainService);
 };

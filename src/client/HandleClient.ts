@@ -7,6 +7,12 @@ import type { IBlockchainService } from '../services/blockchain/IBlockchainServi
  */
 export class HandleClient {
   private blockchainService: IBlockchainService;
+  /**
+   * Creates an instance of HandleClient.
+   * @param blockchainService
+   * @returns A HandleClient instance
+   * @throws {TypeError} if the provided blockchainService is invalid
+   */
   constructor(blockchainService: IBlockchainService) {
     this.blockchainService = blockchainService;
   }

@@ -56,12 +56,14 @@ class BrowserProviderAdapter implements EthersAdapter {
  * EthersBlockchainService
  *
  * Implements IBlockchainService using ethers library.
- *
- * @param client - An ethers AbstractSigner instance connected to a Provider or a BrowserProvider
- * @returns A EthersBlockchainService instance
- * @throws {TypeError} if the provided client is invalid
  */
 export class EthersBlockchainService implements IBlockchainService {
+  /**
+   * Creates an instance of EthersBlockchainService.
+   * @param client - An ethers AbstractSigner instance connected to a Provider or a BrowserProvider
+   * @returns A EthersBlockchainService instance
+   * @throws {TypeError} if the provided client is invalid
+   */
   constructor(client: EthersClient) {
     if (isEthersSigner(client)) {
       this.adapter = new SignerAdapter(client);
