@@ -3,9 +3,7 @@ import { HandleClient } from '../client/HandleClient.js';
 import { ViemBlockchainService } from '../services/blockchain/ViemBlockchainService.js';
 
 /**
- * createViemHandleClient
- *
- * creates a HandleClient from a viem WalletClient
+ * Creates a HandleClient from a viem WalletClient
  *
  * @param viemClient - A viem WalletClient instance connected to an account
  * @returns A HandleClient instance

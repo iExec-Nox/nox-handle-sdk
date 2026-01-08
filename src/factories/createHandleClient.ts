@@ -14,11 +14,9 @@ import {
 export type BlockchainClient = EthersClient | ViemClient;
 
 /**
- * createHandleClient
+ * Creates a HandleClient from a client of either ethers or viem
  *
- * creates a HandleClient from a client of either ethers or viem
- *
- * @param blockchainClient - An ethers AbstractSigner instance connected to a Provider or a viem WalletClient connected to an account
+ * @param blockchainClient - An ethers client with a Signer and a Provider or a viem WalletClient connected to an account
  * @returns A HandleClient instance
  * @throws {TypeError} if the provided blockchainClient is invalid
  *

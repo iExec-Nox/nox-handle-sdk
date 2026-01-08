@@ -5,9 +5,7 @@ import {
 } from '../services/blockchain/EthersBlockchainService.js';
 
 /**
- * createEthersHandleClient
- *
- * creates a HandleClient from an ethers signer provider
+ * Creates a HandleClient from an ethers signer provider
  *
  * @param ethersClient - An ethers AbstractSigner instance connected to a Provider or a BrowserProvider instance
  * @returns A HandleClient instance
