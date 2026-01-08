@@ -12,14 +12,37 @@ interface EthersAdapter {
 }
 
 /**
+ * Type guard to check if a client is an ethers AbstractSigner with a connected Provider
+ *
+ * @dev ⚠️ Update this function to match SignerAdapter requirements changes
+ */
+export function isEthersSigner(
+  object: unknown
+): object is AbstractSigner<Provider> {
+  return (
+    !!object &&
+    typeof object === 'object' &&
+    'getAddress' in object &&
+    typeof object.getAddress === 'function' &&
+    'provider' in object &&
+    !!object.provider &&
+    typeof object.provider === 'object' &&
+    'getNetwork' in object.provider &&
+    typeof object.provider.getNetwork === 'function'
+  );
+}
+
+/**
  * Adapter for ethers AbstractSigner
+ *
+ * @dev ⚠️ Update isEthersSigner function if this class is modified requiring more duck type checks
  */
 class SignerAdapter implements EthersAdapter {
   constructor(signer: AbstractSigner<Provider>) {
     this.signer = signer;
   }
 
-  private signer: AbstractSigner<Provider>;
+  private readonly signer: AbstractSigner<Provider>;
 
   async getChainId(): Promise<number> {
     const network = await this.signer.provider.getNetwork();
@@ -32,14 +55,34 @@ class SignerAdapter implements EthersAdapter {
 }
 
 /**
+ * Type guard to check if a client is an ethers BrowserProvider
+ *
+ * @dev ⚠️ Update this function to match BrowserProviderAdapter requirements changes
+ */
+export function isEthersBrowserProvider(
+  object: unknown
+): object is BrowserProvider {
+  return (
+    !!object &&
+    typeof object === 'object' &&
+    'getSigner' in object &&
+    typeof object.getSigner === 'function' &&
+    'getNetwork' in object &&
+    typeof object.getNetwork === 'function'
+  );
+}
+
+/**
  * Adapter for ethers BrowserProvider
+ *
+ * @dev ⚠️ Update isEthersBrowserProvider function if this class is modified requiring more duck type checks
  */
 class BrowserProviderAdapter implements EthersAdapter {
   constructor(provider: BrowserProvider) {
     this.provider = provider;
   }
 
-  private provider: BrowserProvider;
+  private readonly provider: BrowserProvider;
 
   async getChainId(): Promise<number> {
     const network = await this.provider.getNetwork();
@@ -53,8 +96,6 @@ class BrowserProviderAdapter implements EthersAdapter {
 }
 
 /**
- * EthersBlockchainService
- *
  * Implements IBlockchainService using ethers library.
  */
 export class EthersBlockchainService implements IBlockchainService {
@@ -76,7 +117,7 @@ export class EthersBlockchainService implements IBlockchainService {
     }
   }
 
-  private adapter: EthersAdapter;
+  private readonly adapter: EthersAdapter;
 
   async getChainId(): Promise<number> {
     try {
@@ -93,39 +134,4 @@ export class EthersBlockchainService implements IBlockchainService {
       throw new Error('Failed to get address', { cause: error });
     }
   }
-}
-
-/**
- * Type guard to check if a client is an ethers AbstractSigner with a connected Provider
- */
-export function isEthersSigner(
-  object: unknown
-): object is AbstractSigner<Provider> {
-  return (
-    !!object &&
-    typeof object === 'object' &&
-    'getAddress' in object &&
-    typeof object.getAddress === 'function' &&
-    'provider' in object &&
-    !!object.provider &&
-    typeof object.provider === 'object' &&
-    'getNetwork' in object.provider &&
-    typeof object.provider.getNetwork === 'function'
-  );
-}
-
-/**
- * Type guard to check if a client is an ethers BrowserProvider
- */
-export function isEthersBrowserProvider(
-  object: unknown
-): object is BrowserProvider {
-  return (
-    !!object &&
-    typeof object === 'object' &&
-    'getSigner' in object &&
-    typeof object.getSigner === 'function' &&
-    'getNetwork' in object &&
-    typeof object.getNetwork === 'function'
-  );
 }

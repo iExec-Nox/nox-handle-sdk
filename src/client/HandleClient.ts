@@ -6,7 +6,7 @@ import type { IBlockchainService } from '../services/blockchain/IBlockchainServi
  * A client to interact with encrypted values using Handles on blockchain
  */
 export class HandleClient {
-  private blockchainService: IBlockchainService;
+  private readonly blockchainService: IBlockchainService;
   /**
    * Creates an instance of HandleClient.
    * @param blockchainService

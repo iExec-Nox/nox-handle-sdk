@@ -4,8 +4,25 @@ import type { IBlockchainService } from './IBlockchainService.js';
 export type ViemClient = WalletClient<Transport, Chain | undefined, Account>;
 
 /**
- * ViemBlockchainService
+ * Type guard to check if a client is a viem WalletClient connected to an account
  *
+ * @dev ⚠️ Update this function to match ViemBlockchainService requirements changes
+ */
+export function isViemWalletClient(object: unknown): object is ViemClient {
+  return (
+    !!object &&
+    typeof object === 'object' &&
+    'getChainId' in object &&
+    typeof object.getChainId === 'function' &&
+    'account' in object &&
+    !!object.account &&
+    typeof object.account === 'object' &&
+    'address' in object.account &&
+    typeof object.account.address === 'string'
+  );
+}
+
+/**
  * Implements IBlockchainService using viem library.
  */
 export class ViemBlockchainService implements IBlockchainService {
@@ -25,7 +42,7 @@ export class ViemBlockchainService implements IBlockchainService {
     }
   }
 
-  private walletClient: ViemClient;
+  private readonly walletClient: ViemClient;
 
   async getChainId(): Promise<number> {
     try {
@@ -44,21 +61,4 @@ export class ViemBlockchainService implements IBlockchainService {
       throw new Error('Failed to get address', { cause: error });
     }
   }
-}
-
-/**
- * Type guard to check if a client is a viem WalletClient connected to an account
- */
-export function isViemWalletClient(object: unknown): object is ViemClient {
-  return (
-    !!object &&
-    typeof object === 'object' &&
-    'getChainId' in object &&
-    typeof object.getChainId === 'function' &&
-    'account' in object &&
-    !!object.account &&
-    typeof object.account === 'object' &&
-    'address' in object.account &&
-    typeof object.account.address === 'string'
-  );
 }
