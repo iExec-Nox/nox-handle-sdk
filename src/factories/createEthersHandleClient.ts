@@ -1,16 +1,15 @@
 import { HandleClient } from '../client/HandleClient.js';
 import {
   EthersBlockchainService,
-  isEthersSigner,
-  type EthersSigner,
+  type EthersClient,
 } from '../services/blockchain/EthersBlockchainService.js';
 
 /**
  * createEthersHandleClient
  *
- * creates a HandleClient from an ethers AbstractSigner connected to a Provider
+ * creates a HandleClient from an ethers signer
  *
- * @param signer - An ethers AbstractSigner instance connected to a Provider
+ * @param signer - An ethers AbstractSigner instance connected to a Provider or a BrowserProvider
  * @returns A HandleClient instance
  * @throws {TypeError} if the provided signer is invalid
  *
@@ -40,13 +39,8 @@ import {
  * ```
  */
 export const createEthersHandleClient = (
-  signer: EthersSigner
+  signer: EthersClient
 ): HandleClient => {
-  if (!isEthersSigner(signer)) {
-    throw new TypeError(
-      'Unsupported signer. Expected an ethers AbstractSigner instance connected to a Provider.'
-    );
-  }
   const ethersBlockchainService = new EthersBlockchainService(signer);
   return new HandleClient(ethersBlockchainService);
 };

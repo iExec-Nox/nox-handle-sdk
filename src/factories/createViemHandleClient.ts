@@ -1,9 +1,6 @@
 import type { Account, Chain, Transport, WalletClient } from 'viem';
 import { HandleClient } from '../client/HandleClient.js';
-import {
-  isViemWalletClient,
-  ViemBlockchainService,
-} from '../services/blockchain/ViemBlockchainService.js';
+import { ViemBlockchainService } from '../services/blockchain/ViemBlockchainService.js';
 
 /**
  * createViemHandleClient
@@ -47,11 +44,6 @@ import {
 export const createViemHandleClient = (
   walletClient: WalletClient<Transport, Chain | undefined, Account>
 ): HandleClient => {
-  if (!isViemWalletClient(walletClient)) {
-    throw new TypeError(
-      'Unsupported walletClient. Expected a viem WalletClient instance connected to an account.'
-    );
-  }
   const viemBlockchainService = new ViemBlockchainService(walletClient);
   return new HandleClient(viemBlockchainService);
 };

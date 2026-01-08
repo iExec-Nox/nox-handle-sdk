@@ -1,23 +1,29 @@
 import type { Account, WalletClient, Transport, Chain } from 'viem';
 import type { IBlockchainService } from './IBlockchainService.js';
 
-export type ViemWalletClient = WalletClient<
-  Transport,
-  Chain | undefined,
-  Account
->;
+export type ViemClient = WalletClient<Transport, Chain | undefined, Account>;
 
 /**
  * ViemBlockchainService
  *
  * Implements IBlockchainService using viem library.
+ *
+ * @param walletClient - A viem WalletClient instance connected to an account
+ * @returns A ViemBlockchainService instance
+ * @throws {TypeError} if the provided wallet client is invalid
  */
 export class ViemBlockchainService implements IBlockchainService {
-  constructor(walletClient: ViemWalletClient) {
-    this.walletClient = walletClient;
+  constructor(walletClient: ViemClient) {
+    if (isViemWalletClient(walletClient)) {
+      this.walletClient = walletClient;
+    } else {
+      throw new TypeError(
+        'Unsupported wallet client. Expected a viem WalletClient instance connected to an account.'
+      );
+    }
   }
 
-  private walletClient: ViemWalletClient;
+  private walletClient: ViemClient;
 
   async getChainId(): Promise<number> {
     try {
@@ -41,9 +47,7 @@ export class ViemBlockchainService implements IBlockchainService {
 /**
  * Type guard to check if a client is a viem WalletClient connected to an account
  */
-export function isViemWalletClient(
-  object: unknown
-): object is ViemWalletClient {
+export function isViemWalletClient(object: unknown): object is ViemClient {
   return (
     !!object &&
     typeof object === 'object' &&

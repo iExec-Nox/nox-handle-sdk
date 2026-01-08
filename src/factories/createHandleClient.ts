@@ -2,15 +2,16 @@ import { HandleClient } from '../client/HandleClient.js';
 import {
   EthersBlockchainService,
   isEthersSigner,
-  type EthersSigner,
+  isEthersBrowserProvider,
+  type EthersClient,
 } from '../services/blockchain/EthersBlockchainService.js';
 import {
   isViemWalletClient,
   ViemBlockchainService,
-  type ViemWalletClient,
+  type ViemClient,
 } from '../services/blockchain/ViemBlockchainService.js';
 
-export type BlockchainClient = EthersSigner | ViemWalletClient;
+export type BlockchainClient = EthersClient | ViemClient;
 
 /**
  * createHandleClient
@@ -52,7 +53,10 @@ export type BlockchainClient = EthersSigner | ViemWalletClient;
 export const createHandleClient = (
   blockchainClient: BlockchainClient
 ): HandleClient => {
-  if (isEthersSigner(blockchainClient)) {
+  if (
+    isEthersSigner(blockchainClient) ||
+    isEthersBrowserProvider(blockchainClient)
+  ) {
     return new HandleClient(new EthersBlockchainService(blockchainClient));
   }
 
