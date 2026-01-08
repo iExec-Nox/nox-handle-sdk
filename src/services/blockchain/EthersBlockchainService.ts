@@ -4,41 +4,81 @@ import type { IBlockchainService } from './IBlockchainService.js';
 export type EthersClient = AbstractSigner<Provider> | BrowserProvider;
 
 /**
+ * Internal adapter interface for ethers clients
+ */
+interface EthersAdapter {
+  getChainId(): Promise<number>;
+  getAddress(): Promise<string>;
+}
+
+/**
+ * Adapter for ethers AbstractSigner
+ */
+class SignerAdapter implements EthersAdapter {
+  constructor(signer: AbstractSigner<Provider>) {
+    this.signer = signer;
+  }
+
+  private signer: AbstractSigner<Provider>;
+
+  async getChainId(): Promise<number> {
+    const network = await this.signer.provider.getNetwork();
+    return Number(network.chainId);
+  }
+
+  async getAddress(): Promise<string> {
+    return this.signer.getAddress();
+  }
+}
+
+/**
+ * Adapter for ethers BrowserProvider
+ */
+class BrowserProviderAdapter implements EthersAdapter {
+  constructor(provider: BrowserProvider) {
+    this.provider = provider;
+  }
+
+  private provider: BrowserProvider;
+
+  async getChainId(): Promise<number> {
+    const network = await this.provider.getNetwork();
+    return Number(network.chainId);
+  }
+
+  async getAddress(): Promise<string> {
+    const signer = await this.provider.getSigner();
+    return signer.getAddress();
+  }
+}
+
+/**
  * EthersBlockchainService
  *
  * Implements IBlockchainService using ethers library.
  *
- * @param signer - An ethers AbstractSigner instance connected to a Provider or a BrowserProvider
+ * @param client - An ethers AbstractSigner instance connected to a Provider or a BrowserProvider
  * @returns A EthersBlockchainService instance
- * @throws {TypeError} if the provided signer is invalid
+ * @throws {TypeError} if the provided client is invalid
  */
 export class EthersBlockchainService implements IBlockchainService {
-  constructor(signer: EthersClient) {
-    if (isEthersSigner(signer)) {
-      this.signerProvider = signer;
-    } else if (isEthersBrowserProvider(signer)) {
-      this.browserProvider = signer;
+  constructor(client: EthersClient) {
+    if (isEthersSigner(client)) {
+      this.adapter = new SignerAdapter(client);
+    } else if (isEthersBrowserProvider(client)) {
+      this.adapter = new BrowserProviderAdapter(client);
     } else {
       throw new TypeError(
-        'Unsupported signer. Expected an ethers AbstractSigner instance connected to a Provider or a BrowserProvider.'
+        'Unsupported client. Expected an ethers AbstractSigner instance connected to a Provider or a BrowserProvider.'
       );
     }
   }
 
-  private signerProvider?: AbstractSigner<Provider>;
-  private browserProvider?: BrowserProvider;
+  private adapter: EthersAdapter;
 
   async getChainId(): Promise<number> {
     try {
-      if (this.signerProvider) {
-        const network = await this.signerProvider.provider.getNetwork();
-        return Number(network.chainId);
-      }
-      if (this.browserProvider) {
-        const network = await this.browserProvider.getNetwork();
-        return Number(network.chainId);
-      }
-      throw new Error('No provider available to get chain ID');
+      return await this.adapter.getChainId();
     } catch (error) {
       throw new Error('Failed to get chain ID', { cause: error });
     }
@@ -46,16 +86,7 @@ export class EthersBlockchainService implements IBlockchainService {
 
   async getAddress(): Promise<string> {
     try {
-      if (this.signerProvider) {
-        const address = await this.signerProvider.getAddress();
-        return address;
-      }
-      if (this.browserProvider) {
-        const signer = await this.browserProvider.getSigner();
-        const address = await signer.getAddress();
-        return address;
-      }
-      throw new Error('No signer available to get address');
+      return await this.adapter.getAddress();
     } catch (error) {
       throw new Error('Failed to get address', { cause: error });
     }
