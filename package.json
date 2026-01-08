@@ -53,6 +53,7 @@
     "@vitest/ui": "^3.2.4",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-sonarjs": "^3.0.5",
     "eslint-plugin-unicorn": "^62.0.0",
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",
