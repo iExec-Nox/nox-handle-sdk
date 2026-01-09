@@ -5,10 +5,10 @@
   "type": "module",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
-  "types": "./dist/esm/index.d.ts",
+  "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/esm/index.d.ts",
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
     }
@@ -25,16 +25,19 @@
     "build:esm:watch": "tsc --project tsconfig.esm.json --watch",
     "check-types": "tsc --noEmit",
     "clean": "rm -rf dist",
-    "format": "prettier --write \"src/**/*.ts\" \"*.json\" \"*.md\"",
-    "check-format": "prettier --check \"src/**/*.ts\" \"*.json\" \"*.md\"",
-    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"*.config.ts\" \"*.json\" \"*.md\"",
+    "check-format": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\" \"*.config.ts\" \"*.json\" \"*.md\"",
+    "lint": "eslint src/**/*.ts tests/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts tests/**/*.ts --fix",
+    "validate": "npm run check-format && npm run lint && npm run check-types && npm run test:run",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
     "test:unit": "vitest run tests/unit",
-    "test:integration": "vitest run tests/integration"
+    "test:integration": "vitest run tests/integration",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -46,7 +49,18 @@
     "url": "https://github.com/iExecBlockchainComputing/nox-handle-sdk/issues"
   },
   "homepage": "https://github.com/iExecBlockchainComputing/nox-handle-sdk#readme",
+  "lint-staged": {
+    "*.ts": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{js,json,md}": [
+      "prettier --write"
+    ]
+  },
   "devDependencies": {
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
     "@eslint/js": "^9.39.2",
     "@types/node": "^25.0.3",
     "@vitest/coverage-v8": "^3.2.4",
@@ -55,6 +69,8 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-sonarjs": "^3.0.5",
     "eslint-plugin-unicorn": "^62.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.52.0",

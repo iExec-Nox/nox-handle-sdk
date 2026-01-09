@@ -22,14 +22,14 @@ export default defineConfig(
   },
 
   {
-    ignores: ['dist/**', 'node_modules/**'],
+    ignores: ['dist/**', 'node_modules/**', 'scripts/**'],
   },
 
   {
     files: ['**/*.ts'],
     languageOptions: {
       parserOptions: {
-        project: './tsconfig.esm.json',
+        project: './tsconfig.json',
       },
     },
   }

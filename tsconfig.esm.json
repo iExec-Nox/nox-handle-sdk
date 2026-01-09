@@ -1,15 +1,14 @@
 {
-  "extends": "./tsconfig.json",
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
     "outDir": "./dist/esm",
-    "removeComments": true,
     "declaration": true,
+    "declarationDir": "./dist/types",
     "declarationMap": true,
     "sourceMap": true,
-    "noEmit": false
+    "removeComments": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests"]
+  "exclude": ["node_modules", "dist"]
 }
