@@ -1,4 +1,5 @@
 import { HandleClient } from '../client/HandleClient.js';
+import { resolveNetworkConfig } from '../config/networks.js';
 import {
   EthersBlockchainService,
   isEthersSigner,
@@ -10,6 +11,7 @@ import {
   ViemBlockchainService,
   type ViemClient,
 } from '../services/blockchain/ViemBlockchainService.js';
+import type { HandleClientConfig } from '../types/types.js';
 
 export type BlockchainClient = EthersClient | ViemClient;
 
@@ -17,8 +19,10 @@ export type BlockchainClient = EthersClient | ViemClient;
  * Creates a HandleClient from a client of either ethers or viem
  *
  * @param blockchainClient - An ethers client with a Signer and a Provider or a viem WalletClient connected to an account
+ * @param config - Optional partial config to override network defaults
  * @returns A HandleClient instance
  * @throws {TypeError} if the provided blockchainClient is invalid
+ * @throws {Error} if the chain is not supported and no complete config is provided
  *
  * @warning
  * This function is provided for convenience, you should use `createEthersHandleClient`
@@ -48,18 +52,27 @@ export type BlockchainClient = EthersClient | ViemClient;
  * const handleClient = createHandleClient(viemClient);
  * ```
  */
-export const createHandleClient = (
-  blockchainClient: BlockchainClient
-): HandleClient => {
+export const createHandleClient = async (
+  blockchainClient: BlockchainClient,
+  config?: Partial<HandleClientConfig>
+): Promise<HandleClient> => {
   if (
     isEthersSigner(blockchainClient) ||
     isEthersBrowserProvider(blockchainClient)
   ) {
-    return new HandleClient(new EthersBlockchainService(blockchainClient));
+    const ethersBlockchainService = new EthersBlockchainService(
+      blockchainClient
+    );
+    const chainId = await ethersBlockchainService.getChainId();
+    const resolvedConfig = resolveNetworkConfig(chainId, config);
+    return new HandleClient(ethersBlockchainService, resolvedConfig);
   }
 
   if (isViemWalletClient(blockchainClient)) {
-    return new HandleClient(new ViemBlockchainService(blockchainClient));
+    const viemBlockchainService = new ViemBlockchainService(blockchainClient);
+    const chainId = await viemBlockchainService.getChainId();
+    const resolvedConfig = resolveNetworkConfig(chainId, config);
+    return new HandleClient(viemBlockchainService, resolvedConfig);
   }
 
   throw new TypeError(
