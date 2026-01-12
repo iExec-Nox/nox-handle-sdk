@@ -6,27 +6,32 @@ const DERIVATION_INFO = hexToBytes(
 );
 
 /**
- * Decrypts ciphertext using ECIES HKDF with the provided ephemeral shared secret point.
+ * Decrypts cipher text using ECIES HKDF with the provided ephemeral shared secret point.
  *
- * @param ciphertext hex encoded ciphertext to decrypt (format: encrypted_data + auth_tag[16])
- * @param iv hex encoded initialization vector (IV) used during encryption
- * @param ephemeralSharedSecretPoint hex encoded SEC1 ephemeral shared secret point for decryption (K*privateKey)
+ * @param params - The decryption parameters
+ * @param params.ciphertext - Hex encoded cipher text to decrypt (format: encrypted_data + auth_tag[16])
+ * @param params.iv - Hex encoded initialization vector (IV) used during encryption
+ * @param params.compressedSecretPoint - Hex encoded SEC1 compressed shared secret point for decryption (K*privateKey)
  * @returns Decrypted hex encoded plaintext
  */
-export async function eciesDecrypt(
-  ciphertext: string,
-  iv: string,
-  ephemeralSharedSecretPoint: string
-): Promise<string> {
+export async function eciesDecrypt({
+  ciphertext,
+  iv,
+  compressedSecretPoint,
+}: {
+  ciphertext: string;
+  iv: string;
+  compressedSecretPoint: string;
+}): Promise<string> {
   // Convert hex strings to Uint8Array
   const ciphertextBytes = hexToBytes(ciphertext);
-  const sharedSecretBytes = hexToBytes(ephemeralSharedSecretPoint);
+  const compressedSecretPointBytes = hexToBytes(compressedSecretPoint);
 
   // Extract x-coordinate from shared secret point (SEC1 encoding)
-  if (sharedSecretBytes.length !== 33) {
+  if (compressedSecretPointBytes.length !== 33) {
     throw new TypeError('Invalid shared secret point length');
   }
-  const xCoordinate = sharedSecretBytes.slice(1, 33);
+  const xCoordinate = compressedSecretPointBytes.slice(1, 33);
 
   // Import shared secret as key material for HKDF
   const keyMaterial = await crypto.subtle.importKey(
