@@ -71,7 +71,7 @@
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.52.0",
-"viem": "^2.43.5",
+    "viem": "^2.43.5",
     "vitest": "^3.2.4"
   }
 }
