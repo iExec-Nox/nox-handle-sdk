@@ -1,7 +1,7 @@
 import type { AbstractSigner, BrowserProvider, Provider } from 'ethers';
 import type { IBlockchainService } from './IBlockchainService.js';
 
-export type EthersClient = AbstractSigner<Provider> | BrowserProvider;
+export type EthersClient = AbstractSigner | BrowserProvider;
 
 /**
  * Internal adapter interface for ethers clients
