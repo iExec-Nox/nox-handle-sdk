@@ -3,12 +3,12 @@
   "compilerOptions": {
     "module": "CommonJS",
     "moduleResolution": "Node",
+    "verbatimModuleSyntax": false,
     "outDir": "./dist/cjs",
     "removeComments": true,
     "declaration": false,
-    "noEmit": false,
-    "verbatimModuleSyntax": false
+    "noEmit": false
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+  "exclude": ["node_modules"]
 }

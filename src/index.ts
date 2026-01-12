@@ -1,1 +1,5 @@
-export const version = '0.0.1'; // placeholder
+export type * from './types/types.js';
+
+export { createHandleClient } from './factories/createHandleClient.js';
+export { createEthersHandleClient } from './factories/createEthersHandleClient.js';
+export { createViemHandleClient } from './factories/createViemHandleClient.js';

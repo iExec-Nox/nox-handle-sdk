@@ -25,9 +25,9 @@
     "build:esm:watch": "tsc --project tsconfig.esm.json --watch",
     "check-types": "tsc --noEmit",
     "clean": "rm -rf dist",
-    "format": "prettier --write \"src/**/*.ts\" \"*.json\" \"*.md\"",
-    "check-format": "prettier --check \"src/**/*.ts\" \"*.json\" \"*.md\"",
-    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write \"./**/*.ts\"  \"./**/*.json\" \"./**/*.md\"",
+    "check-format": "prettier --check \"./**/*.ts\" \"./**/*.json\" \"./**/*.md\"",
+    "lint": "eslint src/**/*.ts tests/**/*.ts",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
@@ -46,6 +46,18 @@
     "url": "https://github.com/iExecBlockchainComputing/nox-handle-sdk/issues"
   },
   "homepage": "https://github.com/iExecBlockchainComputing/nox-handle-sdk#readme",
+  "peerDependencies": {
+    "ethers": "^6.0.0",
+    "viem": "^2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "ethers": {
+      "optional": true
+    },
+    "viem": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@types/node": "^25.0.3",
@@ -55,9 +67,11 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-sonarjs": "^3.0.5",
     "eslint-plugin-unicorn": "^62.0.0",
+    "ethers": "^6.16.0",
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.52.0",
+    "viem": "^2.43.5",
     "vitest": "^3.2.4"
   }
 }

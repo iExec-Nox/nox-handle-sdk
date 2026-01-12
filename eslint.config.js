@@ -29,7 +29,7 @@ export default defineConfig(
     files: ['**/*.ts'],
     languageOptions: {
       parserOptions: {
-        project: './tsconfig.esm.json',
+        project: './tsconfig.json',
       },
     },
   }
