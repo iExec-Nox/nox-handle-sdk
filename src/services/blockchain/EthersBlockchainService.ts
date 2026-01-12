@@ -37,7 +37,7 @@ export function isEthersSigner(
  *
  * @dev ⚠️ Update isEthersSigner function if this class is modified requiring more duck type checks
  */
-class SignerAdapter implements EthersAdapter {
+export class SignerAdapter implements EthersAdapter {
   constructor(signer: AbstractSigner<Provider>) {
     this.signer = signer;
   }
@@ -77,7 +77,7 @@ export function isEthersBrowserProvider(
  *
  * @dev ⚠️ Update isEthersBrowserProvider function if this class is modified requiring more duck type checks
  */
-class BrowserProviderAdapter implements EthersAdapter {
+export class BrowserProviderAdapter implements EthersAdapter {
   constructor(provider: BrowserProvider) {
     this.provider = provider;
   }
