@@ -10,7 +10,6 @@
 
     /* Emit */
     "noEmit": true,
-    "rootDir": "./src",
 
     /* Interop Constraints */
     "esModuleInterop": true,
@@ -41,6 +40,5 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true
   },
-  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }
