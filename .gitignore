@@ -13,19 +13,9 @@ coverage/
 !.env.example
 
 # IDE
-.idea/
 .vscode/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
+.cursor/
 
 # Logs
 *.log
 npm-debug.log*
-
-# Temporary files
-*.tmp
-*.temp
