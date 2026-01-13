@@ -1,5 +1,9 @@
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
-import type { HandleClientConfig } from '../types/types.js';
+
+export type HandleClientConfig = {
+  gatewayUrl: string;
+  smartContractAddress: string;
+};
 
 /**
  * HandleClient

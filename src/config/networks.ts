@@ -1,4 +1,4 @@
-import type { HandleClientConfig } from '../types/types.js';
+import type { HandleClientConfig } from '../client/HandleClient.js';
 
 // TODO: replace with production endpoints
 export const NETWORK_ENDPOINTS: Record<number, HandleClientConfig> = {
