@@ -65,7 +65,9 @@ describe('createViemHandleClient', () => {
       const viemClient = createMockViemClient(UNSUPPORTED_CHAIN_ID);
 
       await expect(createViemHandleClient(viemClient)).rejects.toThrow(
-        /Chain 999999 is not supported/
+        new Error(
+          'Chain 999999 is not supported. Supported chains: 42161, 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
+        )
       );
     });
 
@@ -92,7 +94,11 @@ describe('createViemHandleClient', () => {
         createViemHandleClient(viemClient, {
           gatewayUrl: 'https://partial.com',
         })
-      ).rejects.toThrow(/Chain 999999 is not supported/);
+      ).rejects.toThrow(
+        new Error(
+          'Chain 999999 is not supported. Supported chains: 42161, 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
+        )
+      );
     });
   });
 });
