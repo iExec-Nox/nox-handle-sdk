@@ -4,7 +4,7 @@ import {
   EthersBlockchainService,
   type EthersClient,
 } from '../services/blockchain/EthersBlockchainService.js';
-import type { HandleClientConfig } from '../types/types.js';
+import type { HandleClientConfig } from '../client/HandleClient.js';
 
 /**
  * Creates a HandleClient from an ethers signer provider
@@ -13,7 +13,7 @@ import type { HandleClientConfig } from '../types/types.js';
  * @param config - Optional partial config to override network defaults
  * @returns A HandleClient instance
  * @throws {TypeError} if the provided signer is invalid
- * @throws {Error} if the chain is not supported and no complete config is provided
+ * @throws {Error} if the ethersClient fails to detect the connected chain or if the chain is not supported and no complete config is provided
  *
  * @example
  * ```

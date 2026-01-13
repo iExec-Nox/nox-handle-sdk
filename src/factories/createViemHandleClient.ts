@@ -1,7 +1,7 @@
 import type { Account, Chain, Transport, WalletClient } from 'viem';
 import { HandleClient } from '../client/HandleClient.js';
 import { ViemBlockchainService } from '../services/blockchain/ViemBlockchainService.js';
-import type { HandleClientConfig } from '../types/types.js';
+import type { HandleClientConfig } from '../client/HandleClient.js';
 import { resolveNetworkConfig } from '../config/networks.js';
 
 /**
@@ -11,7 +11,7 @@ import { resolveNetworkConfig } from '../config/networks.js';
  * @param config - Optional partial config to override network defaults
  * @returns A HandleClient instance
  * @throws {TypeError} if the provided viemClient is invalid
- * @throws {Error} if the chain is not supported and no complete config is provided
+ * @throws {Error} if the viemClient fails to detect the connected chain or if the chain is not supported and no complete config is provided
  *
  * @example
  * ```

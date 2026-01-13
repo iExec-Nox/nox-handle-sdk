@@ -11,7 +11,7 @@ import {
   ViemBlockchainService,
   type ViemClient,
 } from '../services/blockchain/ViemBlockchainService.js';
-import type { HandleClientConfig } from '../types/types.js';
+import type { HandleClientConfig } from '../client/HandleClient.js';
 
 export type BlockchainClient = EthersClient | ViemClient;
 
@@ -22,8 +22,7 @@ export type BlockchainClient = EthersClient | ViemClient;
  * @param config - Optional partial config to override network defaults
  * @returns A HandleClient instance
  * @throws {TypeError} if the provided blockchainClient is invalid
- * @throws {Error} if the chain is not supported and no complete config is provided
- *
+ * @throws {Error} if the blockchainClient fails to detect the connected chain or if the chain is not supported and no complete config is provided
  * @warning
  * This function is provided for convenience, you should use `createEthersHandleClient`
  * or `createViemHandleClient` for smaller bundle size.
