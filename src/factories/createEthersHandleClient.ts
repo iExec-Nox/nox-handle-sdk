@@ -1,15 +1,19 @@
 import { HandleClient } from '../client/HandleClient.js';
+import { resolveNetworkConfig } from '../config/networks.js';
 import {
   EthersBlockchainService,
   type EthersClient,
 } from '../services/blockchain/EthersBlockchainService.js';
+import type { HandleClientConfig } from '../client/HandleClient.js';
 
 /**
  * Creates a HandleClient from an ethers signer provider
  *
  * @param ethersClient - An ethers AbstractSigner instance connected to a Provider or a BrowserProvider instance
- * @returns A HandleClient instance
+ * @param config - Optional partial config to override network defaults
+ * @returns A Promise of HandleClient instance
  * @throws {TypeError} if the provided signer is invalid
+ * @throws {Error} if the ethersClient fails to detect the connected chain or if the chain is not supported and no complete config is provided
  *
  * @example
  * ```
@@ -36,9 +40,12 @@ import {
  * const handleClient = createEthersHandleClient(ethersClient);
  * ```
  */
-export const createEthersHandleClient = (
-  ethersClient: EthersClient
-): HandleClient => {
+export const createEthersHandleClient = async (
+  ethersClient: EthersClient,
+  config?: Partial<HandleClientConfig>
+): Promise<HandleClient> => {
   const ethersBlockchainService = new EthersBlockchainService(ethersClient);
-  return new HandleClient(ethersBlockchainService);
+  const chainId = await ethersBlockchainService.getChainId();
+  const resolvedConfig = resolveNetworkConfig(chainId, config);
+  return new HandleClient(ethersBlockchainService, resolvedConfig);
 };

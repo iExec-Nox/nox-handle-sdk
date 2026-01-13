@@ -1,22 +1,31 @@
 import { it, describe, expect } from 'vitest';
-import { BrowserProvider, Wallet, JsonRpcProvider } from 'ethers';
+import { Wallet } from 'ethers';
 import { createEthersHandleClient } from '../../../src/factories/createEthersHandleClient.js';
 import {
   BrowserProviderAdapter,
   EthersBlockchainService,
   SignerAdapter,
 } from '../../../src/services/blockchain/EthersBlockchainService.js';
+import { NETWORK_CONFIGS } from '../../../src/config/networks.js';
+import {
+  TEST_PRIVATE_KEY,
+  SUPPORTED_CHAIN_ID,
+  UNSUPPORTED_CHAIN_ID,
+  createMockProvider,
+  createMockBrowserProvider,
+} from '../../helpers/mocks.js';
 
 describe('createEthersHandleClient', () => {
   describe('with an AbstractSigner connected to a provider', () => {
     it('should create a HandleClient instance with a blockchainService of type EthersBlockchainService and a SignerAdapter', async () => {
       const ethersClient = new Wallet(
-        '0xabc123abc123abc123abc123abc123abc123abc123abc123abc123abc123abc1',
-        new JsonRpcProvider('http://localhost:8545')
+        TEST_PRIVATE_KEY,
+        createMockProvider(SUPPORTED_CHAIN_ID)
       );
-      const ethersHandleClient = createEthersHandleClient(ethersClient);
+
+      const ethersHandleClient = await createEthersHandleClient(ethersClient);
+
       expect(ethersHandleClient).toBeDefined();
-      expect(typeof ethersHandleClient).toBe('object');
       expect(ethersHandleClient['blockchainService']).toBeInstanceOf(
         EthersBlockchainService
       );
@@ -30,12 +39,11 @@ describe('createEthersHandleClient', () => {
 
   describe('with a BrowserProvider', () => {
     it('should create a HandleClient instance with a blockchainService of type EthersBlockchainService and a BrowserProviderAdapter', async () => {
-      const ethersClient = new BrowserProvider({
-        async request() {}, // dummy EIP-1193 provider
-      });
-      const ethersHandleClient = createEthersHandleClient(ethersClient);
+      const ethersClient = createMockBrowserProvider(SUPPORTED_CHAIN_ID);
+
+      const ethersHandleClient = await createEthersHandleClient(ethersClient);
+
       expect(ethersHandleClient).toBeDefined();
-      expect(typeof ethersHandleClient).toBe('object');
       expect(ethersHandleClient['blockchainService']).toBeInstanceOf(
         EthersBlockchainService
       );
@@ -49,10 +57,9 @@ describe('createEthersHandleClient', () => {
 
   describe('with an AbstractSigner NOT connected to a provider', () => {
     it('should throw an error', async () => {
-      const ethersClient = new Wallet(
-        '0xabc123abc123abc123abc123abc123abc123abc123abc123abc123abc123abc1'
-      );
-      expect(() => createEthersHandleClient(ethersClient)).toThrowError(
+      const ethersClient = new Wallet(TEST_PRIVATE_KEY);
+
+      await expect(createEthersHandleClient(ethersClient)).rejects.toThrow(
         new TypeError(
           'Unsupported client. Expected an ethers AbstractSigner instance connected to a Provider or a BrowserProvider.'
         )
@@ -61,11 +68,95 @@ describe('createEthersHandleClient', () => {
   });
 
   describe('with an invalid client', () => {
-    it('should throw an error', () => {
+    it('should throw an error', async () => {
       const invalidClient = {} as never;
-      expect(() => createEthersHandleClient(invalidClient)).toThrowError(
+
+      await expect(createEthersHandleClient(invalidClient)).rejects.toThrow(
         new TypeError(
           'Unsupported client. Expected an ethers AbstractSigner instance connected to a Provider or a BrowserProvider.'
+        )
+      );
+    });
+  });
+
+  describe('config resolution', () => {
+    it('should resolve config from supported chainId', async () => {
+      const ethersClient = new Wallet(
+        TEST_PRIVATE_KEY,
+        createMockProvider(SUPPORTED_CHAIN_ID)
+      );
+
+      const handleClient = await createEthersHandleClient(ethersClient);
+
+      expect(handleClient.getGatewayUrl()).toBe(
+        NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.gatewayUrl
+      );
+      expect(handleClient.getSmartContractAddress()).toBe(
+        NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.smartContractAddress
+      );
+    });
+
+    it('should use override values when provided', async () => {
+      const ethersClient = new Wallet(
+        TEST_PRIVATE_KEY,
+        createMockProvider(SUPPORTED_CHAIN_ID)
+      );
+
+      const handleClient = await createEthersHandleClient(ethersClient, {
+        gatewayUrl: 'https://custom-gateway.com',
+      });
+
+      expect(handleClient.getGatewayUrl()).toBe('https://custom-gateway.com');
+      expect(handleClient.getSmartContractAddress()).toBe(
+        NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.smartContractAddress
+      );
+    });
+
+    it('should throw if chainId not supported and no config provided', async () => {
+      const ethersClient = new Wallet(
+        TEST_PRIVATE_KEY,
+        createMockProvider(UNSUPPORTED_CHAIN_ID)
+      );
+
+      await expect(createEthersHandleClient(ethersClient)).rejects.toThrow(
+        new Error(
+          'Chain 999999 is not supported. Supported chains: 42161, 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
+        )
+      );
+    });
+
+    it('should work with complete config on unsupported chainId', async () => {
+      const ethersClient = new Wallet(
+        TEST_PRIVATE_KEY,
+        createMockProvider(UNSUPPORTED_CHAIN_ID)
+      );
+
+      const handleClient = await createEthersHandleClient(ethersClient, {
+        gatewayUrl: 'https://my-custom-gateway.com',
+        smartContractAddress: '0x1234567890123456789012345678901234567890',
+      });
+
+      expect(handleClient.getGatewayUrl()).toBe(
+        'https://my-custom-gateway.com'
+      );
+      expect(handleClient.getSmartContractAddress()).toBe(
+        '0x1234567890123456789012345678901234567890'
+      );
+    });
+
+    it('should throw with partial config on unsupported chainId', async () => {
+      const ethersClient = new Wallet(
+        TEST_PRIVATE_KEY,
+        createMockProvider(UNSUPPORTED_CHAIN_ID)
+      );
+
+      await expect(
+        createEthersHandleClient(ethersClient, {
+          gatewayUrl: 'https://partial.com',
+        })
+      ).rejects.toThrow(
+        new Error(
+          'Chain 999999 is not supported. Supported chains: 42161, 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
         )
       );
     });

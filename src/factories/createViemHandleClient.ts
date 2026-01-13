@@ -1,13 +1,17 @@
 import type { Account, Chain, Transport, WalletClient } from 'viem';
 import { HandleClient } from '../client/HandleClient.js';
 import { ViemBlockchainService } from '../services/blockchain/ViemBlockchainService.js';
+import type { HandleClientConfig } from '../client/HandleClient.js';
+import { resolveNetworkConfig } from '../config/networks.js';
 
 /**
  * Creates a HandleClient from a viem WalletClient
  *
  * @param viemClient - A viem WalletClient instance connected to an account
- * @returns A HandleClient instance
+ * @param config - Optional partial config to override network defaults
+ * @returns A Promise of HandleClient instance
  * @throws {TypeError} if the provided viemClient is invalid
+ * @throws {Error} if the viemClient fails to detect the connected chain or if the chain is not supported and no complete config is provided
  *
  * @example
  * ```
@@ -39,9 +43,12 @@ import { ViemBlockchainService } from '../services/blockchain/ViemBlockchainServ
  * const handleClient = createViemHandleClient(viemClient);
  * ```
  */
-export const createViemHandleClient = (
-  viemClient: WalletClient<Transport, Chain | undefined, Account>
-): HandleClient => {
+export const createViemHandleClient = async (
+  viemClient: WalletClient<Transport, Chain | undefined, Account>,
+  config?: Partial<HandleClientConfig>
+): Promise<HandleClient> => {
   const viemBlockchainService = new ViemBlockchainService(viemClient);
-  return new HandleClient(viemBlockchainService);
+  const chainId = await viemBlockchainService.getChainId();
+  const resolvedConfig = resolveNetworkConfig(chainId, config);
+  return new HandleClient(viemBlockchainService, resolvedConfig);
 };
