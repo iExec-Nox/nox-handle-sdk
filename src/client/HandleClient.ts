@@ -16,7 +16,7 @@ export class HandleClient {
   /**
    * Creates an instance of HandleClient.
    * @param blockchainService
-   * @returns A HandleClient instance
+   * @returns A Promise of HandleClient instance
    * @throws {TypeError} if the provided blockchainService is invalid
    */
   constructor(

@@ -11,7 +11,7 @@ import type { HandleClientConfig } from '../client/HandleClient.js';
  *
  * @param ethersClient - An ethers AbstractSigner instance connected to a Provider or a BrowserProvider instance
  * @param config - Optional partial config to override network defaults
- * @returns A HandleClient instance
+ * @returns A Promise of HandleClient instance
  * @throws {TypeError} if the provided signer is invalid
  * @throws {Error} if the ethersClient fails to detect the connected chain or if the chain is not supported and no complete config is provided
  *

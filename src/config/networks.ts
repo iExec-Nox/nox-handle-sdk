@@ -1,7 +1,7 @@
 import type { HandleClientConfig } from '../client/HandleClient.js';
 
 // TODO: replace with production endpoints
-export const NETWORK_ENDPOINTS: Record<number, HandleClientConfig> = {
+export const NETWORK_CONFIGS: Record<number, HandleClientConfig> = {
   421_614: {
     gatewayUrl: 'https://gateway.testnet.nox.com',
     smartContractAddress: '0x0000000000000000000000000000000000000000',
@@ -16,10 +16,10 @@ export function resolveNetworkConfig(
   chainId: number,
   override?: Partial<HandleClientConfig>
 ): HandleClientConfig {
-  const networkConfig = NETWORK_ENDPOINTS[chainId];
+  const networkConfig = NETWORK_CONFIGS[chainId];
 
   if (!networkConfig && !isCompleteConfig(override)) {
-    const supported = Object.keys(NETWORK_ENDPOINTS).join(', ');
+    const supported = Object.keys(NETWORK_CONFIGS).join(', ');
     throw new Error(
       `Chain ${chainId} is not supported. Supported chains: ${supported}. ` +
         `To use an unsupported chain, provide both gatewayUrl and smartContractAddress.`

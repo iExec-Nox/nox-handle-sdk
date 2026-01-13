@@ -6,7 +6,7 @@ import {
   EthersBlockchainService,
   SignerAdapter,
 } from '../../../src/services/blockchain/EthersBlockchainService.js';
-import { NETWORK_ENDPOINTS } from '../../../src/config/networks.js';
+import { NETWORK_CONFIGS } from '../../../src/config/networks.js';
 import {
   TEST_PRIVATE_KEY,
   SUPPORTED_CHAIN_ID,
@@ -89,10 +89,10 @@ describe('createEthersHandleClient', () => {
       const handleClient = await createEthersHandleClient(ethersClient);
 
       expect(handleClient.getGatewayUrl()).toBe(
-        NETWORK_ENDPOINTS[SUPPORTED_CHAIN_ID]?.gatewayUrl
+        NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.gatewayUrl
       );
       expect(handleClient.getSmartContractAddress()).toBe(
-        NETWORK_ENDPOINTS[SUPPORTED_CHAIN_ID]?.smartContractAddress
+        NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.smartContractAddress
       );
     });
 
@@ -108,7 +108,7 @@ describe('createEthersHandleClient', () => {
 
       expect(handleClient.getGatewayUrl()).toBe('https://custom-gateway.com');
       expect(handleClient.getSmartContractAddress()).toBe(
-        NETWORK_ENDPOINTS[SUPPORTED_CHAIN_ID]?.smartContractAddress
+        NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.smartContractAddress
       );
     });
 

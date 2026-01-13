@@ -1,7 +1,7 @@
 import { it, describe, expect } from 'vitest';
 import { createViemHandleClient } from '../../../src/factories/createViemHandleClient.js';
 import { ViemBlockchainService } from '../../../src/services/blockchain/ViemBlockchainService.js';
-import { NETWORK_ENDPOINTS } from '../../../src/config/networks.js';
+import { NETWORK_CONFIGS } from '../../../src/config/networks.js';
 import {
   SUPPORTED_CHAIN_ID,
   UNSUPPORTED_CHAIN_ID,
@@ -41,10 +41,10 @@ describe('createViemHandleClient', () => {
       const handleClient = await createViemHandleClient(viemClient);
 
       expect(handleClient.getGatewayUrl()).toBe(
-        NETWORK_ENDPOINTS[SUPPORTED_CHAIN_ID]?.gatewayUrl
+        NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.gatewayUrl
       );
       expect(handleClient.getSmartContractAddress()).toBe(
-        NETWORK_ENDPOINTS[SUPPORTED_CHAIN_ID]?.smartContractAddress
+        NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.smartContractAddress
       );
     });
 
@@ -57,7 +57,7 @@ describe('createViemHandleClient', () => {
 
       expect(handleClient.getGatewayUrl()).toBe('https://custom-gateway.com');
       expect(handleClient.getSmartContractAddress()).toBe(
-        NETWORK_ENDPOINTS[SUPPORTED_CHAIN_ID]?.smartContractAddress
+        NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.smartContractAddress
       );
     });
 

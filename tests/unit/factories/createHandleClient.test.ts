@@ -3,7 +3,7 @@ import { Wallet } from 'ethers';
 import { EthersBlockchainService } from '../../../src/services/blockchain/EthersBlockchainService.js';
 import { createHandleClient } from '../../../src/factories/createHandleClient.js';
 import { ViemBlockchainService } from '../../../src/services/blockchain/ViemBlockchainService.js';
-import { NETWORK_ENDPOINTS } from '../../../src/config/networks.js';
+import { NETWORK_CONFIGS } from '../../../src/config/networks.js';
 import {
   TEST_PRIVATE_KEY,
   SUPPORTED_CHAIN_ID,
@@ -60,10 +60,10 @@ describe('createHandleClient', () => {
       const handleClient = await createHandleClient(viemClient);
 
       expect(handleClient.getGatewayUrl()).toBe(
-        NETWORK_ENDPOINTS[SUPPORTED_CHAIN_ID]?.gatewayUrl
+        NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.gatewayUrl
       );
       expect(handleClient.getSmartContractAddress()).toBe(
-        NETWORK_ENDPOINTS[SUPPORTED_CHAIN_ID]?.smartContractAddress
+        NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.smartContractAddress
       );
     });
 

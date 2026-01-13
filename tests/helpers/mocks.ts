@@ -1,13 +1,13 @@
 import { vi } from 'vitest';
 import { BrowserProvider, JsonRpcProvider } from 'ethers';
 import { privateKeyToAccount } from 'viem/accounts';
-import { NETWORK_ENDPOINTS } from '../../src/config/networks.js';
+import { NETWORK_CONFIGS } from '../../src/config/networks.js';
 import type { ViemClient } from '../../src/services/blockchain/ViemBlockchainService.js';
 
 // Test constants
 export const TEST_PRIVATE_KEY =
   '0xabc123abc123abc123abc123abc123abc123abc123abc123abc123abc123abc1';
-export const SUPPORTED_CHAIN_ID = Number(Object.keys(NETWORK_ENDPOINTS)[0]);
+export const SUPPORTED_CHAIN_ID = Number(Object.keys(NETWORK_CONFIGS)[0]);
 export const UNSUPPORTED_CHAIN_ID = 999_999;
 
 /**
