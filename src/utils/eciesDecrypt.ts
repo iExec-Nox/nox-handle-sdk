@@ -10,33 +10,36 @@ const DERIVATION_INFO = hexToBytes(
  *
  * @param params - The decryption parameters
  * @param params.ciphertext - Hex encoded cipher text to decrypt (format: encrypted_data + auth_tag[16])
- * @param params.iv - Hex encoded initialization vector (IV) used during encryption
- * @param params.compressedSecretPoint - Hex encoded SEC1 compressed shared secret point for decryption (K*privateKey)
+ * @param params.iv - Hex encoded 12 bytes initialization vector (IV) used during AES-256-GCM encryption
+ * @param params.sharedSecret - Hex encoded 32 bytes x coordinate of the secret point (K*privateKey)
  * @returns Decrypted hex encoded plaintext
  */
 export async function eciesDecrypt({
   ciphertext,
   iv,
-  compressedSecretPoint,
+  sharedSecret,
 }: {
   ciphertext: string;
   iv: string;
-  compressedSecretPoint: string;
+  sharedSecret: string;
 }): Promise<string> {
   // Convert hex strings to Uint8Array
   const ciphertextBytes = hexToBytes(ciphertext);
-  const compressedSecretPointBytes = hexToBytes(compressedSecretPoint);
+  const sharedSecretBytes = hexToBytes(sharedSecret);
+  const ivBytes = hexToBytes(iv);
 
-  // Extract x-coordinate from shared secret point (SEC1 encoding)
-  if (compressedSecretPointBytes.length !== 33) {
-    throw new TypeError('Invalid shared secret point length');
+  if (sharedSecretBytes.length !== 32) {
+    throw new TypeError('Invalid shared secret length');
   }
-  const xCoordinate = compressedSecretPointBytes.slice(1, 33);
+
+  if (ivBytes.length !== 12) {
+    throw new TypeError('Invalid IV length');
+  }
 
   // Import shared secret as key material for HKDF
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
-    xCoordinate,
+    sharedSecretBytes,
     'HKDF',
     false,
     ['deriveKey']
@@ -60,7 +63,7 @@ export async function eciesDecrypt({
   const decryptedBytes = await crypto.subtle.decrypt(
     {
       name: 'AES-GCM',
-      iv: hexToBytes(iv),
+      iv: ivBytes,
       tagLength: 128,
     },
     aesKey,
