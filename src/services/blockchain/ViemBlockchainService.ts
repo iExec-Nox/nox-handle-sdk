@@ -1,7 +1,10 @@
-import type { Account, WalletClient, Transport, Chain } from 'viem';
-import type { IBlockchainService } from './IBlockchainService.js';
+import type { WalletClient, TypedDataDomain } from 'viem';
+import type {
+  EIP712TypedData,
+  IBlockchainService,
+} from './IBlockchainService.js';
 
-export type ViemClient = WalletClient<Transport, Chain | undefined, Account>;
+export type ViemClient = WalletClient;
 
 /**
  * Type guard to check if a client is a viem WalletClient connected to an account
@@ -14,11 +17,8 @@ export function isViemWalletClient(object: unknown): object is ViemClient {
     typeof object === 'object' &&
     'getChainId' in object &&
     typeof object.getChainId === 'function' &&
-    'account' in object &&
-    !!object.account &&
-    typeof object.account === 'object' &&
-    'address' in object.account &&
-    typeof object.account.address === 'string'
+    'getAddresses' in object &&
+    typeof object.getAddresses === 'function'
   );
 }
 
@@ -55,10 +55,30 @@ export class ViemBlockchainService implements IBlockchainService {
 
   async getAddress(): Promise<string> {
     try {
-      const address = this.walletClient.account.address;
+      const addresses = await this.walletClient.getAddresses();
+      const address = addresses[0];
+      if (!address) {
+        throw new Error('No connected account');
+      }
       return address;
     } catch (error) {
       throw new Error('Failed to get address', { cause: error });
+    }
+  }
+
+  async signTypedData(data: EIP712TypedData): Promise<string> {
+    try {
+      const address = await this.getAddress();
+      const signature = await this.walletClient.signTypedData({
+        account: address as `0x${string}`,
+        domain: data.domain as TypedDataDomain,
+        types: data.types,
+        primaryType: data.primaryType,
+        message: data.message,
+      });
+      return signature;
+    } catch (error) {
+      throw new Error('Failed to sign typed data', { cause: error });
     }
   }
 }

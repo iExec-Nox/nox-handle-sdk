@@ -12,8 +12,9 @@ import {
   SUPPORTED_CHAIN_ID,
   UNSUPPORTED_CHAIN_ID,
   createMockProvider,
-  createMockBrowserProvider,
+  createMockEIP1193Provider,
 } from '../../helpers/mocks.js';
+import { BrowserProvider } from 'ethers';
 
 describe('createEthersHandleClient', () => {
   describe('with an AbstractSigner connected to a provider', () => {
@@ -38,10 +39,12 @@ describe('createEthersHandleClient', () => {
   });
 
   describe('with a BrowserProvider', () => {
+    const browserProvider = new BrowserProvider(
+      createMockEIP1193Provider(SUPPORTED_CHAIN_ID)
+    );
     it('should create a HandleClient instance with a blockchainService of type EthersBlockchainService and a BrowserProviderAdapter', async () => {
-      const ethersClient = createMockBrowserProvider(SUPPORTED_CHAIN_ID);
-
-      const ethersHandleClient = await createEthersHandleClient(ethersClient);
+      const ethersHandleClient =
+        await createEthersHandleClient(browserProvider);
 
       expect(ethersHandleClient).toBeDefined();
       expect(ethersHandleClient['blockchainService']).toBeInstanceOf(
