@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { createWalletClient, custom } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 import {
   createMockEIP1193Provider,
   EIP712_TYPED_DATA_MOCK,
   TEST_ADDRESS,
+  TEST_PRIVATE_KEY,
 } from '../../helpers/mocks.js';
 import { ViemBlockchainService } from '../../../src/services/blockchain/ViemBlockchainService.js';
 
@@ -14,7 +16,13 @@ describe('ViemBlockchainService', () => {
       client: createWalletClient({
         transport: custom(createMockEIP1193Provider(1)),
       }),
-      // TODO: add test with local signer
+    },
+    {
+      name: 'Local signer',
+      client: createWalletClient({
+        account: privateKeyToAccount(TEST_PRIVATE_KEY),
+        transport: custom(createMockEIP1193Provider(1)),
+      }),
     },
   ];
 

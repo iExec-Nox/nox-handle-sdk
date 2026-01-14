@@ -41,11 +41,11 @@ export function isEthersSigner(
  * @dev ⚠️ Update isEthersSigner function if this class is modified requiring more duck type checks
  */
 export class SignerAdapter implements EthersAdapter {
+  private readonly signer: AbstractSigner<Provider>;
+
   constructor(signer: AbstractSigner<Provider>) {
     this.signer = signer;
   }
-
-  private readonly signer: AbstractSigner<Provider>;
 
   async getSigner(): Promise<Signer> {
     return this.signer;
@@ -80,11 +80,11 @@ export function isEthersBrowserProvider(
  * @dev ⚠️ Update isEthersBrowserProvider function if this class is modified requiring more duck type checks
  */
 export class BrowserProviderAdapter implements EthersAdapter {
+  private readonly provider: BrowserProvider;
+
   constructor(provider: BrowserProvider) {
     this.provider = provider;
   }
-
-  private readonly provider: BrowserProvider;
 
   async getSigner(): Promise<Signer> {
     try {
@@ -105,12 +105,15 @@ export class BrowserProviderAdapter implements EthersAdapter {
  * Implements IBlockchainService using ethers library.
  */
 export class EthersBlockchainService implements IBlockchainService {
+  private readonly adapter: EthersAdapter;
+
   /**
    * Creates an instance of EthersBlockchainService.
    * @param client - An ethers AbstractSigner instance connected to a Provider or a BrowserProvider
    * @returns A EthersBlockchainService instance
    * @throws {TypeError} if the provided client is invalid
    */
+
   constructor(client: EthersClient) {
     if (isEthersSigner(client)) {
       this.adapter = new SignerAdapter(client);
@@ -122,8 +125,6 @@ export class EthersBlockchainService implements IBlockchainService {
       );
     }
   }
-
-  private readonly adapter: EthersAdapter;
 
   async getChainId(): Promise<number> {
     try {

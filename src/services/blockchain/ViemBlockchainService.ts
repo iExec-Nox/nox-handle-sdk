@@ -26,6 +26,8 @@ export function isViemWalletClient(object: unknown): object is ViemClient {
  * Implements IBlockchainService using viem library.
  */
 export class ViemBlockchainService implements IBlockchainService {
+  private readonly walletClient: ViemClient;
+
   /**
    * Creates an instance of ViemBlockchainService.
    * @param client - A viem WalletClient instance connected to an account
@@ -41,8 +43,6 @@ export class ViemBlockchainService implements IBlockchainService {
       );
     }
   }
-
-  private readonly walletClient: ViemClient;
 
   async getChainId(): Promise<number> {
     try {
