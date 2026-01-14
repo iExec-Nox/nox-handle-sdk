@@ -8,35 +8,42 @@ import {
 import { ViemBlockchainService } from '../../../src/services/blockchain/ViemBlockchainService.js';
 
 describe('ViemBlockchainService', () => {
-  describe('with a EIP-1193 provider', () => {
-    const client = createWalletClient({
-      transport: custom(createMockEIP1193Provider(1)),
-    });
+  const testCases = [
+    {
+      name: 'EIP-1193 provider',
+      client: createWalletClient({
+        transport: custom(createMockEIP1193Provider(1)),
+      }),
+      // TODO: add test with local signer
+    },
+  ];
 
-    describe('getChainId', () => {
-      it('should return the correct chainId', async () => {
-        const viemBlockchainService = new ViemBlockchainService(client);
-        const chainId = await viemBlockchainService.getChainId();
-        expect(chainId).toBe(1);
+  for (const { name, client } of testCases) {
+    describe(`with ${name}`, () => {
+      const blockchainService = new ViemBlockchainService(client);
+
+      describe('getChainId', () => {
+        it('should return the correct chainId', async () => {
+          const chainId = await blockchainService.getChainId();
+          expect(chainId).toBe(1);
+        });
+      });
+
+      describe('getAddress', () => {
+        it('should return the correct address', async () => {
+          const address = await blockchainService.getAddress();
+          expect(address).toBe(TEST_ADDRESS);
+        });
+      });
+
+      describe('signTypedData', () => {
+        it('should sign typed data correctly', async () => {
+          const signature = await blockchainService.signTypedData(
+            EIP712_TYPED_DATA_MOCK
+          );
+          expect(signature).toMatch(/0x[a-fA-F0-9]{130}/);
+        });
       });
     });
-
-    describe('getAddress', () => {
-      it('should return the correct address', async () => {
-        const viemBlockchainService = new ViemBlockchainService(client);
-        const address = await viemBlockchainService.getAddress();
-        expect(address).toBe(TEST_ADDRESS);
-      });
-    });
-
-    describe('signTypedData', () => {
-      it('should sign typed data correctly', async () => {
-        const viemBlockchainService = new ViemBlockchainService(client);
-        const signature = await viemBlockchainService.signTypedData(
-          EIP712_TYPED_DATA_MOCK
-        );
-        expect(signature).toMatch(/0x[a-fA-F0-9]{130}/);
-      });
-    });
-  });
+  }
 });

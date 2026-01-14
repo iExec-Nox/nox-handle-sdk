@@ -24,6 +24,9 @@ export function createMockProvider(chainId: number): JsonRpcProvider {
 }
 
 type EIP1193Provider = EthersEip1193Provider & ViemEIP1193Provider;
+/**
+ * creates a mock EIP1193 provider that returns the specified chainId and hardcoded responses for accounts and signing
+ */
 export function createMockEIP1193Provider(chainId: number): EIP1193Provider {
   return {
     async request({ method }: { method: string }) {
