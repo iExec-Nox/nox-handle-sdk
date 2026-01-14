@@ -2,7 +2,7 @@ import { bytesToHex } from './bytesToHex.js';
 import { hexToBytes } from './hexToBytes.js';
 
 const DERIVATION_INFO = hexToBytes(
-  '69457865632d45434945533a7273615f777261707065643a76302e31' // hardcoded "iExec-ECIES:rsa_wrapped:v0.1" hex
+  '0x69457865632d45434945533a7273615f777261707065643a76302e31' // hardcoded "iExec-ECIES:rsa_wrapped:v0.1" hex
 );
 
 /**
@@ -12,7 +12,7 @@ const DERIVATION_INFO = hexToBytes(
  * @param params.ciphertext - Hex encoded cipher text to decrypt (format: encrypted_data + auth_tag[16])
  * @param params.iv - Hex encoded 12 bytes initialization vector (IV) used during AES-256-GCM encryption
  * @param params.sharedSecret - Hex encoded 32 bytes x coordinate of the secret point (K*privateKey)
- * @returns Decrypted hex encoded plaintext
+ * @returns Decrypted hex encoded plaintext (with "0x" prefix)
  */
 export async function eciesDecrypt({
   ciphertext,
