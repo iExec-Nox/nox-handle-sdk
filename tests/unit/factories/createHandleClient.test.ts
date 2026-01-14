@@ -9,38 +9,11 @@ import {
   SUPPORTED_CHAIN_ID,
   UNSUPPORTED_CHAIN_ID,
   createMockProvider,
-  createMockViemClient,
+  createMockEIP1193Provider,
 } from '../../helpers/mocks.js';
+import { createWalletClient, custom } from 'viem';
 
 describe('createHandleClient', () => {
-  describe('with an EthersClient', () => {
-    it('should create a HandleClient instance with a blockchainService of type EthersBlockchainService', async () => {
-      const ethersClient = new Wallet(
-        TEST_PRIVATE_KEY,
-        createMockProvider(SUPPORTED_CHAIN_ID)
-      );
-
-      const ethersHandleClient = await createHandleClient(ethersClient);
-
-      expect(ethersHandleClient).toBeDefined();
-      expect(ethersHandleClient['blockchainService']).toBeInstanceOf(
-        EthersBlockchainService
-      );
-    });
-  });
-
-  describe('with a ViemClient', () => {
-    it('should create a HandleClient instance with a blockchainService of type ViemBlockchainService', async () => {
-      const viemClient = createMockViemClient(SUPPORTED_CHAIN_ID);
-      const viemHandleClient = await createHandleClient(viemClient);
-
-      expect(viemHandleClient).toBeDefined();
-      expect(viemHandleClient['blockchainService']).toBeInstanceOf(
-        ViemBlockchainService
-      );
-    });
-  });
-
   describe('with an invalid client', () => {
     it('should throw an error', async () => {
       const invalidClient = {} as never;
@@ -53,10 +26,36 @@ describe('createHandleClient', () => {
     });
   });
 
-  describe('config resolution', () => {
-    it('should resolve config from network defaults', async () => {
-      const viemClient = createMockViemClient(SUPPORTED_CHAIN_ID);
+  describe('with an EthersClient', () => {
+    const ethersClient = new Wallet(
+      TEST_PRIVATE_KEY,
+      createMockProvider(SUPPORTED_CHAIN_ID)
+    );
+    it('should create a HandleClient instance with a blockchainService of type EthersBlockchainService', async () => {
+      const ethersHandleClient = await createHandleClient(ethersClient);
 
+      expect(ethersHandleClient).toBeDefined();
+      expect(ethersHandleClient['blockchainService']).toBeInstanceOf(
+        EthersBlockchainService
+      );
+    });
+  });
+
+  describe('with a ViemClient', () => {
+    const viemClient = createWalletClient({
+      transport: custom(createMockEIP1193Provider(SUPPORTED_CHAIN_ID)),
+    });
+
+    it('should create a HandleClient instance with a blockchainService of type ViemBlockchainService', async () => {
+      const viemHandleClient = await createHandleClient(viemClient);
+
+      expect(viemHandleClient).toBeDefined();
+      expect(viemHandleClient['blockchainService']).toBeInstanceOf(
+        ViemBlockchainService
+      );
+    });
+
+    it('should resolve config from network defaults', async () => {
       const handleClient = await createHandleClient(viemClient);
 
       expect(handleClient.getGatewayUrl()).toBe(
@@ -68,7 +67,9 @@ describe('createHandleClient', () => {
     });
 
     it('should throw if chainId not supported and no config provided', async () => {
-      const viemClient = createMockViemClient(UNSUPPORTED_CHAIN_ID);
+      const viemClient = createWalletClient({
+        transport: custom(createMockEIP1193Provider(UNSUPPORTED_CHAIN_ID)),
+      });
 
       await expect(createHandleClient(viemClient)).rejects.toThrow(
         new Error(
