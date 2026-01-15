@@ -165,11 +165,14 @@ async function makeCall<T>({
   }
 
   try {
-    // parsing response based on Content-Type
     const result: ResponseData<T> = {
       status: response.status,
     };
-    if (response.headers.get('Content-Type')?.includes('application/json')) {
+    // parse response body based on Content-Type
+    if (
+      response.headers.get('Content-Type')?.includes('application/json') &&
+      response.body
+    ) {
       result.data = (await response.json()) as T;
     }
     return result;
