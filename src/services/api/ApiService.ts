@@ -36,7 +36,7 @@ export class ApiService implements IApiService {
   }): Promise<ResponseData> {
     return makeCall({
       method: 'GET',
-      apiUrl: this.baseUrl,
+      baseUrl: this.baseUrl,
       endpoint,
       query,
       headers,
@@ -59,7 +59,7 @@ export class ApiService implements IApiService {
   }): Promise<ResponseData> {
     return makeCall({
       method: 'POST',
-      apiUrl: this.baseUrl,
+      baseUrl: this.baseUrl,
       endpoint,
       query,
       body,
@@ -126,7 +126,7 @@ function isBaseURL(url: string): boolean {
  */
 async function makeCall({
   method,
-  apiUrl,
+  baseUrl,
   endpoint,
   query,
   body,
@@ -134,14 +134,14 @@ async function makeCall({
   timeout,
 }: {
   method: 'HEAD' | 'GET' | 'POST' | 'PUT' | 'DELETE';
-  apiUrl: BaseUrl;
+  baseUrl: BaseUrl;
   endpoint: string;
   query?: QueryParameters;
   body?: Body;
   headers?: Headers;
   timeout?: number;
 }): Promise<ResponseData> {
-  const url = new URL(`${endpoint}${buildQueryString(query)}`, apiUrl);
+  const url = new URL(`${endpoint}${buildQueryString(query)}`, baseUrl);
   const requestInit = buildRequestInit({
     method,
     headers,
@@ -153,19 +153,14 @@ async function makeCall({
   try {
     response = await fetch(url, requestInit);
   } catch (error) {
-    throw new Error(`Network request failed for ${method} ${endpoint}`, {
+    throw new Error(`Network request failed for ${method} /${endpoint}`, {
       cause: error,
     });
   }
 
-  if (!response.ok) {
-    return {
-      status: response.status,
-    };
-  }
-
   try {
     const result: ResponseData = {
+      ok: response.ok,
       status: response.status,
     };
     // parse response body based on Content-Type
@@ -177,8 +172,11 @@ async function makeCall({
     }
     return result;
   } catch (error) {
-    throw new Error(`Failed to parse response from ${method} ${endpoint}`, {
-      cause: error,
-    });
+    throw new Error(
+      `Failed to parse response from (${response.status}) ${method} /${endpoint}`,
+      {
+        cause: error,
+      }
+    );
   }
 }
