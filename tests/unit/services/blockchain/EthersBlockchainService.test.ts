@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { EthersBlockchainService } from '../../../src/services/blockchain/EthersBlockchainService.js';
+
+import { Wallet, BrowserProvider } from 'ethers';
 import {
   createMockEIP1193Provider,
   createMockProvider,
   EIP712_TYPED_DATA_MOCK,
   TEST_ADDRESS,
   TEST_PRIVATE_KEY,
-} from '../../helpers/mocks.js';
-import { Wallet, BrowserProvider } from 'ethers';
+} from '../../../helpers/mocks.js';
+import { EthersBlockchainService } from '../../../../src/services/blockchain/EthersBlockchainService.js';
 
 describe('EthersBlockchainService', () => {
   const testCases = [
