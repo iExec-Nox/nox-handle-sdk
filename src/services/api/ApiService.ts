@@ -12,12 +12,12 @@ type BaseUrl = `http${'' | 's'}://${string}`;
  * ApiService implements the IApiService interface abstracting communication with an API.
  */
 export class ApiService implements IApiService {
-  private baseUrl: BaseUrl;
+  private readonly baseUrl: BaseUrl;
 
   constructor(baseUrl: BaseUrl) {
     if (!isBaseURL(baseUrl)) {
       throw new TypeError(
-        'Invalid API base URL. It must be a base URL starting with "http://" or "https://" and have no path segment.'
+        'Invalid API base URL. It must be a base URL starting with "http://" or "https://" without path segment or query parameters.'
       );
     }
     this.baseUrl = baseUrl;
@@ -113,10 +113,12 @@ function buildRequestInit({
 }
 
 /**
- * Checks url is a base URL (starts with http:// or https:// and has no path segment).
+ * Checks url is a base URL
+ *
+ * if starts with http:// or https:// and has no path segment (/) nor query parameters (?).
  */
 function isBaseURL(url: string): boolean {
-  return /^https?:\/\/[^/]+\/?$/.test(url);
+  return /^https?:\/\/[^/?]+\/?$/.test(url);
 }
 
 /**
