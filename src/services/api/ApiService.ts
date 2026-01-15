@@ -23,7 +23,7 @@ export class ApiService implements IApiService {
     this.baseUrl = baseUrl;
   }
 
-  async get<T>({
+  async get({
     endpoint,
     query,
     headers,
@@ -33,8 +33,8 @@ export class ApiService implements IApiService {
     query?: QueryParameters;
     headers?: Headers;
     timeout?: number;
-  }): Promise<ResponseData<T>> {
-    return makeCall<T>({
+  }): Promise<ResponseData> {
+    return makeCall({
       method: 'GET',
       apiUrl: this.baseUrl,
       endpoint,
@@ -44,7 +44,7 @@ export class ApiService implements IApiService {
     });
   }
 
-  async post<T>({
+  async post({
     endpoint,
     query,
     body,
@@ -56,8 +56,8 @@ export class ApiService implements IApiService {
     body?: Body;
     headers?: Headers;
     timeout?: number;
-  }): Promise<ResponseData<T>> {
-    return makeCall<T>({
+  }): Promise<ResponseData> {
+    return makeCall({
       method: 'POST',
       apiUrl: this.baseUrl,
       endpoint,
@@ -124,7 +124,7 @@ function isBaseURL(url: string): boolean {
 /**
  * Makes an API call using fetch and handles errors and response parsing.
  */
-async function makeCall<T>({
+async function makeCall({
   method,
   apiUrl,
   endpoint,
@@ -140,7 +140,7 @@ async function makeCall<T>({
   body?: Body;
   headers?: Headers;
   timeout?: number;
-}): Promise<ResponseData<T>> {
+}): Promise<ResponseData> {
   const url = new URL(`${endpoint}${buildQueryString(query)}`, apiUrl);
   const requestInit = buildRequestInit({
     method,
@@ -165,7 +165,7 @@ async function makeCall<T>({
   }
 
   try {
-    const result: ResponseData<T> = {
+    const result: ResponseData = {
       status: response.status,
     };
     // parse response body based on Content-Type
@@ -173,7 +173,7 @@ async function makeCall<T>({
       response.headers.get('Content-Type')?.includes('application/json') &&
       response.body
     ) {
-      result.data = (await response.json()) as T;
+      result.data = await response.json();
     }
     return result;
   } catch (error) {
