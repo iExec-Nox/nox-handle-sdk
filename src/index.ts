@@ -1,4 +1,4 @@
-export type * from './types/types.js';
+export type * from './types/publicTypes.js';
 
 export { createHandleClient } from './factories/createHandleClient.js';
 export { createEthersHandleClient } from './factories/createEthersHandleClient.js';
