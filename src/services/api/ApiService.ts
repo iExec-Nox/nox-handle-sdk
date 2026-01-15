@@ -6,14 +6,21 @@ import type {
   ResponseData,
 } from './IApiService.js';
 
+type BaseUrl = `http${'' | 's'}://${string}`;
+
 /**
  * ApiService implements the IApiService interface abstracting communication with an API.
  */
 export class ApiService implements IApiService {
-  private apiUrl: string;
+  private baseUrl: BaseUrl;
 
-  constructor(apiUrl: string) {
-    this.apiUrl = apiUrl;
+  constructor(baseUrl: BaseUrl) {
+    if (!isBaseURL(baseUrl)) {
+      throw new TypeError(
+        'Invalid API base URL. It must be a base URL starting with "http://" or "https://" and have no path segment.'
+      );
+    }
+    this.baseUrl = baseUrl;
   }
 
   async get<T>({
@@ -29,7 +36,7 @@ export class ApiService implements IApiService {
   }): Promise<ResponseData<T>> {
     return makeCall<T>({
       method: 'GET',
-      apiUrl: this.apiUrl,
+      apiUrl: this.baseUrl,
       endpoint,
       query,
       headers,
@@ -52,7 +59,7 @@ export class ApiService implements IApiService {
   }): Promise<ResponseData<T>> {
     return makeCall<T>({
       method: 'POST',
-      apiUrl: this.apiUrl,
+      apiUrl: this.baseUrl,
       endpoint,
       query,
       body,
@@ -106,6 +113,13 @@ function buildRequestInit({
 }
 
 /**
+ * Checks url is a base URL (starts with http:// or https:// and has no path segment).
+ */
+function isBaseURL(url: string): boolean {
+  return /^https?:\/\/[^/]+\/?$/.test(url);
+}
+
+/**
  * Makes an API call using fetch and handles errors and response parsing.
  */
 async function makeCall<T>({
@@ -118,7 +132,7 @@ async function makeCall<T>({
   timeout,
 }: {
   method: 'HEAD' | 'GET' | 'POST' | 'PUT' | 'DELETE';
-  apiUrl: string;
+  apiUrl: BaseUrl;
   endpoint: string;
   query?: QueryParameters;
   body?: Body;
