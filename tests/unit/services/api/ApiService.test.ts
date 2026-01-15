@@ -131,30 +131,26 @@ describe('ApiService', () => {
         })
       );
     });
-  });
 
-  describe('error handling', () => {
-    const api = new ApiService('https://api.example.com');
+    it('should apply timeout if specified', async () => {
+      let apiError: Error | undefined;
 
-    it('should throw on network failure', async () => {
-      fetchSpy.mockRejectedValue(new Error('Network error'));
-
-      await expect(api.post({ endpoint: '/v0/resources' })).rejects.toThrow(
-        'Network request failed for POST //v0/resources'
+      await expect(
+        api
+          .get({
+            endpoint: '/v0/resources/123',
+            timeout: 1,
+          })
+          .catch((error) => {
+            apiError = error as Error;
+            throw error;
+          })
+      ).rejects.toThrow();
+      expect(apiError).toStrictEqual(
+        new Error('Network request failed for GET //v0/resources/123')
       );
-    });
-
-    it('should throw on JSON parse error', async () => {
-      fetchSpy.mockResolvedValue({
-        ok: true,
-        status: 200,
-        body: true,
-        headers: new Headers({ 'Content-Type': 'application/json' }),
-        json: () => Promise.reject(new Error('Invalid JSON')),
-      } as unknown as Response);
-
-      await expect(api.get({ endpoint: '/v0/resources/123' })).rejects.toThrow(
-        'Failed to parse response'
+      expect(((apiError as Error)?.cause as Error).message).toBe(
+        'The operation was aborted due to timeout'
       );
     });
   });
@@ -197,6 +193,54 @@ describe('ApiService', () => {
             'X-Request-Id': 'req-123',
           },
         })
+      );
+    });
+
+    it('should apply timeout if specified', async () => {
+      let apiError: Error | undefined;
+
+      await expect(
+        api
+          .post({
+            endpoint: '/v0/resources/123',
+            timeout: 1,
+          })
+          .catch((error) => {
+            apiError = error as Error;
+            throw error;
+          })
+      ).rejects.toThrow();
+      expect(apiError).toStrictEqual(
+        new Error('Network request failed for POST //v0/resources/123')
+      );
+      expect(((apiError as Error)?.cause as Error).message).toBe(
+        'The operation was aborted due to timeout'
+      );
+    });
+  });
+
+  describe('error handling', () => {
+    const api = new ApiService('https://api.example.com');
+
+    it('should throw on network failure', async () => {
+      fetchSpy.mockRejectedValue(new Error('Network error'));
+
+      await expect(api.post({ endpoint: '/v0/resources' })).rejects.toThrow(
+        'Network request failed for POST //v0/resources'
+      );
+    });
+
+    it('should throw on JSON parse error', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        status: 200,
+        body: true,
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+        json: () => Promise.reject(new Error('Invalid JSON')),
+      } as unknown as Response);
+
+      await expect(api.get({ endpoint: '/v0/resources/123' })).rejects.toThrow(
+        'Failed to parse response'
       );
     });
   });
