@@ -1,7 +1,7 @@
 export type QueryParameters = Record<string, string | boolean | number>;
 export type Headers = Record<string, string>;
 export type Body = Record<string, unknown>;
-export type ResponseData<T> = { status: number; data: T | undefined };
+export type ResponseData<T> = { status: number; data?: T };
 
 /**
  * IApiService defines the interface for making GET and POST requests.

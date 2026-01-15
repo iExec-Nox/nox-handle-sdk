@@ -159,19 +159,20 @@ async function makeCall<T>({
   }
 
   if (!response.ok) {
-    // for now assuming that non OK responses are errors (this may be adjusted as needed)
-    throw new Error(
-      `API request failed: ${response.status} ${response.statusText} for ${method} ${endpoint}`
-    );
+    return {
+      status: response.status,
+    };
   }
 
   try {
     // parsing response based on Content-Type
-    let data = undefined;
+    const result: ResponseData<T> = {
+      status: response.status,
+    };
     if (response.headers.get('Content-Type')?.includes('application/json')) {
-      data = (await response.json()) as T;
+      result.data = (await response.json()) as T;
     }
-    return { status: response.status, data };
+    return result;
   } catch (error) {
     throw new Error(`Failed to parse response from ${method} ${endpoint}`, {
       cause: error,
