@@ -6,8 +6,8 @@ import {
   EIP712_TYPED_DATA_MOCK,
   TEST_ADDRESS,
   TEST_PRIVATE_KEY,
-} from '../../helpers/mocks.js';
-import { ViemBlockchainService } from '../../../src/services/blockchain/ViemBlockchainService.js';
+} from '../../../helpers/mocks.js';
+import { ViemBlockchainService } from '../../../../src/services/blockchain/ViemBlockchainService.js';
 
 describe('ViemBlockchainService', () => {
   const testCases = [
