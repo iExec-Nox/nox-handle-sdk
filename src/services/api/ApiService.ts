@@ -141,7 +141,8 @@ async function makeCall({
   headers?: Headers;
   timeout?: number;
 }): Promise<ResponseData> {
-  const url = new URL(`${endpoint}${buildQueryString(query)}`, baseUrl);
+  const cleanEndpoint = endpoint.replace(/^\/+/, ''); // remove leading slashes
+  const url = new URL(`${cleanEndpoint}${buildQueryString(query)}`, baseUrl);
   const requestInit = buildRequestInit({
     method,
     headers,
@@ -153,7 +154,7 @@ async function makeCall({
   try {
     response = await fetch(url, requestInit);
   } catch (error) {
-    throw new Error(`Network request failed for ${method} /${endpoint}`, {
+    throw new Error(`Network request failed for ${method} /${cleanEndpoint}`, {
       cause: error,
     });
   }
@@ -173,7 +174,7 @@ async function makeCall({
     return result;
   } catch (error) {
     throw new Error(
-      `Failed to parse response from (${response.status}) ${method} /${endpoint}`,
+      `Failed to parse response from (${response.status}) ${method} /${cleanEndpoint}`,
       {
         cause: error,
       }

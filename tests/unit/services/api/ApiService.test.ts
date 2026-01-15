@@ -147,7 +147,7 @@ describe('ApiService', () => {
           })
       ).rejects.toThrow();
       expect(apiError).toStrictEqual(
-        new Error('Network request failed for GET //v0/resources/123')
+        new Error('Network request failed for GET /v0/resources/123')
       );
       expect(((apiError as Error)?.cause as Error).message).toBe(
         'The operation was aborted due to timeout'
@@ -211,7 +211,7 @@ describe('ApiService', () => {
           })
       ).rejects.toThrow();
       expect(apiError).toStrictEqual(
-        new Error('Network request failed for POST //v0/resources/123')
+        new Error('Network request failed for POST /v0/resources/123')
       );
       expect(((apiError as Error)?.cause as Error).message).toBe(
         'The operation was aborted due to timeout'
@@ -226,7 +226,7 @@ describe('ApiService', () => {
       fetchSpy.mockRejectedValue(new Error('Network error'));
 
       await expect(api.post({ endpoint: '/v0/resources' })).rejects.toThrow(
-        'Network request failed for POST //v0/resources'
+        'Network request failed for POST /v0/resources'
       );
     });
 
