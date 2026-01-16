@@ -1,5 +1,6 @@
 import { HandleClient } from '../client/HandleClient.js';
 import { resolveNetworkConfig } from '../config/networks.js';
+import { ApiService } from '../services/api/ApiService.js';
 import {
   EthersBlockchainService,
   isEthersSigner,
@@ -64,14 +65,16 @@ export const createHandleClient = async (
     );
     const chainId = await ethersBlockchainService.getChainId();
     const resolvedConfig = resolveNetworkConfig(chainId, config);
-    return new HandleClient(ethersBlockchainService, resolvedConfig);
+    const apiService = new ApiService(resolvedConfig.gatewayUrl);
+    return new HandleClient(ethersBlockchainService, apiService, resolvedConfig);
   }
 
   if (isViemWalletClient(blockchainClient)) {
     const viemBlockchainService = new ViemBlockchainService(blockchainClient);
     const chainId = await viemBlockchainService.getChainId();
     const resolvedConfig = resolveNetworkConfig(chainId, config);
-    return new HandleClient(viemBlockchainService, resolvedConfig);
+    const apiService = new ApiService(resolvedConfig.gatewayUrl);
+    return new HandleClient(viemBlockchainService, apiService, resolvedConfig);
   }
 
   throw new TypeError(

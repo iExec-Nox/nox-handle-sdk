@@ -1,4 +1,4 @@
-import type { HandleClientConfig } from '../client/HandleClient.js';
+import type { BaseUrl, HandleClientConfig } from '../client/HandleClient.js';
 
 // TODO: replace with production endpoints
 export const NETWORK_CONFIGS: Record<number, HandleClientConfig> = {
@@ -27,9 +27,10 @@ export function resolveNetworkConfig(
   }
 
   return {
-    gatewayUrl: override?.gatewayUrl ?? networkConfig?.gatewayUrl ?? '',
+    gatewayUrl:
+      (override?.gatewayUrl as BaseUrl) ?? networkConfig?.gatewayUrl ?? '',
     smartContractAddress:
-      override?.smartContractAddress ??
+      (override?.smartContractAddress as `0x${string}`) ??
       networkConfig?.smartContractAddress ??
       '',
   };
