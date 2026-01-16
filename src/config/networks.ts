@@ -1,4 +1,5 @@
 import type { HandleClientConfig } from '../client/HandleClient.js';
+import type { BaseUrl } from '../types/internalTypes.js';
 
 // TODO: replace with production endpoints
 export const NETWORK_CONFIGS: Record<number, HandleClientConfig> = {
@@ -12,13 +13,21 @@ export const NETWORK_CONFIGS: Record<number, HandleClientConfig> = {
   },
 };
 
+function isValidBaseUrl(url: string): url is BaseUrl {
+  return /^https?:\/\/.+/.test(url);
+}
+
 export function resolveNetworkConfig(
   chainId: number,
   override?: Partial<HandleClientConfig>
 ): HandleClientConfig {
   const networkConfig = NETWORK_CONFIGS[chainId];
 
-  if (!networkConfig && !isCompleteConfig(override)) {
+  const gatewayUrl = override?.gatewayUrl ?? networkConfig?.gatewayUrl;
+  const smartContractAddress =
+    override?.smartContractAddress ?? networkConfig?.smartContractAddress;
+
+  if (!gatewayUrl || !smartContractAddress) {
     const supported = Object.keys(NETWORK_CONFIGS).join(', ');
     throw new Error(
       `Chain ${chainId} is not supported. Supported chains: ${supported}. ` +
@@ -26,17 +35,11 @@ export function resolveNetworkConfig(
     );
   }
 
-  return {
-    gatewayUrl: override?.gatewayUrl ?? networkConfig?.gatewayUrl ?? '',
-    smartContractAddress:
-      override?.smartContractAddress ??
-      networkConfig?.smartContractAddress ??
-      '',
-  };
-}
+  if (!isValidBaseUrl(gatewayUrl)) {
+    throw new Error(
+      `Invalid gatewayUrl: "${gatewayUrl}". Must start with http:// or https://`
+    );
+  }
 
-function isCompleteConfig(
-  config?: Partial<HandleClientConfig>
-): config is HandleClientConfig {
-  return !!config?.gatewayUrl && !!config?.smartContractAddress;
+  return { gatewayUrl, smartContractAddress };
 }
