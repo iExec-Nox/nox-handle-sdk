@@ -130,4 +130,77 @@ describe('resolveNetworkConfig', () => {
       );
     });
   });
+
+  describe('smartContractAddress validation', () => {
+    it('should accept valid Ethereum address', () => {
+      const config = resolveNetworkConfig(UNSUPPORTED_CHAIN_ID, {
+        gatewayUrl: OVERRIDE_GATEWAY_URL,
+        smartContractAddress: '0xAbCdEf1234567890123456789012345678901234',
+      });
+
+      expect(config.smartContractAddress).toBe(
+        '0xAbCdEf1234567890123456789012345678901234'
+      );
+    });
+
+    it('should reject address without 0x prefix', () => {
+      const invalidAddress = '1234567890123456789012345678901234567890';
+      expect(() =>
+        resolveNetworkConfig(UNSUPPORTED_CHAIN_ID, {
+          gatewayUrl: OVERRIDE_GATEWAY_URL,
+          smartContractAddress: invalidAddress as `0x${string}`,
+        })
+      ).toThrow(
+        `Invalid smartContractAddress: "${invalidAddress}". Must be a valid Ethereum address (0x + 40 hex chars)`
+      );
+    });
+
+    it('should reject address with wrong length (too short)', () => {
+      const invalidAddress = '0x1234567890';
+      expect(() =>
+        resolveNetworkConfig(UNSUPPORTED_CHAIN_ID, {
+          gatewayUrl: OVERRIDE_GATEWAY_URL,
+          smartContractAddress: invalidAddress,
+        })
+      ).toThrow(
+        `Invalid smartContractAddress: "${invalidAddress}". Must be a valid Ethereum address (0x + 40 hex chars)`
+      );
+    });
+
+    it('should reject address with wrong length (too long)', () => {
+      const invalidAddress = '0x12345678901234567890123456789012345678901234';
+      expect(() =>
+        resolveNetworkConfig(UNSUPPORTED_CHAIN_ID, {
+          gatewayUrl: OVERRIDE_GATEWAY_URL,
+          smartContractAddress: invalidAddress,
+        })
+      ).toThrow(
+        `Invalid smartContractAddress: "${invalidAddress}". Must be a valid Ethereum address (0x + 40 hex chars)`
+      );
+    });
+
+    it('should reject address with invalid hex characters', () => {
+      const invalidAddress = '0xGHIJKL7890123456789012345678901234567890';
+      expect(() =>
+        resolveNetworkConfig(UNSUPPORTED_CHAIN_ID, {
+          gatewayUrl: OVERRIDE_GATEWAY_URL,
+          smartContractAddress: invalidAddress,
+        })
+      ).toThrow(
+        `Invalid smartContractAddress: "${invalidAddress}". Must be a valid Ethereum address (0x + 40 hex chars)`
+      );
+    });
+
+    it('should reject address with only 0x prefix', () => {
+      const invalidAddress = '0x';
+      expect(() =>
+        resolveNetworkConfig(UNSUPPORTED_CHAIN_ID, {
+          gatewayUrl: OVERRIDE_GATEWAY_URL,
+          smartContractAddress: invalidAddress,
+        })
+      ).toThrow(
+        `Invalid smartContractAddress: "${invalidAddress}". Must be a valid Ethereum address (0x + 40 hex chars)`
+      );
+    });
+  });
 });

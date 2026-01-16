@@ -1,9 +1,9 @@
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
-import type { BaseUrl } from '../types/internalTypes.js';
+import type { BaseUrl, EthereumAddress } from '../types/internalTypes.js';
 
 export type HandleClientConfig = {
   gatewayUrl: BaseUrl;
-  smartContractAddress: string;
+  smartContractAddress: EthereumAddress;
 };
 
 /**
@@ -36,7 +36,7 @@ export class HandleClient {
   /**
    * Gets the Handle smart contract address
    */
-  getSmartContractAddress(): string {
+  getSmartContractAddress(): EthereumAddress {
     return this.config.smartContractAddress;
   }
 
