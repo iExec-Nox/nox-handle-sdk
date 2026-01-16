@@ -76,7 +76,10 @@ describe('ViemBlockchainService', () => {
         const noAccountsClient = createWalletClient({
           transport: custom({
             request: vi.fn().mockImplementation(({ method }) => {
-              if (method === 'eth_accounts' || method === 'eth_requestAccounts') {
+              if (
+                method === 'eth_accounts' ||
+                method === 'eth_requestAccounts'
+              ) {
                 return Promise.resolve([]);
               }
               throw new Error(`Unexpected method: ${method}`);
@@ -96,7 +99,10 @@ describe('ViemBlockchainService', () => {
         const failingClient = createWalletClient({
           transport: custom({
             request: vi.fn().mockImplementation(({ method }) => {
-              if (method === 'eth_accounts' || method === 'eth_requestAccounts') {
+              if (
+                method === 'eth_accounts' ||
+                method === 'eth_requestAccounts'
+              ) {
                 return Promise.resolve([TEST_ADDRESS]);
               }
               if (method === 'eth_signTypedData_v4') {
