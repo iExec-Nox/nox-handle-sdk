@@ -66,6 +66,14 @@ describe('createHandleClient', () => {
       );
     });
 
+    it('should return chainId via getChainId()', async () => {
+      const handleClient = await createHandleClient(viemClient);
+
+      const chainId = await handleClient.getChainId();
+
+      expect(chainId).toBe(SUPPORTED_CHAIN_ID);
+    });
+
     it('should throw if chainId not supported and no config provided', async () => {
       const viemClient = createWalletClient({
         transport: custom(createMockEIP1193Provider(UNSUPPORTED_CHAIN_ID)),

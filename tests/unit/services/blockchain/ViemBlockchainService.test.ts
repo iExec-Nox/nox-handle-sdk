@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createWalletClient, custom } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import {
@@ -54,4 +54,64 @@ describe('ViemBlockchainService', () => {
       });
     });
   }
+
+  describe('error handling', () => {
+    describe('getChainId', () => {
+      it('should throw wrapped error when provider fails', async () => {
+        const failingClient = createWalletClient({
+          transport: custom({
+            request: vi.fn().mockRejectedValue(new Error('RPC error')),
+          }),
+        });
+        const service = new ViemBlockchainService(failingClient);
+
+        await expect(service.getChainId()).rejects.toThrow(
+          'Failed to get chain ID'
+        );
+      });
+    });
+
+    describe('getAddress', () => {
+      it('should throw wrapped error when no accounts', async () => {
+        const noAccountsClient = createWalletClient({
+          transport: custom({
+            request: vi.fn().mockImplementation(({ method }) => {
+              if (method === 'eth_accounts' || method === 'eth_requestAccounts') {
+                return Promise.resolve([]);
+              }
+              throw new Error(`Unexpected method: ${method}`);
+            }),
+          }),
+        });
+        const service = new ViemBlockchainService(noAccountsClient);
+
+        await expect(service.getAddress()).rejects.toThrow(
+          'Failed to get address'
+        );
+      });
+    });
+
+    describe('signTypedData', () => {
+      it('should throw wrapped error when signing fails', async () => {
+        const failingClient = createWalletClient({
+          transport: custom({
+            request: vi.fn().mockImplementation(({ method }) => {
+              if (method === 'eth_accounts' || method === 'eth_requestAccounts') {
+                return Promise.resolve([TEST_ADDRESS]);
+              }
+              if (method === 'eth_signTypedData_v4') {
+                return Promise.reject(new Error('User rejected'));
+              }
+              throw new Error(`Unexpected method: ${method}`);
+            }),
+          }),
+        });
+        const service = new ViemBlockchainService(failingClient);
+
+        await expect(
+          service.signTypedData(EIP712_TYPED_DATA_MOCK)
+        ).rejects.toThrow('Failed to sign typed data');
+      });
+    });
+  });
 });

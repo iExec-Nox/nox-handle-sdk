@@ -116,6 +116,22 @@ describe('ApiService', () => {
       );
     });
 
+    it('should build URL without query string when query is empty', async () => {
+      fetchSpy.mockResolvedValue(mockJsonResponse({}));
+
+      await api.get({
+        endpoint: '/v0/resources',
+        query: {},
+      });
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          href: 'https://api.example.com/v0/resources',
+        }),
+        expect.any(Object)
+      );
+    });
+
     it('should forward custom headers', async () => {
       fetchSpy.mockResolvedValue(mockJsonResponse({}));
 
