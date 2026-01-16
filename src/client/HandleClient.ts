@@ -1,7 +1,8 @@
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
+import type { BaseUrl } from '../types/internalTypes.js';
 
 export type HandleClientConfig = {
-  gatewayUrl: string;
+  gatewayUrl: BaseUrl;
   smartContractAddress: string;
 };
 
@@ -42,7 +43,7 @@ export class HandleClient {
   /**
    * Gets the Gateway TEE service URL
    */
-  getGatewayUrl(): string {
+  getGatewayUrl(): BaseUrl {
     return this.config.gatewayUrl;
   }
 }
