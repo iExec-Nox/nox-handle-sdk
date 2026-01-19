@@ -1,5 +1,5 @@
 import type { HandleClientConfig } from '../client/HandleClient.js';
-import type { BaseUrl, EthereumAddress } from '../types/internalTypes.js';
+import { isBaseURL, isEthereumAddress } from '../utils/validators.js';
 
 // TODO: replace with production endpoints
 export const NETWORK_CONFIGS: Record<number, HandleClientConfig> = {
@@ -12,14 +12,6 @@ export const NETWORK_CONFIGS: Record<number, HandleClientConfig> = {
     smartContractAddress: '0x0000000000000000000000000000000000000000',
   },
 };
-
-function isValidBaseUrl(url: string): url is BaseUrl {
-  return /^https?:\/\/.+/.test(url);
-}
-
-function isValidEthereumAddress(address: string): address is EthereumAddress {
-  return /^0x[0-9a-fA-F]{40}$/.test(address);
-}
 
 export function resolveNetworkConfig(
   chainId: number,
@@ -39,14 +31,14 @@ export function resolveNetworkConfig(
     );
   }
 
-  if (!isValidBaseUrl(gatewayUrl)) {
-    throw new Error(
+  if (!isBaseURL(gatewayUrl)) {
+    throw new TypeError(
       `Invalid gatewayUrl: "${gatewayUrl}". Must start with http:// or https://`
     );
   }
 
-  if (!isValidEthereumAddress(smartContractAddress)) {
-    throw new Error(
+  if (!isEthereumAddress(smartContractAddress)) {
+    throw new TypeError(
       `Invalid smartContractAddress: "${smartContractAddress}". Must be a valid Ethereum address (0x + 40 hex chars)`
     );
   }
