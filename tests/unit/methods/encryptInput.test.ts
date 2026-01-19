@@ -57,12 +57,12 @@ describe('encryptInput', () => {
 
   describe('successful encryption', () => {
     it('should encrypt a boolean value (bool)', async () => {
-      const result = await encryptInput(
-        mockBlockchainService,
-        mockApiService,
-        true,
-        'bool'
-      );
+      const result = await encryptInput({
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        value: true,
+        solidityType: 'bool',
+      });
 
       expect(result).toEqual({
         handle: MOCK_HANDLE,
@@ -75,12 +75,12 @@ describe('encryptInput', () => {
     });
 
     it('should encrypt a string value', async () => {
-      const result = await encryptInput(
-        mockBlockchainService,
-        mockApiService,
-        'hello world',
-        'string'
-      );
+      const result = await encryptInput({
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        value: 'hello world',
+        solidityType: 'string',
+      });
 
       expect(result.handle).toBe(MOCK_HANDLE);
       expect(mockApiService.post).toHaveBeenCalledWith({
@@ -95,12 +95,12 @@ describe('encryptInput', () => {
 
     it('should encrypt an address value', async () => {
       const address = '0x1234567890123456789012345678901234567890';
-      const result = await encryptInput(
-        mockBlockchainService,
-        mockApiService,
-        address,
-        'address'
-      );
+      const result = await encryptInput({
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        value: address,
+        solidityType: 'address',
+      });
 
       expect(result.handle).toBe(MOCK_HANDLE);
       expect(mockApiService.post).toHaveBeenCalledWith({
@@ -111,12 +111,12 @@ describe('encryptInput', () => {
 
     it('should encrypt a bytes value', async () => {
       const bytes = '0xdeadbeef';
-      const result = await encryptInput(
-        mockBlockchainService,
-        mockApiService,
-        bytes,
-        'bytes'
-      );
+      const result = await encryptInput({
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        value: bytes,
+        solidityType: 'bytes',
+      });
 
       expect(result.handle).toBe(MOCK_HANDLE);
       expect(mockApiService.post).toHaveBeenCalledWith({
@@ -127,24 +127,24 @@ describe('encryptInput', () => {
 
     it('should encrypt a bytes32 value', async () => {
       const bytes32 = '0x' + 'ab'.repeat(32);
-      const result = await encryptInput(
-        mockBlockchainService,
-        mockApiService,
-        bytes32,
-        'bytes32'
-      );
+      const result = await encryptInput({
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        value: bytes32,
+        solidityType: 'bytes32',
+      });
 
       expect(result.handle).toBe(MOCK_HANDLE);
     });
 
     it('should encrypt a uint256 value (bigint)', async () => {
-      const value = 1_000_000n;
-      const result = await encryptInput(
-        mockBlockchainService,
-        mockApiService,
-        value,
-        'uint256'
-      );
+      const inputValue = 1_000_000n;
+      const result = await encryptInput({
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        value: inputValue,
+        solidityType: 'uint256',
+      });
 
       expect(result.handle).toBe(MOCK_HANDLE);
       expect(mockApiService.post).toHaveBeenCalledWith({
@@ -158,13 +158,13 @@ describe('encryptInput', () => {
     });
 
     it('should encrypt a int128 value (negative bigint)', async () => {
-      const value = -500n;
-      const result = await encryptInput(
-        mockBlockchainService,
-        mockApiService,
-        value,
-        'int128'
-      );
+      const inputValue = -500n;
+      const result = await encryptInput({
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        value: inputValue,
+        solidityType: 'int128',
+      });
 
       expect(result.handle).toBe(MOCK_HANDLE);
       expect(mockApiService.post).toHaveBeenCalledWith({
@@ -176,12 +176,12 @@ describe('encryptInput', () => {
     it('should encrypt a small bytes value into a larger bytesN type', async () => {
       // bytes4 value into bytes32 type (should be allowed)
       const smallValue = '0xdeadbeef';
-      const result = await encryptInput(
-        mockBlockchainService,
-        mockApiService,
-        smallValue,
-        'bytes32'
-      );
+      const result = await encryptInput({
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        value: smallValue,
+        solidityType: 'bytes32',
+      });
 
       expect(result.handle).toBe(MOCK_HANDLE);
     });
@@ -194,32 +194,32 @@ describe('encryptInput', () => {
   describe('solidityType validation', () => {
     it('should throw TypeError for invalid Solidity type', async () => {
       await expect(
-        encryptInput(
-          mockBlockchainService,
-          mockApiService,
-          'value',
-          'invalidType' as never
-        )
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          value: 'value',
+          solidityType: 'invalidType' as never,
+        })
       ).rejects.toThrow(TypeError);
 
       await expect(
-        encryptInput(
-          mockBlockchainService,
-          mockApiService,
-          'value',
-          'uint7' as never // not a multiple of 8
-        )
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          value: 'value',
+          solidityType: 'uint7' as never, // not a multiple of 8
+        })
       ).rejects.toThrow('Invalid Solidity type: uint7');
     });
 
     it('should throw TypeError for bytes33 (invalid size)', async () => {
       await expect(
-        encryptInput(
-          mockBlockchainService,
-          mockApiService,
-          '0x',
-          'bytes33' as never
-        )
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          value: '0x',
+          solidityType: 'bytes33' as never,
+        })
       ).rejects.toThrow('Invalid Solidity type: bytes33');
     });
   });
@@ -232,11 +232,21 @@ describe('encryptInput', () => {
     describe('bool type', () => {
       it('should reject non-boolean value for bool', async () => {
         await expect(
-          encryptInput(mockBlockchainService, mockApiService, 'true', 'bool')
+          encryptInput({
+            blockchainService: mockBlockchainService,
+            apiService: mockApiService,
+            value: 'true',
+            solidityType: 'bool',
+          })
         ).rejects.toThrow('Invalid value for bool: expected boolean');
 
         await expect(
-          encryptInput(mockBlockchainService, mockApiService, 1n, 'bool')
+          encryptInput({
+            blockchainService: mockBlockchainService,
+            apiService: mockApiService,
+            value: 1n,
+            solidityType: 'bool',
+          })
         ).rejects.toThrow('Invalid value for bool: expected boolean');
       });
     });
@@ -244,11 +254,21 @@ describe('encryptInput', () => {
     describe('string type', () => {
       it('should reject non-string value for string', async () => {
         await expect(
-          encryptInput(mockBlockchainService, mockApiService, true, 'string')
+          encryptInput({
+            blockchainService: mockBlockchainService,
+            apiService: mockApiService,
+            value: true,
+            solidityType: 'string',
+          })
         ).rejects.toThrow('Invalid value for string: expected string');
 
         await expect(
-          encryptInput(mockBlockchainService, mockApiService, 123n, 'string')
+          encryptInput({
+            blockchainService: mockBlockchainService,
+            apiService: mockApiService,
+            value: 123n,
+            solidityType: 'string',
+          })
         ).rejects.toThrow('Invalid value for string: expected string');
       });
     });
@@ -257,43 +277,43 @@ describe('encryptInput', () => {
       it('should reject invalid address format', async () => {
         // Too short
         await expect(
-          encryptInput(
-            mockBlockchainService,
-            mockApiService,
-            '0x1234',
-            'address'
-          )
+          encryptInput({
+            blockchainService: mockBlockchainService,
+            apiService: mockApiService,
+            value: '0x1234',
+            solidityType: 'address',
+          })
         ).rejects.toThrow('Invalid value for address');
 
         // Missing 0x prefix
         await expect(
-          encryptInput(
-            mockBlockchainService,
-            mockApiService,
-            '1234567890123456789012345678901234567890',
-            'address'
-          )
+          encryptInput({
+            blockchainService: mockBlockchainService,
+            apiService: mockApiService,
+            value: '1234567890123456789012345678901234567890',
+            solidityType: 'address',
+          })
         ).rejects.toThrow('Invalid value for address');
 
         // Invalid hex characters
         await expect(
-          encryptInput(
-            mockBlockchainService,
-            mockApiService,
-            '0xGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG',
-            'address'
-          )
+          encryptInput({
+            blockchainService: mockBlockchainService,
+            apiService: mockApiService,
+            value: '0xGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG',
+            solidityType: 'address',
+          })
         ).rejects.toThrow('Invalid value for address');
       });
 
       it('should accept valid address', async () => {
         const validAddress = '0x1234567890abcdef1234567890abcdef12345678';
-        const result = await encryptInput(
-          mockBlockchainService,
-          mockApiService,
-          validAddress,
-          'address'
-        );
+        const result = await encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          value: validAddress,
+          solidityType: 'address',
+        });
         expect(result.handle).toBe(MOCK_HANDLE);
       });
     });
@@ -301,26 +321,31 @@ describe('encryptInput', () => {
     describe('bytes type', () => {
       it('should reject invalid hex string for bytes', async () => {
         await expect(
-          encryptInput(
-            mockBlockchainService,
-            mockApiService,
-            'not hex',
-            'bytes'
-          )
+          encryptInput({
+            blockchainService: mockBlockchainService,
+            apiService: mockApiService,
+            value: 'not hex',
+            solidityType: 'bytes',
+          })
         ).rejects.toThrow('Invalid value for bytes');
 
         await expect(
-          encryptInput(mockBlockchainService, mockApiService, '0xGG', 'bytes')
+          encryptInput({
+            blockchainService: mockBlockchainService,
+            apiService: mockApiService,
+            value: '0xGG',
+            solidityType: 'bytes',
+          })
         ).rejects.toThrow('Invalid value for bytes');
       });
 
       it('should accept empty bytes', async () => {
-        const result = await encryptInput(
-          mockBlockchainService,
-          mockApiService,
-          '0x',
-          'bytes'
-        );
+        const result = await encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          value: '0x',
+          solidityType: 'bytes',
+        });
         expect(result.handle).toBe(MOCK_HANDLE);
       });
     });
@@ -329,23 +354,23 @@ describe('encryptInput', () => {
       it('should reject value exceeding max length for bytesN', async () => {
         // bytes4 max = 8 hex chars, providing 10
         await expect(
-          encryptInput(
-            mockBlockchainService,
-            mockApiService,
-            '0x1234567890', // 10 hex chars = 5 bytes
-            'bytes4'
-          )
+          encryptInput({
+            blockchainService: mockBlockchainService,
+            apiService: mockApiService,
+            value: '0x1234567890', // 10 hex chars = 5 bytes
+            solidityType: 'bytes4',
+          })
         ).rejects.toThrow('Invalid value for bytes4');
       });
 
       it('should accept value smaller than max length for bytesN', async () => {
         // bytes4 max = 8 hex chars, providing 4
-        const result = await encryptInput(
-          mockBlockchainService,
-          mockApiService,
-          '0x1234', // 4 hex chars = 2 bytes
-          'bytes4'
-        );
+        const result = await encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          value: '0x1234', // 4 hex chars = 2 bytes
+          solidityType: 'bytes4',
+        });
         expect(result.handle).toBe(MOCK_HANDLE);
       });
     });
@@ -353,38 +378,43 @@ describe('encryptInput', () => {
     describe('uint/int types', () => {
       it('should reject non-bigint value for uint256', async () => {
         await expect(
-          encryptInput(mockBlockchainService, mockApiService, '1000', 'uint256')
+          encryptInput({
+            blockchainService: mockBlockchainService,
+            apiService: mockApiService,
+            value: '1000',
+            solidityType: 'uint256',
+          })
         ).rejects.toThrow('Invalid value for uint256: expected bigint');
 
         await expect(
-          encryptInput(
-            mockBlockchainService,
-            mockApiService,
-            1000 as never,
-            'uint256'
-          )
+          encryptInput({
+            blockchainService: mockBlockchainService,
+            apiService: mockApiService,
+            value: 1000 as never,
+            solidityType: 'uint256',
+          })
         ).rejects.toThrow('Invalid value for uint256: expected bigint');
       });
 
       it('should accept bigint for various uint sizes', async () => {
         for (const type of ['uint8', 'uint64', 'uint128', 'uint256'] as const) {
-          const result = await encryptInput(
-            mockBlockchainService,
-            mockApiService,
-            42n,
-            type
-          );
+          const result = await encryptInput({
+            blockchainService: mockBlockchainService,
+            apiService: mockApiService,
+            value: 42n,
+            solidityType: type,
+          });
           expect(result.handle).toBe(MOCK_HANDLE);
         }
       });
 
       it('should accept negative bigint for int types', async () => {
-        const result = await encryptInput(
-          mockBlockchainService,
-          mockApiService,
-          -999_999_999n,
-          'int256'
-        );
+        const result = await encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          value: -999_999_999n,
+          solidityType: 'int256',
+        });
         expect(result.handle).toBe(MOCK_HANDLE);
       });
     });
@@ -405,7 +435,12 @@ describe('encryptInput', () => {
       });
 
       await expect(
-        encryptInput(mockBlockchainService, errorApiService, true, 'bool')
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: errorApiService,
+          value: true,
+          solidityType: 'bool',
+        })
       ).rejects.toThrow('Gateway API error: 400');
     });
 
@@ -419,7 +454,12 @@ describe('encryptInput', () => {
       });
 
       await expect(
-        encryptInput(mockBlockchainService, errorApiService, true, 'bool')
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: errorApiService,
+          value: true,
+          solidityType: 'bool',
+        })
       ).rejects.toThrow('Gateway API error: 500');
     });
 
@@ -433,7 +473,12 @@ describe('encryptInput', () => {
       });
 
       await expect(
-        encryptInput(mockBlockchainService, errorApiService, true, 'bool')
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: errorApiService,
+          value: true,
+          solidityType: 'bool',
+        })
       ).rejects.toThrow('Gateway API error: 401');
     });
 
@@ -447,7 +492,12 @@ describe('encryptInput', () => {
       });
 
       await expect(
-        encryptInput(mockBlockchainService, badResponseApiService, true, 'bool')
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: badResponseApiService,
+          value: true,
+          solidityType: 'bool',
+        })
       ).rejects.toThrow(
         'Invalid gateway response: missing handle or inputProof'
       );
@@ -463,7 +513,12 @@ describe('encryptInput', () => {
       });
 
       await expect(
-        encryptInput(mockBlockchainService, badResponseApiService, true, 'bool')
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: badResponseApiService,
+          value: true,
+          solidityType: 'bool',
+        })
       ).rejects.toThrow(
         'Invalid gateway response: missing handle or inputProof'
       );
@@ -479,12 +534,12 @@ describe('encryptInput', () => {
       });
 
       await expect(
-        encryptInput(
-          mockBlockchainService,
-          undefinedResponseApiService,
-          true,
-          'bool'
-        )
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: undefinedResponseApiService,
+          value: true,
+          solidityType: 'bool',
+        })
       ).rejects.toThrow(
         'Invalid gateway response: missing handle or inputProof'
       );
@@ -498,12 +553,12 @@ describe('encryptInput', () => {
       });
 
       await expect(
-        encryptInput(
-          mockBlockchainService,
-          networkErrorApiService,
-          true,
-          'bool'
-        )
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: networkErrorApiService,
+          value: true,
+          solidityType: 'bool',
+        })
       ).rejects.toThrow('Network error: ECONNREFUSED');
     });
 
@@ -513,7 +568,12 @@ describe('encryptInput', () => {
       });
 
       await expect(
-        encryptInput(mockBlockchainService, timeoutApiService, true, 'bool')
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: timeoutApiService,
+          value: true,
+          solidityType: 'bool',
+        })
       ).rejects.toThrow('Request timeout');
     });
   });
@@ -524,7 +584,12 @@ describe('encryptInput', () => {
 
   describe('blockchain service integration', () => {
     it('should call getAddress to get the owner', async () => {
-      await encryptInput(mockBlockchainService, mockApiService, true, 'bool');
+      await encryptInput({
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        value: true,
+        solidityType: 'bool',
+      });
 
       expect(mockBlockchainService.getAddress).toHaveBeenCalledTimes(1);
     });
@@ -535,7 +600,12 @@ describe('encryptInput', () => {
         getAddress: vi.fn().mockResolvedValue(customAddress),
       });
 
-      await encryptInput(customBlockchainService, mockApiService, true, 'bool');
+      await encryptInput({
+        blockchainService: customBlockchainService,
+        apiService: mockApiService,
+        value: true,
+        solidityType: 'bool',
+      });
 
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
@@ -551,7 +621,12 @@ describe('encryptInput', () => {
       });
 
       await expect(
-        encryptInput(errorBlockchainService, mockApiService, true, 'bool')
+        encryptInput({
+          blockchainService: errorBlockchainService,
+          apiService: mockApiService,
+          value: true,
+          solidityType: 'bool',
+        })
       ).rejects.toThrow('Wallet not connected');
     });
   });
