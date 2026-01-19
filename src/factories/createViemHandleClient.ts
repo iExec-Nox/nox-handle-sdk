@@ -52,5 +52,9 @@ export const createViemHandleClient = async (
   const chainId = await viemBlockchainService.getChainId();
   const resolvedConfig = resolveNetworkConfig(chainId, config);
   const apiService = new ApiService(resolvedConfig.gatewayUrl);
-  return new HandleClient(viemBlockchainService, apiService, resolvedConfig);
+  return new HandleClient({
+    blockchainService: viemBlockchainService,
+    apiService,
+    config: resolvedConfig,
+  });
 };

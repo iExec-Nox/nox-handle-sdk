@@ -66,11 +66,11 @@ export const createHandleClient = async (
     const chainId = await ethersBlockchainService.getChainId();
     const resolvedConfig = resolveNetworkConfig(chainId, config);
     const apiService = new ApiService(resolvedConfig.gatewayUrl);
-    return new HandleClient(
-      ethersBlockchainService,
+    return new HandleClient({
+      blockchainService: ethersBlockchainService,
       apiService,
-      resolvedConfig
-    );
+      config: resolvedConfig,
+    });
   }
 
   if (isViemWalletClient(blockchainClient)) {
@@ -78,7 +78,11 @@ export const createHandleClient = async (
     const chainId = await viemBlockchainService.getChainId();
     const resolvedConfig = resolveNetworkConfig(chainId, config);
     const apiService = new ApiService(resolvedConfig.gatewayUrl);
-    return new HandleClient(viemBlockchainService, apiService, resolvedConfig);
+    return new HandleClient({
+      blockchainService: viemBlockchainService,
+      apiService,
+      config: resolvedConfig,
+    });
   }
 
   throw new TypeError(

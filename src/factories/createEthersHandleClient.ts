@@ -49,5 +49,9 @@ export const createEthersHandleClient = async (
   const chainId = await ethersBlockchainService.getChainId();
   const resolvedConfig = resolveNetworkConfig(chainId, config);
   const apiService = new ApiService(resolvedConfig.gatewayUrl);
-  return new HandleClient(ethersBlockchainService, apiService, resolvedConfig);
+  return new HandleClient({
+    blockchainService: ethersBlockchainService,
+    apiService,
+    config: resolvedConfig,
+  });
 };
