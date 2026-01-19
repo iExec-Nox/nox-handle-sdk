@@ -7,16 +7,28 @@ import type {
   SolidityType,
 } from '../types/internalTypes.js';
 
+// ============================================================================
+// Types
+// ============================================================================
+
 export type BaseUrl = `http${'' | 's'}://${string}`;
 
-export type HandleClientConfig = {
+export interface HandleClientConfig {
   gatewayUrl: BaseUrl;
   smartContractAddress: `0x${string}`;
-};
+}
+
+export interface HandleClientDependencies {
+  blockchainService: IBlockchainService;
+  apiService: IApiService;
+  config: HandleClientConfig;
+}
+
+// ============================================================================
+// HandleClient
+// ============================================================================
 
 /**
- * HandleClient
- *
  * A client to interact with encrypted values using Handles on blockchain
  */
 export class HandleClient {
@@ -26,15 +38,16 @@ export class HandleClient {
 
   /**
    * Creates an instance of HandleClient.
-   * @param blockchainService - Service to interact with the blockchain
-   * @param apiService - Service to call the gateway API
-   * @param config - Configuration with gateway URL and contract address
+   * @param dependencies - The client dependencies
+   * @param dependencies.blockchainService - Service to interact with the blockchain
+   * @param dependencies.apiService - Service to call the gateway API
+   * @param dependencies.config - Configuration with gateway URL and contract address
    */
-  constructor(
-    blockchainService: IBlockchainService,
-    apiService: IApiService,
-    config: HandleClientConfig
-  ) {
+  constructor({
+    blockchainService,
+    apiService,
+    config,
+  }: HandleClientDependencies) {
     this.blockchainService = blockchainService;
     this.apiService = apiService;
     this.config = config;
@@ -60,11 +73,11 @@ export class HandleClient {
     value: InputValue,
     solidityType: SolidityType
   ): Promise<EncryptInputResult> {
-    return encryptInput(
-      this.blockchainService,
-      this.apiService,
+    return encryptInput({
+      blockchainService: this.blockchainService,
+      apiService: this.apiService,
       value,
-      solidityType
-    );
+      solidityType,
+    });
   }
 }

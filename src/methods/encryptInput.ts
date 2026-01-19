@@ -11,30 +11,43 @@ import {
   validateInputValue,
 } from '../utils/validators.js';
 
-/**
- * Raw response from the gateway /v0/secrets endpoint
- */
-type GatewaySecretResponse = {
+// ============================================================================
+// Types
+// ============================================================================
+
+interface GatewaySecretResponse {
   handle: string;
   inputProof: string;
-};
+}
+
+interface EncryptInputParameters {
+  /** Service to interact with the blockchain (get address, chainId) */
+  blockchainService: IBlockchainService;
+  /** Service to call the gateway API */
+  apiService: IApiService;
+  /** The value to encrypt (boolean, string, or bigint depending on solidityType) */
+  value: InputValue;
+  /** The Solidity type of the value */
+  solidityType: SolidityType;
+}
+
+// ============================================================================
+// Public API
+// ============================================================================
 
 /**
  * Encrypts a value and returns a handle for use in smart contracts.
  *
- * @param blockchainService - Service to interact with the blockchain (get address, chainId)
- * @param apiService - Service to call the gateway API
- * @param value - The value to encrypt (boolean, string, or bigint depending on solidityType)
- * @param solidityType - The Solidity type of the value
+ * @param params - The encryption parameters
  * @returns Handle and inputProof for smart contract usage
  * @throws Error if solidityType is invalid or API call fails
  */
-export async function encryptInput(
-  blockchainService: IBlockchainService,
-  apiService: IApiService,
-  value: InputValue,
-  solidityType: SolidityType
-): Promise<EncryptInputResult> {
+export async function encryptInput({
+  blockchainService,
+  apiService,
+  value,
+  solidityType,
+}: EncryptInputParameters): Promise<EncryptInputResult> {
   validateSolidityType(solidityType);
   validateInputValue(value, solidityType);
 
