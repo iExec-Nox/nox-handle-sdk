@@ -58,10 +58,10 @@ describe('createHandleClient', () => {
     it('should resolve config from network defaults', async () => {
       const handleClient = await createHandleClient(viemClient);
 
-      expect(handleClient.getGatewayUrl()).toBe(
+      expect(handleClient['config'].gatewayUrl).toBe(
         NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.gatewayUrl
       );
-      expect(handleClient.getSmartContractAddress()).toBe(
+      expect(handleClient['config'].smartContractAddress).toBe(
         NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.smartContractAddress
       );
     });
