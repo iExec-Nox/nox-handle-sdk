@@ -115,16 +115,22 @@ export const SOLIDITY_TYPES = [
 
 export type SolidityType = (typeof SOLIDITY_TYPES)[number];
 
+export const SOLIDITY_TYPES_SET: ReadonlySet<string> = new Set(SOLIDITY_TYPES);
+
 // ============================================================================
 // Handle Types
 // ============================================================================
 
+/** Hex-encoded string with "0x" prefix */
 export type HexString = `0x${string}`;
 
-export type EncryptInputResult = {
+/** Result of encrypting an input value */
+export interface EncryptInputResult {
+  /** The encrypted handle for the value */
   handle: HexString;
+  /** The proof required for smart contract verification */
   inputProof: HexString;
-};
+}
 
 // ============================================================================
 // Input Value Types
