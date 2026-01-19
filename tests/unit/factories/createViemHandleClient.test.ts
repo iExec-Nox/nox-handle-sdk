@@ -40,10 +40,10 @@ describe('createViemHandleClient', () => {
       it('should resolve config from supported chainId', async () => {
         const handleClient = await createViemHandleClient(viemClient);
 
-        expect(handleClient.getGatewayUrl()).toBe(
+        expect(handleClient['config'].gatewayUrl).toBe(
           NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.gatewayUrl
         );
-        expect(handleClient.getSmartContractAddress()).toBe(
+        expect(handleClient['config'].smartContractAddress).toBe(
           NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.smartContractAddress
         );
       });
@@ -53,8 +53,10 @@ describe('createViemHandleClient', () => {
           gatewayUrl: 'https://custom-gateway.com',
         });
 
-        expect(handleClient.getGatewayUrl()).toBe('https://custom-gateway.com');
-        expect(handleClient.getSmartContractAddress()).toBe(
+        expect(handleClient['config'].gatewayUrl).toBe(
+          'https://custom-gateway.com'
+        );
+        expect(handleClient['config'].smartContractAddress).toBe(
           NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.smartContractAddress
         );
       });
@@ -78,10 +80,10 @@ describe('createViemHandleClient', () => {
           smartContractAddress: '0x1234567890123456789012345678901234567890',
         });
 
-        expect(handleClient.getGatewayUrl()).toBe(
+        expect(handleClient['config'].gatewayUrl).toBe(
           'https://my-custom-gateway.com'
         );
-        expect(handleClient.getSmartContractAddress()).toBe(
+        expect(handleClient['config'].smartContractAddress).toBe(
           '0x1234567890123456789012345678901234567890'
         );
       });

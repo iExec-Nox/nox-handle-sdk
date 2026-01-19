@@ -12,8 +12,12 @@ export type HandleClientConfig = {
  * A client to interact with encrypted values using Handles on blockchain
  */
 export class HandleClient {
+  // TODO: Remove @ts-expect-error when properties are used
+  // @ts-expect-error Property will be used in upcoming PR
   private readonly blockchainService: IBlockchainService;
+  // @ts-expect-error Property will be used in upcoming PR
   private readonly config: HandleClientConfig;
+
   /**
    * Creates an instance of HandleClient.
    * @param blockchainService
@@ -26,24 +30,5 @@ export class HandleClient {
   ) {
     this.blockchainService = blockchainService;
     this.config = config;
-  }
-  // TODO: remove or replace with actual methods
-  // Example method to demonstrate usage of blockchainService
-  async getChainId(): Promise<number> {
-    return this.blockchainService.getChainId();
-  }
-
-  /**
-   * Gets the Handle smart contract address
-   */
-  getSmartContractAddress(): EthereumAddress {
-    return this.config.smartContractAddress;
-  }
-
-  /**
-   * Gets the Gateway TEE service URL
-   */
-  getGatewayUrl(): BaseUrl {
-    return this.config.gatewayUrl;
   }
 }

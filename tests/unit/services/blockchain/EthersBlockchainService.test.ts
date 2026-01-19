@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import { Wallet, BrowserProvider } from 'ethers';
+import { Wallet, BrowserProvider, type JsonRpcProvider } from 'ethers';
 import {
   createMockEIP1193Provider,
   createMockProvider,
@@ -50,4 +50,88 @@ describe('EthersBlockchainService', () => {
       });
     });
   }
+
+  describe('error handling', () => {
+    describe('getChainId', () => {
+      it('should throw wrapped error when provider fails', async () => {
+        const failingProvider = {
+          getNetwork: vi.fn().mockRejectedValue(new Error('Network error')),
+        } as unknown as JsonRpcProvider;
+        const signer = new Wallet(TEST_PRIVATE_KEY, failingProvider);
+        const service = new EthersBlockchainService(signer);
+
+        try {
+          await service.getChainId();
+          expect.fail('Should have thrown');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe('Failed to get chain ID');
+
+          const cause = (error as Error).cause as Error;
+          expect(cause).toBeInstanceOf(Error);
+          expect(cause.message).toBe('Network error');
+        }
+      });
+    });
+
+    describe('getAddress', () => {
+      it('should throw wrapped error when signer fails', async () => {
+        const browserProvider = new BrowserProvider({
+          request: vi.fn().mockRejectedValue(new Error('No accounts')),
+        });
+        const service = new EthersBlockchainService(browserProvider);
+
+        try {
+          await service.getAddress();
+          expect.fail('Should have thrown');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe('Failed to get address');
+
+          const cause1 = (error as Error).cause as Error;
+          expect(cause1).toBeInstanceOf(Error);
+          expect(cause1.message).toBe(
+            'Failed to get signer from BrowserProvider'
+          );
+
+          const cause2 = cause1.cause as Error & {
+            error?: { message: string };
+          };
+          expect(cause2).toBeDefined();
+          expect(cause2.error?.message).toBe('No accounts');
+        }
+      });
+    });
+
+    describe('signTypedData', () => {
+      it('should throw wrapped error when signing fails', async () => {
+        const browserProvider = new BrowserProvider({
+          request: vi.fn().mockImplementation(({ method }) => {
+            if (method === 'eth_accounts' || method === 'eth_requestAccounts') {
+              return Promise.resolve([TEST_ADDRESS]);
+            }
+            if (method === 'eth_signTypedData_v4') {
+              return Promise.reject(new Error('User rejected'));
+            }
+            throw new Error(`Unexpected method: ${method}`);
+          }),
+        });
+        const service = new EthersBlockchainService(browserProvider);
+
+        try {
+          await service.signTypedData(EIP712_TYPED_DATA_MOCK);
+          expect.fail('Should have thrown');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe('Failed to sign typed data');
+
+          const cause = (error as Error).cause as Error & {
+            error?: { message: string };
+          };
+          expect(cause).toBeDefined();
+          expect(cause.error?.message).toBe('User rejected');
+        }
+      });
+    });
+  });
 });
