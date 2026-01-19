@@ -60,9 +60,17 @@ describe('EthersBlockchainService', () => {
         const signer = new Wallet(TEST_PRIVATE_KEY, failingProvider);
         const service = new EthersBlockchainService(signer);
 
-        await expect(service.getChainId()).rejects.toThrow(
-          'Failed to get chain ID'
-        );
+        try {
+          await service.getChainId();
+          expect.fail('Should have thrown');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe('Failed to get chain ID');
+
+          const cause = (error as Error).cause as Error;
+          expect(cause).toBeInstanceOf(Error);
+          expect(cause.message).toBe('Network error');
+        }
       });
     });
 
@@ -73,9 +81,25 @@ describe('EthersBlockchainService', () => {
         });
         const service = new EthersBlockchainService(browserProvider);
 
-        await expect(service.getAddress()).rejects.toThrow(
-          'Failed to get address'
-        );
+        try {
+          await service.getAddress();
+          expect.fail('Should have thrown');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe('Failed to get address');
+
+          const cause1 = (error as Error).cause as Error;
+          expect(cause1).toBeInstanceOf(Error);
+          expect(cause1.message).toBe(
+            'Failed to get signer from BrowserProvider'
+          );
+
+          const cause2 = cause1.cause as Error & {
+            error?: { message: string };
+          };
+          expect(cause2).toBeDefined();
+          expect(cause2.error?.message).toBe('No accounts');
+        }
       });
     });
 
@@ -94,9 +118,19 @@ describe('EthersBlockchainService', () => {
         });
         const service = new EthersBlockchainService(browserProvider);
 
-        await expect(
-          service.signTypedData(EIP712_TYPED_DATA_MOCK)
-        ).rejects.toThrow('Failed to sign typed data');
+        try {
+          await service.signTypedData(EIP712_TYPED_DATA_MOCK);
+          expect.fail('Should have thrown');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe('Failed to sign typed data');
+
+          const cause = (error as Error).cause as Error & {
+            error?: { message: string };
+          };
+          expect(cause).toBeDefined();
+          expect(cause.error?.message).toBe('User rejected');
+        }
       });
     });
   });

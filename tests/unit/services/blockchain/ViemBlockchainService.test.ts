@@ -65,9 +65,17 @@ describe('ViemBlockchainService', () => {
         });
         const service = new ViemBlockchainService(failingClient);
 
-        await expect(service.getChainId()).rejects.toThrow(
-          'Failed to get chain ID'
-        );
+        try {
+          await service.getChainId();
+          expect.fail('Should have thrown');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe('Failed to get chain ID');
+
+          const cause = (error as Error).cause as Error & { details?: string };
+          expect(cause).toBeDefined();
+          expect(cause.details).toBe('RPC error');
+        }
       });
     });
 
@@ -88,9 +96,17 @@ describe('ViemBlockchainService', () => {
         });
         const service = new ViemBlockchainService(noAccountsClient);
 
-        await expect(service.getAddress()).rejects.toThrow(
-          'Failed to get address'
-        );
+        try {
+          await service.getAddress();
+          expect.fail('Should have thrown');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe('Failed to get address');
+
+          const cause = (error as Error).cause as Error;
+          expect(cause).toBeDefined();
+          expect(cause.message).toBe('No connected account');
+        }
       });
     });
 
@@ -114,9 +130,17 @@ describe('ViemBlockchainService', () => {
         });
         const service = new ViemBlockchainService(failingClient);
 
-        await expect(
-          service.signTypedData(EIP712_TYPED_DATA_MOCK)
-        ).rejects.toThrow('Failed to sign typed data');
+        try {
+          await service.signTypedData(EIP712_TYPED_DATA_MOCK);
+          expect.fail('Should have thrown');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe('Failed to sign typed data');
+
+          const cause = (error as Error).cause as Error & { details?: string };
+          expect(cause).toBeDefined();
+          expect(cause.details).toBe('User rejected');
+        }
       });
     });
   });

@@ -91,10 +91,10 @@ describe('createEthersHandleClient', () => {
 
       const handleClient = await createEthersHandleClient(ethersClient);
 
-      expect(handleClient.getGatewayUrl()).toBe(
+      expect(handleClient['config'].gatewayUrl).toBe(
         NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.gatewayUrl
       );
-      expect(handleClient.getSmartContractAddress()).toBe(
+      expect(handleClient['config'].smartContractAddress).toBe(
         NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.smartContractAddress
       );
     });
@@ -109,8 +109,10 @@ describe('createEthersHandleClient', () => {
         gatewayUrl: 'https://custom-gateway.com',
       });
 
-      expect(handleClient.getGatewayUrl()).toBe('https://custom-gateway.com');
-      expect(handleClient.getSmartContractAddress()).toBe(
+      expect(handleClient['config'].gatewayUrl).toBe(
+        'https://custom-gateway.com'
+      );
+      expect(handleClient['config'].smartContractAddress).toBe(
         NETWORK_CONFIGS[SUPPORTED_CHAIN_ID]?.smartContractAddress
       );
     });
@@ -139,10 +141,10 @@ describe('createEthersHandleClient', () => {
         smartContractAddress: '0x1234567890123456789012345678901234567890',
       });
 
-      expect(handleClient.getGatewayUrl()).toBe(
+      expect(handleClient['config'].gatewayUrl).toBe(
         'https://my-custom-gateway.com'
       );
-      expect(handleClient.getSmartContractAddress()).toBe(
+      expect(handleClient['config'].smartContractAddress).toBe(
         '0x1234567890123456789012345678901234567890'
       );
     });
