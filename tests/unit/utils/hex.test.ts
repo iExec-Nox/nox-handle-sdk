@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
+  boolToHex,
   bytesToHex,
+  hexToBool,
   hexToBytes,
   hexToIntX,
   hexToString,
@@ -569,4 +571,46 @@ describe('hexToString', () => {
       expect(result).toBe(utf8);
     });
   }
+});
+
+describe('hexToBoolean', () => {
+  it('should convert 0x01 to true', () => {
+    const result = hexToBool('0x01' as `0x${string}`);
+    expect(result).toBe(true);
+  });
+
+  it('should convert 0x00 to false', () => {
+    const result = hexToBool('0x00' as `0x${string}`);
+    expect(result).toBe(false);
+  });
+
+  it('should throw TypeError for invalid hex strings', () => {
+    const invalidHexStrings = ['0x02', '0x', '0x1', '0x10'];
+    for (const hex of invalidHexStrings) {
+      expect(() => hexToBool(hex as `0x${string}`)).toThrowError(
+        new TypeError(
+          `Invalid boolean hex string: expected 0x00 or 0x01, got string ${hex}`
+        )
+      );
+    }
+  });
+});
+
+describe('booleanToHex', () => {
+  it('should convert true to 0x01', () => {
+    const result = boolToHex(true);
+    expect(result).toBe('0x01');
+  });
+
+  it('should convert false to 0x00', () => {
+    const result = boolToHex(false);
+    expect(result).toBe('0x00');
+  });
+
+  it('should throw for invalid type of input', () => {
+    // @ts-expect-error testing runtime type check
+    expect(() => boolToHex('true')).toThrowError(
+      new TypeError('Invalid boolean value: expected boolean, got string true')
+    );
+  });
 });

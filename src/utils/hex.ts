@@ -159,3 +159,27 @@ export function stringToHex(value: string): `0x${string}` {
   const bytes = encoder.encode(value);
   return bytesToHex(bytes);
 }
+
+/**
+ * Converts hex string with "0x" prefix to a boolean
+ */
+export function hexToBool(hex: `0x${string}`): boolean {
+  if (hex !== '0x00' && hex !== '0x01') {
+    throw new TypeError(
+      `Invalid boolean hex string: expected 0x00 or 0x01, got ${typeof hex} ${hex}`
+    );
+  }
+  return hex === '0x01';
+}
+
+/**
+ * Converts a boolean to hex string with "0x" prefix
+ */
+export function boolToHex(value: boolean): `0x${string}` {
+  if (typeof value !== 'boolean') {
+    throw new TypeError(
+      `Invalid boolean value: expected boolean, got ${typeof value} ${value}`
+    );
+  }
+  return value ? '0x01' : '0x00';
+}
