@@ -102,7 +102,7 @@ describe('resolveNetworkConfig', () => {
           smartContractAddress: OVERRIDE_CONTRACT_ADDRESS,
         })
       ).toThrow(
-        `Invalid gatewayUrl: "${invalidUrl}". Must start with http:// or https://`
+        `Invalid gatewayUrl: expected base URL without path or query parameters, got ${invalidUrl}`
       );
     });
 
@@ -114,7 +114,7 @@ describe('resolveNetworkConfig', () => {
           smartContractAddress: OVERRIDE_CONTRACT_ADDRESS,
         })
       ).toThrow(
-        `Invalid gatewayUrl: "${invalidUrl}". Must start with http:// or https://`
+        `Invalid gatewayUrl: expected base URL without path or query parameters, got ${invalidUrl}`
       );
     });
 
@@ -126,7 +126,7 @@ describe('resolveNetworkConfig', () => {
           smartContractAddress: OVERRIDE_CONTRACT_ADDRESS,
         })
       ).toThrow(
-        `Invalid gatewayUrl: "${invalidUrl}". Must start with http:// or https://`
+        `Invalid gatewayUrl: expected base URL without path or query parameters, got ${invalidUrl}`
       );
     });
   });
@@ -151,7 +151,7 @@ describe('resolveNetworkConfig', () => {
           smartContractAddress: invalidAddress as `0x${string}`,
         })
       ).toThrow(
-        `Invalid smartContractAddress: "${invalidAddress}". Must be a valid Ethereum address (0x + 40 hex chars)`
+        `Invalid smartContractAddress: expected ethereum address, got ${invalidAddress}`
       );
     });
 
@@ -163,7 +163,7 @@ describe('resolveNetworkConfig', () => {
           smartContractAddress: invalidAddress,
         })
       ).toThrow(
-        `Invalid smartContractAddress: "${invalidAddress}". Must be a valid Ethereum address (0x + 40 hex chars)`
+        `Invalid smartContractAddress: expected ethereum address, got ${invalidAddress}`
       );
     });
 
@@ -175,7 +175,7 @@ describe('resolveNetworkConfig', () => {
           smartContractAddress: invalidAddress,
         })
       ).toThrow(
-        `Invalid smartContractAddress: "${invalidAddress}". Must be a valid Ethereum address (0x + 40 hex chars)`
+        `Invalid smartContractAddress: expected ethereum address, got ${invalidAddress}`
       );
     });
 
@@ -187,7 +187,7 @@ describe('resolveNetworkConfig', () => {
           smartContractAddress: invalidAddress,
         })
       ).toThrow(
-        `Invalid smartContractAddress: "${invalidAddress}". Must be a valid Ethereum address (0x + 40 hex chars)`
+        `Invalid smartContractAddress: expected ethereum address, got ${invalidAddress}`
       );
     });
 
@@ -199,7 +199,7 @@ describe('resolveNetworkConfig', () => {
           smartContractAddress: invalidAddress,
         })
       ).toThrow(
-        `Invalid smartContractAddress: "${invalidAddress}". Must be a valid Ethereum address (0x + 40 hex chars)`
+        `Invalid smartContractAddress: expected ethereum address, got ${invalidAddress}`
       );
     });
   });

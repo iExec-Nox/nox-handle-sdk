@@ -33,13 +33,13 @@ export function resolveNetworkConfig(
 
   if (!isBaseURL(gatewayUrl)) {
     throw new TypeError(
-      `Invalid gatewayUrl: "${gatewayUrl}". Must start with http:// or https://`
+      `Invalid gatewayUrl: expected base URL without path or query parameters, got ${gatewayUrl}`
     );
   }
 
   if (!isEthereumAddress(smartContractAddress)) {
     throw new TypeError(
-      `Invalid smartContractAddress: "${smartContractAddress}". Must be a valid Ethereum address (0x + 40 hex chars)`
+      `Invalid smartContractAddress: expected ethereum address, got ${smartContractAddress}`
     );
   }
 
