@@ -1,8 +1,7 @@
 import { bytesToHex, hexToBytes } from './hex.js';
 
 const DERIVATION_INFO = hexToBytes(
-  // TODO: temp derivation info (should change)
-  '0x69457865632d45434945533a7273615f777261707065643a76302e31' // hardcoded "iExec-ECIES:rsa_wrapped:v0.1" hex
+  '0x45434945533a4145535f47434d3a7631' // hardcoded "ECIES:AES_GCM:v1" hex
 );
 
 /**
