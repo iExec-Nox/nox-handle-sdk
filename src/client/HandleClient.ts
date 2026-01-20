@@ -2,6 +2,7 @@ import { encryptInput } from '../methods/encryptInput.js';
 import type { IApiService } from '../services/api/IApiService.js';
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
 import type {
+  BaseUrl,
   EncryptInputResult,
   InputValue,
   SolidityType,
@@ -10,8 +11,6 @@ import type {
 // ============================================================================
 // Types
 // ============================================================================
-
-export type BaseUrl = `http${'' | 's'}://${string}`;
 
 export interface HandleClientConfig {
   gatewayUrl: BaseUrl;
@@ -34,6 +33,8 @@ export interface HandleClientDependencies {
 export class HandleClient {
   private readonly blockchainService: IBlockchainService;
   private readonly apiService: IApiService;
+  // TODO: config will be used in future methods
+  // @ts-expect-error Property will be used in upcoming features
   private readonly config: HandleClientConfig;
 
   /**

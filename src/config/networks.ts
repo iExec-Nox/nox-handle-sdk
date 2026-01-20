@@ -1,4 +1,5 @@
-import type { BaseUrl, HandleClientConfig } from '../client/HandleClient.js';
+import type { HandleClientConfig } from '../client/HandleClient.js';
+import { isBaseURL, isEthereumAddress } from '../utils/validators.js';
 
 // TODO: replace with production endpoints
 export const NETWORK_CONFIGS: Record<number, HandleClientConfig> = {
@@ -18,7 +19,11 @@ export function resolveNetworkConfig(
 ): HandleClientConfig {
   const networkConfig = NETWORK_CONFIGS[chainId];
 
-  if (!networkConfig && !isCompleteConfig(override)) {
+  const gatewayUrl = override?.gatewayUrl ?? networkConfig?.gatewayUrl;
+  const smartContractAddress =
+    override?.smartContractAddress ?? networkConfig?.smartContractAddress;
+
+  if (!gatewayUrl || !smartContractAddress) {
     const supported = Object.keys(NETWORK_CONFIGS).join(', ');
     throw new Error(
       `Chain ${chainId} is not supported. Supported chains: ${supported}. ` +
@@ -26,18 +31,17 @@ export function resolveNetworkConfig(
     );
   }
 
-  return {
-    gatewayUrl:
-      (override?.gatewayUrl as BaseUrl) ?? networkConfig?.gatewayUrl ?? '',
-    smartContractAddress:
-      (override?.smartContractAddress as `0x${string}`) ??
-      networkConfig?.smartContractAddress ??
-      '',
-  };
-}
+  if (!isBaseURL(gatewayUrl)) {
+    throw new TypeError(
+      `Invalid gatewayUrl: expected base URL without path or query parameters, got ${gatewayUrl}`
+    );
+  }
 
-function isCompleteConfig(
-  config?: Partial<HandleClientConfig>
-): config is HandleClientConfig {
-  return !!config?.gatewayUrl && !!config?.smartContractAddress;
+  if (!isEthereumAddress(smartContractAddress)) {
+    throw new TypeError(
+      `Invalid smartContractAddress: expected ethereum address, got ${smartContractAddress}`
+    );
+  }
+
+  return { gatewayUrl, smartContractAddress };
 }
