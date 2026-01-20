@@ -4,6 +4,7 @@
 
 import {
   SOLIDITY_TYPES_SET,
+  SOLIDITY_TYPE_TO_CODE,
   type BaseUrl,
   type EthereumAddress,
   type InputValue,
@@ -82,6 +83,94 @@ export function validateInputValue(
 
   if (typeof value === 'string') {
     validateStringFormat(value, solidityType);
+  }
+}
+
+// ============================================================================
+// Handle & InputProof Validation
+// ============================================================================
+
+/** Handle: 32 bytes = 0x + 64 hex chars */
+const HANDLE_PATTERN = /^0x[0-9a-fA-F]{64}$/;
+/** InputProof: 117 bytes = 0x + 234 hex chars (createdAt 32 + owner 20 + sig 65) */
+const INPUT_PROOF_PATTERN = /^0x[0-9a-fA-F]{234}$/;
+
+/** Current handle format version */
+const HANDLE_VERSION = 0;
+
+interface ValidateHandleParameters {
+  handle: string;
+  expectedChainId: number;
+  expectedSolidityType: SolidityType;
+}
+
+/**
+ * Validates a handle structure according to the protocol spec.
+ *
+ * Handle structure (32 bytes):
+ * - Bytes 0-25: prehandle (truncated hash)
+ * - Bytes 26-29: chainId (uint32)
+ * - Byte 30: type code
+ * - Byte 31: version
+ *
+ * @throws TypeError if handle format is invalid
+ * @throws Error if chainId, type, or version doesn't match expected values
+ */
+export function validateHandle({
+  handle,
+  expectedChainId,
+  expectedSolidityType,
+}: ValidateHandleParameters): void {
+  if (!HANDLE_PATTERN.test(handle)) {
+    throw new TypeError(
+      `Invalid handle format: expected 0x + 64 hex chars (32 bytes), got ${handle}`
+    );
+  }
+
+  // Extract bytes from handle (skip "0x" prefix)
+  const hexWithoutPrefix = handle.slice(2);
+
+  // Bytes 26-29: chainId (4 bytes = 8 hex chars, starting at position 52)
+  const chainIdHex = hexWithoutPrefix.slice(52, 60);
+  const chainId = Number.parseInt(chainIdHex, 16);
+
+  if (chainId !== expectedChainId) {
+    throw new Error(
+      `Handle chainId mismatch: expected ${expectedChainId}, got ${chainId}`
+    );
+  }
+
+  // Byte 30: type (1 byte = 2 hex chars, starting at position 60)
+  const typeCodeHex = hexWithoutPrefix.slice(60, 62);
+  const typeCode = Number.parseInt(typeCodeHex, 16);
+  const expectedTypeCode = SOLIDITY_TYPE_TO_CODE.get(expectedSolidityType);
+
+  if (typeCode !== expectedTypeCode) {
+    throw new Error(
+      `Handle type mismatch: expected ${expectedTypeCode} (${expectedSolidityType}), got ${typeCode}`
+    );
+  }
+
+  // Byte 31: version (1 byte = 2 hex chars, starting at position 62)
+  const versionHex = hexWithoutPrefix.slice(62, 64);
+  const version = Number.parseInt(versionHex, 16);
+
+  if (version !== HANDLE_VERSION) {
+    throw new Error(
+      `Handle version mismatch: expected ${HANDLE_VERSION}, got ${version}`
+    );
+  }
+}
+
+/**
+ * Validates inputProof format (117 bytes hex string)
+ * @throws TypeError if inputProof format is invalid
+ */
+export function validateInputProofFormat(inputProof: string): void {
+  if (!INPUT_PROOF_PATTERN.test(inputProof)) {
+    throw new TypeError(
+      `Invalid inputProof: expected 0x + 234 hex chars (117 bytes), got ${inputProof}`
+    );
   }
 }
 

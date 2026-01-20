@@ -3,6 +3,18 @@ import { encryptInput } from '../../../src/methods/encryptInput.js';
 import type { IApiService } from '../../../src/services/api/IApiService.js';
 import type { IBlockchainService } from '../../../src/services/blockchain/IBlockchainService.js';
 
+// Mock the validators module to skip handle/inputProof validation in encryptInput tests
+// These are tested separately in validators.test.ts
+vi.mock('../../../src/utils/validators.js', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('../../../src/utils/validators.js')>();
+  return {
+    ...actual,
+    validateHandle: vi.fn(),
+    validateInputProofFormat: vi.fn(),
+  };
+});
+
 // ============================================================================
 // Mock Factories
 // ============================================================================
@@ -10,8 +22,8 @@ import type { IBlockchainService } from '../../../src/services/blockchain/IBlock
 const TEST_ADDRESS = '0x1234567890123456789012345678901234567890';
 const MOCK_HANDLE =
   '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
-const MOCK_INPUT_PROOF =
-  '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+// 117 bytes = 234 hex chars
+const MOCK_INPUT_PROOF = '0x' + 'ab'.repeat(117);
 
 function createMockBlockchainService(
   overrides: Partial<IBlockchainService> = {}
@@ -592,6 +604,17 @@ describe('encryptInput', () => {
       });
 
       expect(mockBlockchainService.getAddress).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call getChainId for handle validation', async () => {
+      await encryptInput({
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        value: true,
+        solidityType: 'bool',
+      });
+
+      expect(mockBlockchainService.getChainId).toHaveBeenCalledTimes(1);
     });
 
     it('should include owner address in API request', async () => {

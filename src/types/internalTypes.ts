@@ -13,6 +13,12 @@ export type EthereumAddress = `0x${string}`;
 // Solidity Types
 // ============================================================================
 
+/**
+ * Supported Solidity types for encryption.
+ *
+ * WARNING: DO NOT reorder or remove entries from this array.
+ * The array index is used as the type code (byte 30 of handle).
+ */
 export const SOLIDITY_TYPES = [
   // Special types
   'bool',
@@ -122,7 +128,22 @@ export const SOLIDITY_TYPES = [
 
 export type SolidityType = (typeof SOLIDITY_TYPES)[number];
 
+/** Set for O(1) type validation lookup */
 export const SOLIDITY_TYPES_SET: ReadonlySet<string> = new Set(SOLIDITY_TYPES);
+
+/**
+ * Mapping from SolidityType to type code (byte 30 of handle)
+ *
+ * The index in SOLIDITY_TYPES array corresponds to the type code:
+ * - 0-3: Special types (bool, address, bytes, string)
+ * - 4-35: uint8 to uint256 (step 8)
+ * - 36-67: int8 to int256 (step 8)
+ * - 68-99: bytes1 to bytes32
+ * - 100-255: Reserved
+ */
+export const SOLIDITY_TYPE_TO_CODE: ReadonlyMap<SolidityType, number> = new Map(
+  SOLIDITY_TYPES.map((type, index) => [type, index])
+);
 
 // ============================================================================
 // Handle Types

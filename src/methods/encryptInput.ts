@@ -9,6 +9,8 @@ import type {
 import {
   validateSolidityType,
   validateInputValue,
+  validateHandle,
+  validateInputProofFormat,
 } from '../utils/validators.js';
 
 // ============================================================================
@@ -52,6 +54,7 @@ export async function encryptInput({
   validateInputValue(value, solidityType);
 
   const owner = await blockchainService.getAddress();
+  const chainId = await blockchainService.getChainId();
 
   const response = await apiService.post({
     endpoint: '/v0/secrets',
@@ -72,6 +75,14 @@ export async function encryptInput({
 
   const handle = data.handle as HexString;
   const inputProof = data.inputProof as HexString;
+
+  validateHandle({
+    handle,
+    expectedChainId: chainId,
+    expectedSolidityType: solidityType,
+  });
+
+  validateInputProofFormat(inputProof);
 
   return { handle, inputProof };
 }
