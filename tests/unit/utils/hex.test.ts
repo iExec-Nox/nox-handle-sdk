@@ -3,9 +3,11 @@ import {
   bytesToHex,
   hexToBytes,
   hexToIntX,
+  hexToString,
   hexToUintX,
   intXToHex,
   isHexString,
+  stringToHex,
   uintXToHex,
 } from '../../../src/utils/hex.js';
 
@@ -513,4 +515,58 @@ describe('hexToIntX', () => {
       });
     }
   });
+});
+
+describe('stringToHex', () => {
+  const testCases = [
+    {
+      utf8: 'Hello, World!',
+      hex: '0x48656c6c6f2c20576f726c6421',
+    },
+    {
+      utf8: 'こんにちは',
+      hex: '0xe38193e38293e381abe381a1e381af',
+    },
+    {
+      utf8: '😀😃😄😁',
+      hex: '0xf09f9880f09f9883f09f9884f09f9881',
+    },
+    {
+      utf8: 'Special chars: \n\t\r\b\f\\\'"',
+      hex: '0x5370656369616c2063686172733a200a090d080c5c2722',
+    },
+  ];
+  for (const { utf8, hex } of testCases) {
+    it(`should convert string "${utf8}" to hex "${hex}"`, () => {
+      const result = stringToHex(utf8);
+      expect(result).toBe(hex as `0x${string}`);
+    });
+  }
+});
+
+describe('hexToString', () => {
+  const testCases = [
+    {
+      utf8: 'Hello, World!',
+      hex: '0x48656c6c6f2c20576f726c6421',
+    },
+    {
+      utf8: 'こんにちは',
+      hex: '0xe38193e38293e381abe381a1e381af',
+    },
+    {
+      utf8: '😀😃😄😁',
+      hex: '0xf09f9880f09f9883f09f9884f09f9881',
+    },
+    {
+      utf8: 'Special chars: \n\t\r\b\f\\\'"',
+      hex: '0x5370656369616c2063686172733a200a090d080c5c2722',
+    },
+  ];
+  for (const { utf8, hex } of testCases) {
+    it(`should convert hex "${hex}" to string "${utf8}"`, () => {
+      const result = hexToString(hex as `0x${string}`);
+      expect(result).toBe(utf8);
+    });
+  }
 });

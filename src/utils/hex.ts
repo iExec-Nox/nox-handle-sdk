@@ -141,3 +141,21 @@ export function hexToUintX(hex: `0x${string}`, bitSize: number): bigint {
   }
   return BigInt(hex);
 }
+
+/**
+ * Converts hex string with "0x" prefix to an UTF-8 string
+ */
+export function hexToString(hex: `0x${string}`): string {
+  const bytes = hexToBytes(hex);
+  const decoder = new TextDecoder();
+  return decoder.decode(bytes);
+}
+
+/**
+ * Converts an UTF-8 string to hex string with "0x" prefix
+ */
+export function stringToHex(value: string): `0x${string}` {
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(value);
+  return bytesToHex(bytes);
+}
