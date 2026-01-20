@@ -1,3 +1,5 @@
+import type { BaseUrl } from '../../types/internalTypes.js';
+import { isBaseURL } from '../../utils/validators.js';
 import type {
   IApiService,
   QueryParameters,
@@ -5,8 +7,6 @@ import type {
   Body,
   ResponseData,
 } from './IApiService.js';
-
-type BaseUrl = `http${'' | 's'}://${string}`;
 
 /**
  * ApiService implements the IApiService interface abstracting communication with an API.
@@ -110,15 +110,6 @@ function buildRequestInit({
     init.signal = AbortSignal.timeout(timeout);
   }
   return init;
-}
-
-/**
- * Checks url is a base URL
- *
- * if starts with http:// or https:// and has no path segment (/) nor query parameters (?).
- */
-function isBaseURL(url: string): boolean {
-  return /^https?:\/\/[^/?]+\/?$/.test(url);
 }
 
 /**

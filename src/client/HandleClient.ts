@@ -1,8 +1,9 @@
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
+import type { BaseUrl, EthereumAddress } from '../types/internalTypes.js';
 
 export type HandleClientConfig = {
-  gatewayUrl: string;
-  smartContractAddress: string;
+  gatewayUrl: BaseUrl;
+  smartContractAddress: EthereumAddress;
 };
 
 /**
@@ -16,6 +17,7 @@ export class HandleClient {
   private readonly blockchainService: IBlockchainService;
   // @ts-expect-error Property will be used in upcoming PR
   private readonly config: HandleClientConfig;
+
   /**
    * Creates an instance of HandleClient.
    * @param blockchainService
