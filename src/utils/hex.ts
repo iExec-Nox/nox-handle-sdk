@@ -65,6 +65,11 @@ function isValidBitSize(bitSize: number): boolean {
  * Converts a bigint to a hex string with "0x" prefix, representing an unsigned integer of specified bit size
  */
 export function uintXToHex(value: bigint, bitSize: number): `0x${string}` {
+  if (typeof value !== 'bigint') {
+    throw new TypeError(
+      `Invalid value: expected bigint, got ${typeof value} ${value}`
+    );
+  }
   if (!isValidBitSize(bitSize)) {
     throw new RangeError(
       `Invalid bitSize: expected a positive multiple of 8 and less than or equal to 256, got ${bitSize}`
@@ -85,6 +90,11 @@ export function uintXToHex(value: bigint, bitSize: number): `0x${string}` {
  * Converts a bigint to a hex string with "0x" prefix, representing a signed integer of specified bit size
  */
 export function intXToHex(value: bigint, bitSize: number): `0x${string}` {
+  if (typeof value !== 'bigint') {
+    throw new TypeError(
+      `Invalid value: expected bigint, got ${typeof value} ${value}`
+    );
+  }
   if (!isValidBitSize(bitSize)) {
     throw new RangeError(
       `Invalid bitSize: expected a positive multiple of 8 and less than or equal to 256, got ${bitSize}`

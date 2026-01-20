@@ -182,7 +182,18 @@ describe('uintXToHex', () => {
     });
   }
 
-  describe('out of range values', () => {
+  describe('invalid values', () => {
+    // eslint-disable-next-line unicorn/no-null
+    const nonBigintValues = [123, '123', true, null, undefined, {}, []];
+
+    for (const value of nonBigintValues) {
+      it(`should throw TypeError for value: ${String(value)}`, () => {
+        expect(() => uintXToHex(value as unknown as bigint, 8)).toThrowError(
+          TypeError
+        );
+      });
+    }
+
     const outOfRangeCases: { value: bigint; bitSize: number }[] = [
       { value: 256n, bitSize: 8 },
       { value: 65_536n, bitSize: 16 },
@@ -365,7 +376,18 @@ describe('intXToHex', () => {
     });
   }
 
-  describe('out of range values', () => {
+  describe('invalid values', () => {
+    // eslint-disable-next-line unicorn/no-null
+    const nonBigintValues = [123, '123', true, null, undefined, {}, []];
+
+    for (const value of nonBigintValues) {
+      it(`should throw TypeError for value: ${String(value)}`, () => {
+        expect(() => intXToHex(value as unknown as bigint, 8)).toThrowError(
+          TypeError
+        );
+      });
+    }
+
     const outOfRangeCases: { value: bigint; bitSize: number }[] = [
       { value: 128n, bitSize: 8 },
       { value: -129n, bitSize: 8 },
