@@ -11,7 +11,7 @@ vi.mock('../../../src/utils/validators.js', async (importOriginal) => {
   return {
     ...actual,
     validateHandle: vi.fn(),
-    validateInputProofFormat: vi.fn(),
+    validateInputProof: vi.fn(),
   };
 });
 

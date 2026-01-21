@@ -163,15 +163,23 @@ export function validateHandle({
 }
 
 /**
- * Validates inputProof format (117 bytes hex string)
+ * Validates and verifies an inputProof
+ * format: 117 bytes hex string
+ * InputProof structure:
+ * - Bytes 0-31: createdAt (uint256)
+ * - Bytes 32-51: ownerAddress (address)
+ * - Bytes 52-116: signature EIP-712 (65 bytes)
+ *
  * @throws TypeError if inputProof format is invalid
+ * @throws Error if inputProof verification fails
  */
-export function validateInputProofFormat(inputProof: string): void {
+export function validateInputProof(inputProof: string): void {
   if (!INPUT_PROOF_PATTERN.test(inputProof)) {
     throw new TypeError(
       `Invalid inputProof: expected 0x + 234 hex chars (117 bytes), got ${inputProof}`
     );
   }
+  // TODO: Verify inputProof using the gateway signer address inputProof = createdAt (32 bytes) || ownerAddress (20 bytes) || signature EIP-712 (65 bytes)
 }
 
 function validateStringFormat(value: string, solidityType: SolidityType): void {

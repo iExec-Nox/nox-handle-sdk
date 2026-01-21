@@ -10,7 +10,7 @@ import {
   validateSolidityType,
   validateInputValue,
   validateHandle,
-  validateInputProofFormat,
+  validateInputProof,
 } from '../utils/validators.js';
 
 // ============================================================================
@@ -82,7 +82,7 @@ export async function encryptInput({
     expectedSolidityType: solidityType,
   });
 
-  validateInputProofFormat(inputProof);
+  validateInputProof(inputProof);
 
   return { handle, inputProof };
 }

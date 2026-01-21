@@ -5,7 +5,7 @@ import {
   validateSolidityType,
   validateInputValue,
   validateHandle,
-  validateInputProofFormat,
+  validateInputProof,
 } from '../../../src/utils/validators.js';
 
 // ============================================================================
@@ -333,33 +333,33 @@ describe('validateHandle', () => {
 });
 
 // ============================================================================
-// validateInputProofFormat
+// validateInputProof
 // ============================================================================
 
-describe('validateInputProofFormat', () => {
+describe('validateInputProof', () => {
   it('should accept valid 117-byte inputProof', () => {
     const validProof = '0x' + 'ab'.repeat(117);
-    expect(() => validateInputProofFormat(validProof)).not.toThrow();
+    expect(() => validateInputProof(validProof)).not.toThrow();
   });
 
   it('should reject inputProof with wrong length', () => {
     const shortProof = '0x' + 'ab'.repeat(100);
-    expect(() => validateInputProofFormat(shortProof)).toThrow(TypeError);
-    expect(() => validateInputProofFormat(shortProof)).toThrow(
+    expect(() => validateInputProof(shortProof)).toThrow(TypeError);
+    expect(() => validateInputProof(shortProof)).toThrow(
       'Invalid inputProof: expected 0x + 234 hex chars (117 bytes)'
     );
 
     const longProof = '0x' + 'ab'.repeat(120);
-    expect(() => validateInputProofFormat(longProof)).toThrow(TypeError);
+    expect(() => validateInputProof(longProof)).toThrow(TypeError);
   });
 
   it('should reject inputProof with invalid hex characters', () => {
     const invalidProof = '0x' + 'gg'.repeat(117);
-    expect(() => validateInputProofFormat(invalidProof)).toThrow(TypeError);
+    expect(() => validateInputProof(invalidProof)).toThrow(TypeError);
   });
 
   it('should reject inputProof without 0x prefix', () => {
     const noPrefix = 'ab'.repeat(117);
-    expect(() => validateInputProofFormat(noPrefix)).toThrow(TypeError);
+    expect(() => validateInputProof(noPrefix)).toThrow(TypeError);
   });
 });
