@@ -8,10 +8,6 @@ import type {
   SolidityType,
 } from '../types/internalTypes.js';
 
-// ============================================================================
-// Types
-// ============================================================================
-
 export interface HandleClientConfig {
   gatewayUrl: BaseUrl;
   smartContractAddress: `0x${string}`;
@@ -22,10 +18,6 @@ export interface HandleClientDependencies {
   apiService: IApiService;
   config: HandleClientConfig;
 }
-
-// ============================================================================
-// HandleClient
-// ============================================================================
 
 /**
  * A client to interact with encrypted values using Handles on blockchain

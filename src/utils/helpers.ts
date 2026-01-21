@@ -4,15 +4,7 @@
 
 import type { SolidityType } from '../types/internalTypes.js';
 
-// ============================================================================
-// Types
-// ============================================================================
-
 export type JSType = 'boolean' | 'string' | 'bigint';
-
-// ============================================================================
-// Solidity to JS Type Mapping
-// ============================================================================
 
 /**
  * Maps a Solidity type to its corresponding JavaScript type.

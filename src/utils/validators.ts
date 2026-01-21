@@ -12,10 +12,6 @@ import {
 } from '../types/internalTypes.js';
 import { solidityTypeToJSType } from './helpers.js';
 
-// ============================================================================
-// Config Validation
-// ============================================================================
-
 /**
  * Checks url is a base URL
  *
@@ -36,10 +32,6 @@ export function isEthereumAddress(
   return typeof address === 'string' && /^0x[0-9a-fA-F]{40}$/.test(address);
 }
 
-// ============================================================================
-// Solidity Type Validation
-// ============================================================================
-
 /**
  * Validates that the type is a valid SolidityType
  * @throws TypeError if type is invalid
@@ -51,10 +43,6 @@ export function validateSolidityType(
     throw new TypeError(`Invalid Solidity type: ${type}`);
   }
 }
-
-// ============================================================================
-// Input Value Validation
-// ============================================================================
 
 const ADDRESS_PATTERN = /^0x[0-9a-fA-F]{40}$/;
 const HEX_STRING_PATTERN = /^0x([0-9a-fA-F]{2})*$/;
@@ -85,10 +73,6 @@ export function validateInputValue(
     validateStringFormat(value, solidityType);
   }
 }
-
-// ============================================================================
-// Handle & InputProof Validation
-// ============================================================================
 
 /** Handle: 32 bytes = 0x + 64 hex chars */
 const HANDLE_PATTERN = /^0x[0-9a-fA-F]{64}$/;

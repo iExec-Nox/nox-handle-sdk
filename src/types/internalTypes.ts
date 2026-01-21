@@ -2,16 +2,8 @@
  * Internal types - not exported to consumers
  */
 
-// ============================================================================
-// Base Types
-// ============================================================================
-
 export type BaseUrl = `http${'' | 's'}://${string}`;
 export type EthereumAddress = `0x${string}`;
-
-// ============================================================================
-// Solidity Types
-// ============================================================================
 
 /**
  * Supported Solidity types for encryption.
@@ -145,10 +137,6 @@ export const SOLIDITY_TYPE_TO_CODE: ReadonlyMap<SolidityType, number> = new Map(
   SOLIDITY_TYPES.map((type, index) => [type, index])
 );
 
-// ============================================================================
-// Handle Types
-// ============================================================================
-
 /** Hex-encoded string with "0x" prefix */
 export type HexString = `0x${string}`;
 
@@ -159,10 +147,6 @@ export interface EncryptInputResult {
   /** The proof required for smart contract verification */
   inputProof: HexString;
 }
-
-// ============================================================================
-// Input Value Types
-// ============================================================================
 
 /**
  * Value types accepted by encryptInput based on Solidity type:

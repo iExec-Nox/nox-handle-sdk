@@ -13,10 +13,6 @@ import {
   validateInputProof,
 } from '../utils/validators.js';
 
-// ============================================================================
-// Types
-// ============================================================================
-
 interface GatewaySecretResponse {
   handle: string;
   inputProof: string;
@@ -32,10 +28,6 @@ interface EncryptInputParameters {
   /** The Solidity type of the value */
   solidityType: SolidityType;
 }
-
-// ============================================================================
-// Public API
-// ============================================================================
 
 /**
  * Encrypts a value and returns a handle for use in smart contracts.
