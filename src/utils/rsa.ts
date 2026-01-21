@@ -1,3 +1,4 @@
+import type { HexString } from '../types/internalTypes.js';
 import { bytesToHex, hexToBytes } from './hex.js';
 
 /**
@@ -29,7 +30,7 @@ export async function exportRsaPublicKey({
   publicKey,
 }: {
   publicKey: CryptoKey;
-}): Promise<`0x${string}`> {
+}): Promise<HexString> {
   const publicKeyBuffer = await crypto.subtle.exportKey('spki', publicKey);
   return bytesToHex(new Uint8Array(publicKeyBuffer));
 }
@@ -46,8 +47,8 @@ export async function rsaDecrypt({
   ciphertext,
 }: {
   privateKey: CryptoKey;
-  ciphertext: `0x${string}`;
-}): Promise<`0x${string}`> {
+  ciphertext: HexString;
+}): Promise<HexString> {
   const ciphertextBytes = hexToBytes(ciphertext);
   const decryptedBuffer = await crypto.subtle.decrypt(
     {

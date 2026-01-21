@@ -4,13 +4,13 @@ import type { IBlockchainService } from '../services/blockchain/IBlockchainServi
 import type {
   BaseUrl,
   EncryptInputResult,
-  InputValue,
-  SolidityType,
+  EthereumAddress,
 } from '../types/internalTypes.js';
+import type { JsValue, SolidityType } from '../utils/types.js';
 
 export interface HandleClientConfig {
   gatewayUrl: BaseUrl;
-  smartContractAddress: `0x${string}`;
+  smartContractAddress: EthereumAddress;
 }
 
 export interface HandleClientDependencies {
@@ -63,7 +63,7 @@ export class HandleClient {
    * ```
    */
   async encryptInput(
-    value: InputValue,
+    value: JsValue<SolidityType>,
     solidityType: SolidityType
   ): Promise<EncryptInputResult> {
     return encryptInput({

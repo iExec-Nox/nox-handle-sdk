@@ -2,16 +2,22 @@ import type { IApiService } from '../services/api/IApiService.js';
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
 import type {
   EncryptInputResult,
+  EthereumAddress,
   HexString,
-  InputValue,
-  SolidityType,
 } from '../types/internalTypes.js';
 import {
-  validateSolidityType,
-  validateInputValue,
-  validateHandle,
-  validateInputProof,
-} from '../utils/validators.js';
+  SOLIDITY_TYPES_SET,
+  type JsValue,
+  type SolidityType,
+} from '../utils/types.js';
+import { validateHandle, validateInputProof } from '../utils/validators.js';
+import {
+  boolToHex,
+  intXToHex,
+  isHexString,
+  stringToHex,
+  uintXToHex,
+} from '../utils/hex.js';
 
 interface GatewaySecretResponse {
   handle: string;
@@ -19,38 +25,104 @@ interface GatewaySecretResponse {
 }
 
 interface EncryptInputParameters {
-  /** Service to interact with the blockchain (get address, chainId) */
   blockchainService: IBlockchainService;
-  /** Service to call the gateway API */
   apiService: IApiService;
-  /** The value to encrypt (boolean, string, or bigint depending on solidityType) */
-  value: InputValue;
-  /** The Solidity type of the value */
+  value: JsValue<SolidityType>;
   solidityType: SolidityType;
 }
 
-/**
- * Encrypts a value and returns a handle for use in smart contracts.
- *
- * @param params - The encryption parameters
- * @returns Handle and inputProof for smart contract usage
- * @throws Error if solidityType is invalid or API call fails
- */
+function assertValidSolidityType(type: string): asserts type is SolidityType {
+  if (!SOLIDITY_TYPES_SET.has(type)) {
+    throw new TypeError(`Invalid Solidity type: ${type}`);
+  }
+}
+
+function assertValidAddress(value: string): void {
+  if (!isHexString(value, 20)) {
+    throw new TypeError(
+      `Invalid value for address: expected 0x + 40 hex chars, got ${value}`
+    );
+  }
+}
+
+function assertValidBytes(value: string): void {
+  if (!isHexString(value)) {
+    throw new TypeError(
+      `Invalid value for bytes: expected hex string (0x...), got ${value}`
+    );
+  }
+}
+
+function assertValidBytesN(value: string, solidityType: string): void {
+  const size = Number.parseInt(solidityType.slice(5), 10);
+  if (!isHexString(value)) {
+    throw new TypeError(
+      `Invalid value for ${solidityType}: expected hex string (0x...), got ${value}`
+    );
+  }
+  if (value.length > 2 + size * 2) {
+    throw new TypeError(
+      `Invalid value for ${solidityType}: expected hex string with max ${size * 2} hex chars, got ${value}`
+    );
+  }
+}
+
+function encodeValue(
+  value: JsValue<SolidityType>,
+  solidityType: SolidityType
+): HexString {
+  assertValidSolidityType(solidityType);
+
+  switch (solidityType) {
+    case 'bool': {
+      return boolToHex(value as boolean);
+    }
+    case 'string': {
+      return stringToHex(value as string);
+    }
+    case 'address': {
+      assertValidAddress(value as string);
+      return value as HexString;
+    }
+    case 'bytes': {
+      assertValidBytes(value as string);
+      return value as HexString;
+    }
+    default: {
+      if (solidityType.startsWith('uint')) {
+        const bits = Number.parseInt(solidityType.slice(4), 10);
+        return uintXToHex(value as bigint, bits);
+      }
+      if (solidityType.startsWith('int')) {
+        const bits = Number.parseInt(solidityType.slice(3), 10);
+        return intXToHex(value as bigint, bits);
+      }
+      if (solidityType.startsWith('bytes')) {
+        assertValidBytesN(value as string, solidityType);
+        return value as HexString;
+      }
+      throw new TypeError(`Unsupported Solidity type: ${solidityType}`);
+    }
+  }
+}
+
 export async function encryptInput({
   blockchainService,
   apiService,
   value,
   solidityType,
 }: EncryptInputParameters): Promise<EncryptInputResult> {
-  validateSolidityType(solidityType);
-  validateInputValue(value, solidityType);
-
+  const encodedValue = encodeValue(value, solidityType);
   const owner = await blockchainService.getAddress();
   const chainId = await blockchainService.getChainId();
 
   const response = await apiService.post({
     endpoint: '/v0/secrets',
-    body: { value: String(value), solidityType, owner },
+    body: {
+      value: encodedValue,
+      solidityType,
+      owner: owner as EthereumAddress,
+    },
   });
 
   if (!response.ok) {
@@ -60,21 +132,19 @@ export async function encryptInput({
   }
 
   const data = response.data as GatewaySecretResponse;
-
   if (!data?.handle || !data?.inputProof) {
     throw new Error('Invalid gateway response: missing handle or inputProof');
   }
 
-  const handle = data.handle as HexString;
-  const inputProof = data.inputProof as HexString;
-
   validateHandle({
-    handle,
+    handle: data.handle,
     expectedChainId: chainId,
     expectedSolidityType: solidityType,
   });
+  validateInputProof(data.inputProof);
 
-  validateInputProof(inputProof);
-
-  return { handle, inputProof };
+  return {
+    handle: data.handle as HexString,
+    inputProof: data.inputProof as HexString,
+  };
 }
