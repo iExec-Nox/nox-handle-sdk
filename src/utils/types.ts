@@ -173,6 +173,10 @@ export const SOLIDITY_TYPE_TO_CODE: ReadonlyMap<SolidityType, number> = new Map(
   SOLIDITY_TYPES.map((type, index) => [type, index])
 );
 
+const CODE_TO_SOLIDITY_TYPE: ReadonlyMap<number, SolidityType> = new Map(
+  SOLIDITY_TYPES.map((type, index) => [index, type])
+);
+
 /**
  * Maps a Solidity type to its corresponding JavaScript type.
  *
@@ -224,7 +228,7 @@ export function handleToSolidityType(handle: `0x${string}`): SolidityType {
   const typeCodeHex = handle.slice(2 + 30 * 2, 2 + 31 * 2); // byte 30
   const typeCode = Number.parseInt(typeCodeHex, 16);
 
-  const solidityType = SOLIDITY_TYPES[typeCode];
+  const solidityType = CODE_TO_SOLIDITY_TYPE.get(typeCode);
   if (!solidityType) {
     throw new Error(`Unknown handle type code: ${typeCode}`);
   }
