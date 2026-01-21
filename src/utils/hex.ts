@@ -31,14 +31,165 @@ export function hexToBytes(hex: `0x${string}`): Uint8Array<ArrayBuffer> {
 }
 
 /**
- * Checks if a value is a valid hex string with "0x" prefix
+ * Checks if a value is a valid hex string with "0x" prefix and optional specific byte size
  */
-export function isHexString(value: unknown): value is `0x${string}` {
+export function isHexString(
+  value: unknown,
+  byteSize?: number
+): value is `0x${string}` {
   if (typeof value !== 'string') {
     return false;
   }
   if (!/^0x([0-9a-fA-F]{2})*$/.test(value)) {
     return false;
   }
+  if (byteSize !== undefined && value.length !== 2 + byteSize * 2) {
+    return false;
+  }
   return true;
+}
+
+/**
+ * Checks if bitSize is a positive multiple of 8 and less than or equal to 256
+ */
+function isValidBitSize(bitSize: number): boolean {
+  return (
+    Number.isInteger(bitSize) &&
+    bitSize > 0 &&
+    bitSize <= 256 &&
+    bitSize % 8 === 0
+  );
+}
+
+/**
+ * Converts a bigint to a hex string with "0x" prefix, representing an unsigned integer of specified bit size
+ */
+export function uintXToHex(value: bigint, bitSize: number): `0x${string}` {
+  if (typeof value !== 'bigint') {
+    throw new TypeError(
+      `Invalid value: expected bigint, got ${typeof value} ${value}`
+    );
+  }
+  if (!isValidBitSize(bitSize)) {
+    throw new RangeError(
+      `Invalid bitSize: expected a positive multiple of 8 and less than or equal to 256, got ${bitSize}`
+    );
+  }
+  const min = 0n;
+  const max = (1n << BigInt(bitSize)) - 1n;
+  if (value < min || value > max) {
+    throw new RangeError(
+      `Invalid uint${bitSize} value: expected a bigint between ${min} and ${max}, got ${value}`
+    );
+  }
+  const hex = value.toString(16).padStart(2 * (bitSize / 8), '0');
+  return `0x${hex}`;
+}
+
+/**
+ * Converts a bigint to a hex string with "0x" prefix, representing a signed integer of specified bit size
+ */
+export function intXToHex(value: bigint, bitSize: number): `0x${string}` {
+  if (typeof value !== 'bigint') {
+    throw new TypeError(
+      `Invalid value: expected bigint, got ${typeof value} ${value}`
+    );
+  }
+  if (!isValidBitSize(bitSize)) {
+    throw new RangeError(
+      `Invalid bitSize: expected a positive multiple of 8 and less than or equal to 256, got ${bitSize}`
+    );
+  }
+  const min = -(1n << BigInt(bitSize - 1));
+  const max = (1n << BigInt(bitSize - 1)) - 1n;
+  if (value < min || value > max) {
+    throw new RangeError(
+      `Invalid int${bitSize} value: expected a bigint between ${min} and ${max}, got ${value}`
+    );
+  }
+  if (value < 0) {
+    value = (1n << BigInt(bitSize)) + value;
+  }
+  return uintXToHex(value, bitSize);
+}
+
+/**
+ * Converts hex string with "0x" prefix to a bigint representing a signed integer of specified bit size
+ */
+export function hexToIntX(hex: `0x${string}`, bitSize: number): bigint {
+  if (!isValidBitSize(bitSize)) {
+    throw new RangeError(
+      `Invalid bitSize: expected a positive multiple of 8 and less than or equal to 256, got ${bitSize}`
+    );
+  }
+  if (!isHexString(hex, bitSize / 8)) {
+    throw new TypeError(
+      `Invalid int${bitSize} hex string: expected ${bitSize / 8} byte hex string with "0x" prefix, got ${typeof hex} ${hex}`
+    );
+  }
+  const value = BigInt(hex);
+  const max = (1n << BigInt(bitSize - 1)) - 1n;
+  if (value > max) {
+    return value - (1n << BigInt(bitSize));
+  }
+  return value;
+}
+
+/**
+ * Converts hex string with "0x" prefix to a bigint representing an unsigned integer of specified bit size
+ */
+export function hexToUintX(hex: `0x${string}`, bitSize: number): bigint {
+  if (!isValidBitSize(bitSize)) {
+    throw new RangeError(
+      `Invalid bitSize: expected a positive multiple of 8 and less than or equal to 256, got ${bitSize}`
+    );
+  }
+  if (!isHexString(hex, bitSize / 8)) {
+    throw new TypeError(
+      `Invalid uint${bitSize} hex string: expected ${bitSize / 8} byte hex string with "0x" prefix, got ${typeof hex} ${hex}`
+    );
+  }
+  return BigInt(hex);
+}
+
+/**
+ * Converts hex string with "0x" prefix to an UTF-8 string
+ */
+export function hexToString(hex: `0x${string}`): string {
+  const bytes = hexToBytes(hex);
+  const decoder = new TextDecoder();
+  return decoder.decode(bytes);
+}
+
+/**
+ * Converts an UTF-8 string to hex string with "0x" prefix
+ */
+export function stringToHex(value: string): `0x${string}` {
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(value);
+  return bytesToHex(bytes);
+}
+
+/**
+ * Converts hex string with "0x" prefix to a boolean
+ */
+export function hexToBool(hex: `0x${string}`): boolean {
+  if (hex !== '0x00' && hex !== '0x01') {
+    throw new TypeError(
+      `Invalid boolean hex string: expected 0x00 or 0x01, got ${typeof hex} ${hex}`
+    );
+  }
+  return hex === '0x01';
+}
+
+/**
+ * Converts a boolean to hex string with "0x" prefix
+ */
+export function boolToHex(value: boolean): `0x${string}` {
+  if (typeof value !== 'boolean') {
+    throw new TypeError(
+      `Invalid boolean value: expected boolean, got ${typeof value} ${value}`
+    );
+  }
+  return value ? '0x01' : '0x00';
 }
