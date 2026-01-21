@@ -1,3 +1,5 @@
+import { isHexString } from './hex.js';
+
 export type JsType<T extends SolidityType> =
   | JsBool<T>
   | JsString<T>
@@ -45,7 +47,7 @@ type BigIntLike<T extends SolidityType> = T extends
  * WARNING: DO NOT reorder or remove entries from this array.
  * The array index is used as the type code (byte 30 of handle).
  */
-export const SOLIDITY_TYPES = [
+const SOLIDITY_TYPES = [
   // Special types
   'bool',
   'address',
@@ -185,6 +187,9 @@ export const SOLIDITY_TYPE_TO_CODE: ReadonlyMap<SolidityType, number> = new Map(
 export function solidityTypeToJsType<T extends SolidityType>(
   solidityType: T
 ): JsType<T> {
+  if (!isSolidityType(solidityType)) {
+    throw new Error(`Invalid Solidity type: ${solidityType}`);
+  }
   switch (solidityType) {
     case 'bool': {
       return 'boolean' as JsType<T>;
@@ -203,4 +208,34 @@ export function solidityTypeToJsType<T extends SolidityType>(
       return 'bigint' as JsType<T>;
     }
   }
+}
+
+/**
+ * Maps a handle to its corresponding Solidity type.
+ *
+ * @param handle - The handle containing the type code to convert
+ * @returns The corresponding Solidity type
+ * @throws Error if the type code is not supported
+ */
+export function handleToSolidityType(handle: `0x${string}`): SolidityType {
+  if (!isHexString(handle, 32)) {
+    throw new Error(`Invalid handle: ${handle}`);
+  }
+  const typeCodeHex = handle.slice(2 + 30 * 2, 2 + 31 * 2); // byte 30
+  const typeCode = Number.parseInt(typeCodeHex, 16);
+
+  const solidityType = SOLIDITY_TYPES[typeCode];
+  if (!solidityType) {
+    throw new Error(`Unknown handle type code: ${typeCode}`);
+  }
+  return solidityType;
+}
+
+/**
+ * Checks if a given string is a valid Solidity type.
+ * @param type
+ * @returns true if the type is a valid Solidity type, false otherwise
+ */
+export function isSolidityType(type: string): type is SolidityType {
+  return SOLIDITY_TYPES_SET.has(type);
 }
