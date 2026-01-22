@@ -20,21 +20,23 @@ import {
 import {
   handleToChainId,
   handleToSolidityType,
+  type Handle,
+  type JsValue,
   type SolidityType,
 } from '../utils/types.js';
 import type { HexString } from '../types/internalTypes.js';
 
-export async function decrypt({
+export async function decrypt<T extends SolidityType>({
   handle,
   apiService,
   blockchainService,
   config,
 }: {
-  handle: HexString;
+  handle: Handle<T>;
   apiService: IApiService;
   blockchainService: IBlockchainService;
   config: HandleClientConfig;
-}): Promise<{ value: boolean | string | bigint; solidityType: SolidityType }> {
+}): Promise<{ value: JsValue<T>; solidityType: T }> {
   // TODO: Validate handle ACL
   const [chainId, userAddress] = await Promise.all([
     blockchainService.getChainId(),
@@ -47,7 +49,7 @@ export async function decrypt({
     );
   }
 
-  const solidityType = handleToSolidityType(handle);
+  const solidityType = handleToSolidityType(handle) as T;
 
   const rsaKeyPair = await generateRsaKeyPair().catch((error) => {
     throw new Error('Failed to generate RSA key pair', { cause: error });
@@ -172,34 +174,34 @@ export async function decrypt({
     throw new Error('Failed to decrypt ciphertext', { cause: error });
   });
 
-  let value: boolean | string | bigint;
+  let value: JsValue<T>;
 
   try {
     /* eslint unicorn/prefer-switch: ["error", {"minimumCases": 5}] */
     if (solidityType === 'bool') {
-      value = hexToBool(plaintext);
+      value = hexToBool(plaintext) as JsValue<T>;
     } else if (solidityType === 'string') {
-      value = hexToString(plaintext);
+      value = hexToString(plaintext) as JsValue<T>;
     } else if (solidityType === 'bytes') {
       // no validation needed plaintext is always hex
-      value = plaintext;
+      value = plaintext as JsValue<T>;
     } else if (solidityType === 'address') {
       if (!isHexString(plaintext, 20)) {
         throw new TypeError('Invalid address');
       }
-      value = plaintext;
+      value = plaintext as JsValue<T>;
     } else if (solidityType.startsWith('uint')) {
       const bitSize = Number.parseInt(solidityType.slice(4), 10);
-      value = hexToUintX(plaintext, bitSize);
+      value = hexToUintX(plaintext, bitSize) as JsValue<T>;
     } else if (solidityType.startsWith('int')) {
       const bitSize = Number.parseInt(solidityType.slice(3), 10);
-      value = hexToIntX(plaintext, bitSize);
+      value = hexToIntX(plaintext, bitSize) as JsValue<T>;
     } else if (solidityType.startsWith('bytes')) {
       const byteSize = Number.parseInt(solidityType.slice(5), 10);
       if (!isHexString(plaintext, byteSize)) {
         throw new TypeError(`Invalid ${solidityType}`);
       }
-      value = plaintext;
+      value = plaintext as JsValue<T>;
     } else {
       throw new Error(`Unsupported solidity type ${solidityType}`); // should never happen
     }

@@ -43,6 +43,12 @@ type BigIntLike<T extends SolidityType> = T extends
   : never;
 
 /**
+ * Handle type representing an encrypted value on-chain.
+ * The generic parameter T indicates the Solidity type of the value.
+ */
+export type Handle<T extends SolidityType> = HexString & { __solidityType?: T };
+
+/**
  * Supported Solidity types for encryption.
  *
  * WARNING: DO NOT reorder or remove entries from this array.

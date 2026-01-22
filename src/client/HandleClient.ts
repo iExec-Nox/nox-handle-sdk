@@ -3,10 +3,10 @@ import type { IApiService } from '../services/api/IApiService.js';
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
 import type {
   BaseUrl,
-  EncryptInputResult,
   EthereumAddress,
+  HexString,
 } from '../types/internalTypes.js';
-import type { JsValue, SolidityType } from '../utils/types.js';
+import type { Handle, JsValue, SolidityType } from '../utils/types.js';
 
 export interface HandleClientConfig {
   gatewayUrl: BaseUrl;
@@ -25,8 +25,6 @@ export interface HandleClientDependencies {
 export class HandleClient {
   private readonly blockchainService: IBlockchainService;
   private readonly apiService: IApiService;
-  // TODO: config will be used in future methods
-  // @ts-expect-error Property will be used in upcoming features
   private readonly config: HandleClientConfig;
 
   /**
@@ -62,10 +60,13 @@ export class HandleClient {
    * const { handle, inputProof } = await client.encryptInput(true, 'bool');
    * ```
    */
-  async encryptInput(
-    value: JsValue<SolidityType>,
-    solidityType: SolidityType
-  ): Promise<EncryptInputResult> {
+  async encryptInput<T extends SolidityType>(
+    value: JsValue<T>,
+    solidityType: T
+  ): Promise<{
+    handle: Handle<T>;
+    inputProof: HexString;
+  }> {
     return encryptInput({
       blockchainService: this.blockchainService,
       apiService: this.apiService,
