@@ -4,10 +4,11 @@ import {
   type Eip1193Provider as EthersEip1193Provider,
   Wallet,
 } from 'ethers';
-import type { EIP1193Provider as ViemEIP1193Provider } from 'viem';
+import type { Hex, EIP1193Provider as ViemEIP1193Provider } from 'viem';
 import { NETWORK_CONFIGS } from '../../src/config/networks.js';
 import type { EIP712TypedData } from '../../src/services/blockchain/IBlockchainService.js';
 import type { SolidityType } from '../../src/utils/types.js';
+import type { HexString } from '../../src/types/internalTypes.js';
 
 // Test constants
 export const TEST_PRIVATE_KEY =
@@ -54,6 +55,26 @@ export function createMockEIP1193Provider(chainId: number): EIP1193Provider {
       );
     },
   } as unknown as EIP1193Provider;
+}
+
+/**
+ * Handle Structure (32 bytes) per spec:
+ * [0-25]     Prehandle (26 bytes)
+ * [26-29]    Chain ID (4 bytes, uint32)
+ * [30]       Type code (1 byte)
+ * [31]       Version (1 byte)
+ */
+export function buildHandle(options: {
+  prehandle?: string;
+  chainId?: number;
+  typeCode?: number;
+  version?: number;
+}): HexString {
+  const prehandle = options.prehandle ?? 'ab'.repeat(26);
+  const chainIdHex = (options.chainId ?? 1).toString(16).padStart(8, '0');
+  const typeHex = (options.typeCode ?? 0).toString(16).padStart(2, '0');
+  const versionHex = (options.version ?? 0).toString(16).padStart(2, '0');
+  return `0x${prehandle}${chainIdHex}${typeHex}${versionHex}`;
 }
 
 /**

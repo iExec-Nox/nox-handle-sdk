@@ -6,27 +6,7 @@ import {
   handleToChainId,
   handleToVersion,
 } from '../../../src/utils/types.js';
-import { DUMMY_TYPED_HANDLES } from '../../helpers/mocks.js';
-
-/**
- * Handle Structure (32 bytes):
- * [0-25]     Prehandle (26 bytes) - truncated hash
- * [26-29]    Chain ID (4 bytes, uint32)
- * [30]       Type code (1 byte)
- * [31]       Version (1 byte)
- */
-function buildHandle(options: {
-  prehandle?: string;
-  chainId?: number;
-  typeCode?: number;
-  version?: number;
-}): `0x${string}` {
-  const prehandle = options.prehandle ?? 'ab'.repeat(26);
-  const chainIdHex = (options.chainId ?? 1).toString(16).padStart(8, '0');
-  const typeHex = (options.typeCode ?? 0).toString(16).padStart(2, '0');
-  const versionHex = (options.version ?? 0).toString(16).padStart(2, '0');
-  return `0x${prehandle}${chainIdHex}${typeHex}${versionHex}`;
-}
+import { buildHandle, DUMMY_TYPED_HANDLES } from '../../helpers/mocks.js';
 
 describe('SOLIDITY_TYPES_SET', () => {
   it('contains exactly 100 types (0-99)', () => {

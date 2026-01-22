@@ -6,6 +6,7 @@ import {
   validateInputProof,
 } from '../../../src/utils/validators.js';
 import { SOLIDITY_TYPE_TO_CODE } from '../../../src/utils/types.js';
+import { buildHandle } from '../../helpers/mocks.js';
 
 describe('isBaseURL', () => {
   const validUrls = [
@@ -71,26 +72,6 @@ describe('isEthereumAddress', () => {
     });
   }
 });
-
-/**
- * Handle Structure (32 bytes) per spec:
- * [0-25]     Prehandle (26 bytes)
- * [26-29]    Chain ID (4 bytes, uint32)
- * [30]       Type code (1 byte)
- * [31]       Version (1 byte)
- */
-function buildHandle(options: {
-  prehandle?: string;
-  chainId?: number;
-  typeCode?: number;
-  version?: number;
-}): string {
-  const prehandle = options.prehandle ?? 'ab'.repeat(26);
-  const chainIdHex = (options.chainId ?? 1).toString(16).padStart(8, '0');
-  const typeHex = (options.typeCode ?? 0).toString(16).padStart(2, '0');
-  const versionHex = (options.version ?? 0).toString(16).padStart(2, '0');
-  return `0x${prehandle}${chainIdHex}${typeHex}${versionHex}`;
-}
 
 describe('validateHandle', () => {
   describe('format validation', () => {
