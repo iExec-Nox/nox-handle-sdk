@@ -1,8 +1,9 @@
 import type { WalletClient } from 'viem';
 import { HandleClient } from '../client/HandleClient.js';
+import { resolveNetworkConfig } from '../config/networks.js';
+import { ApiService } from '../services/api/ApiService.js';
 import { ViemBlockchainService } from '../services/blockchain/ViemBlockchainService.js';
 import type { HandleClientConfig } from '../client/HandleClient.js';
-import { resolveNetworkConfig } from '../config/networks.js';
 
 /**
  * Creates a HandleClient from a viem WalletClient
@@ -50,5 +51,10 @@ export const createViemHandleClient = async (
   const viemBlockchainService = new ViemBlockchainService(viemClient);
   const chainId = await viemBlockchainService.getChainId();
   const resolvedConfig = resolveNetworkConfig(chainId, config);
-  return new HandleClient(viemBlockchainService, resolvedConfig);
+  const apiService = new ApiService(resolvedConfig.gatewayUrl);
+  return new HandleClient({
+    blockchainService: viemBlockchainService,
+    apiService,
+    config: resolvedConfig,
+  });
 };

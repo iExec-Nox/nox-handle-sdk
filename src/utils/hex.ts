@@ -1,8 +1,10 @@
+import type { HexString } from '../types/internalTypes.js';
+
 /**
  * Converts Uint8Array to hex string with "0x" prefix
  */
-export function bytesToHex(bytes: Uint8Array): `0x${string}` {
-  let hex: `0x${string}` = '0x';
+export function bytesToHex(bytes: Uint8Array): HexString {
+  let hex: HexString = '0x';
   for (const b of bytes) {
     hex += b.toString(16).padStart(2, '0');
   }
@@ -12,7 +14,7 @@ export function bytesToHex(bytes: Uint8Array): `0x${string}` {
 /**
  * Converts hex string with "0x" prefix to Uint8Array<ArrayBuffer>
  */
-export function hexToBytes(hex: `0x${string}`): Uint8Array<ArrayBuffer> {
+export function hexToBytes(hex: HexString): Uint8Array<ArrayBuffer> {
   // Validate hex encoding: must have leading 0x, even length and only contain hex characters
   if (!isHexString(hex)) {
     throw new TypeError(
@@ -36,7 +38,7 @@ export function hexToBytes(hex: `0x${string}`): Uint8Array<ArrayBuffer> {
 export function isHexString(
   value: unknown,
   byteSize?: number
-): value is `0x${string}` {
+): value is HexString {
   if (typeof value !== 'string') {
     return false;
   }
@@ -64,7 +66,7 @@ function isValidBitSize(bitSize: number): boolean {
 /**
  * Converts a bigint to a hex string with "0x" prefix, representing an unsigned integer of specified bit size
  */
-export function uintXToHex(value: bigint, bitSize: number): `0x${string}` {
+export function uintXToHex(value: bigint, bitSize: number): HexString {
   if (typeof value !== 'bigint') {
     throw new TypeError(
       `Invalid value: expected bigint, got ${typeof value} ${value}`
@@ -89,7 +91,7 @@ export function uintXToHex(value: bigint, bitSize: number): `0x${string}` {
 /**
  * Converts a bigint to a hex string with "0x" prefix, representing a signed integer of specified bit size
  */
-export function intXToHex(value: bigint, bitSize: number): `0x${string}` {
+export function intXToHex(value: bigint, bitSize: number): HexString {
   if (typeof value !== 'bigint') {
     throw new TypeError(
       `Invalid value: expected bigint, got ${typeof value} ${value}`
@@ -116,7 +118,7 @@ export function intXToHex(value: bigint, bitSize: number): `0x${string}` {
 /**
  * Converts hex string with "0x" prefix to a bigint representing a signed integer of specified bit size
  */
-export function hexToIntX(hex: `0x${string}`, bitSize: number): bigint {
+export function hexToIntX(hex: HexString, bitSize: number): bigint {
   if (!isValidBitSize(bitSize)) {
     throw new RangeError(
       `Invalid bitSize: expected a positive multiple of 8 and less than or equal to 256, got ${bitSize}`
@@ -138,7 +140,7 @@ export function hexToIntX(hex: `0x${string}`, bitSize: number): bigint {
 /**
  * Converts hex string with "0x" prefix to a bigint representing an unsigned integer of specified bit size
  */
-export function hexToUintX(hex: `0x${string}`, bitSize: number): bigint {
+export function hexToUintX(hex: HexString, bitSize: number): bigint {
   if (!isValidBitSize(bitSize)) {
     throw new RangeError(
       `Invalid bitSize: expected a positive multiple of 8 and less than or equal to 256, got ${bitSize}`
@@ -155,7 +157,7 @@ export function hexToUintX(hex: `0x${string}`, bitSize: number): bigint {
 /**
  * Converts hex string with "0x" prefix to an UTF-8 string
  */
-export function hexToString(hex: `0x${string}`): string {
+export function hexToString(hex: HexString): string {
   const bytes = hexToBytes(hex);
   const decoder = new TextDecoder();
   return decoder.decode(bytes);
@@ -164,7 +166,12 @@ export function hexToString(hex: `0x${string}`): string {
 /**
  * Converts an UTF-8 string to hex string with "0x" prefix
  */
-export function stringToHex(value: string): `0x${string}` {
+export function stringToHex(value: string): HexString {
+  if (typeof value !== 'string') {
+    throw new TypeError(
+      `Invalid value: expected string, got ${typeof value} ${value}`
+    );
+  }
   const encoder = new TextEncoder();
   const bytes = encoder.encode(value);
   return bytesToHex(bytes);
@@ -173,7 +180,7 @@ export function stringToHex(value: string): `0x${string}` {
 /**
  * Converts hex string with "0x" prefix to a boolean
  */
-export function hexToBool(hex: `0x${string}`): boolean {
+export function hexToBool(hex: HexString): boolean {
   if (hex !== '0x00' && hex !== '0x01') {
     throw new TypeError(
       `Invalid boolean hex string: expected 0x00 or 0x01, got ${typeof hex} ${hex}`
@@ -185,7 +192,7 @@ export function hexToBool(hex: `0x${string}`): boolean {
 /**
  * Converts a boolean to hex string with "0x" prefix
  */
-export function boolToHex(value: boolean): `0x${string}` {
+export function boolToHex(value: boolean): HexString {
   if (typeof value !== 'boolean') {
     throw new TypeError(
       `Invalid boolean value: expected boolean, got ${typeof value} ${value}`

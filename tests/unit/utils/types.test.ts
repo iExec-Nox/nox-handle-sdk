@@ -3,163 +3,181 @@ import {
   SOLIDITY_TYPES_SET,
   SOLIDITY_TYPE_TO_CODE,
   handleToSolidityType,
-  solidityTypeToJsType,
+  handleToChainId,
+  handleToVersion,
 } from '../../../src/utils/types.js';
-import { DUMMY_TYPED_HANDLES } from '../../helpers/mocks.js';
+import { buildHandle, DUMMY_TYPED_HANDLES } from '../../helpers/mocks.js';
 
 describe('SOLIDITY_TYPES_SET', () => {
-  it('should contain all Solidity types', () => {
+  it('contains exactly 100 types (0-99)', () => {
     expect(SOLIDITY_TYPES_SET.size).toBe(100);
+  });
+
+  it('contains special types at correct indices', () => {
+    expect(SOLIDITY_TYPES_SET.has('bool')).toBe(true);
+    expect(SOLIDITY_TYPES_SET.has('address')).toBe(true);
+    expect(SOLIDITY_TYPES_SET.has('bytes')).toBe(true);
+    expect(SOLIDITY_TYPES_SET.has('string')).toBe(true);
   });
 });
 
 describe('SOLIDITY_TYPE_TO_CODE', () => {
-  it('should contain all Solidity types', () => {
-    expect(SOLIDITY_TYPE_TO_CODE.size).toBe(100);
+  it('maps special types to codes 0-3', () => {
+    expect(SOLIDITY_TYPE_TO_CODE.get('bool')).toBe(0);
+    expect(SOLIDITY_TYPE_TO_CODE.get('address')).toBe(1);
+    expect(SOLIDITY_TYPE_TO_CODE.get('bytes')).toBe(2);
+    expect(SOLIDITY_TYPE_TO_CODE.get('string')).toBe(3);
   });
-});
 
-describe('solidityTypeToJsType', () => {
-  const testCases: [string, string][] = [
-    ['bool', 'boolean'],
-    ['address', 'string'],
-    ['string', 'string'],
-    ['bytes', 'string'],
-    ['bytes1', 'string'],
-    ['bytes2', 'string'],
-    ['bytes3', 'string'],
-    ['bytes4', 'string'],
-    ['bytes5', 'string'],
-    ['bytes6', 'string'],
-    ['bytes7', 'string'],
-    ['bytes8', 'string'],
-    ['bytes9', 'string'],
-    ['bytes10', 'string'],
-    ['bytes11', 'string'],
-    ['bytes12', 'string'],
-    ['bytes13', 'string'],
-    ['bytes14', 'string'],
-    ['bytes15', 'string'],
-    ['bytes16', 'string'],
-    ['bytes17', 'string'],
-    ['bytes18', 'string'],
-    ['bytes19', 'string'],
-    ['bytes20', 'string'],
-    ['bytes21', 'string'],
-    ['bytes22', 'string'],
-    ['bytes23', 'string'],
-    ['bytes24', 'string'],
-    ['bytes25', 'string'],
-    ['bytes26', 'string'],
-    ['bytes27', 'string'],
-    ['bytes28', 'string'],
-    ['bytes29', 'string'],
-    ['bytes30', 'string'],
-    ['bytes31', 'string'],
-    ['bytes32', 'string'],
-    ['uint8', 'bigint'],
-    ['uint16', 'bigint'],
-    ['uint24', 'bigint'],
-    ['uint32', 'bigint'],
-    ['uint40', 'bigint'],
-    ['uint48', 'bigint'],
-    ['uint56', 'bigint'],
-    ['uint64', 'bigint'],
-    ['uint72', 'bigint'],
-    ['uint80', 'bigint'],
-    ['uint88', 'bigint'],
-    ['uint96', 'bigint'],
-    ['uint104', 'bigint'],
-    ['uint112', 'bigint'],
-    ['uint120', 'bigint'],
-    ['uint128', 'bigint'],
-    ['uint136', 'bigint'],
-    ['uint144', 'bigint'],
-    ['uint152', 'bigint'],
-    ['uint160', 'bigint'],
-    ['uint168', 'bigint'],
-    ['uint176', 'bigint'],
-    ['uint184', 'bigint'],
-    ['uint192', 'bigint'],
-    ['uint200', 'bigint'],
-    ['uint208', 'bigint'],
-    ['uint216', 'bigint'],
-    ['uint224', 'bigint'],
-    ['uint232', 'bigint'],
-    ['uint240', 'bigint'],
-    ['uint248', 'bigint'],
-    ['uint256', 'bigint'],
-    ['int8', 'bigint'],
-    ['int16', 'bigint'],
-    ['int24', 'bigint'],
-    ['int32', 'bigint'],
-    ['int40', 'bigint'],
-    ['int48', 'bigint'],
-    ['int56', 'bigint'],
-    ['int64', 'bigint'],
-    ['int72', 'bigint'],
-    ['int80', 'bigint'],
-    ['int88', 'bigint'],
-    ['int96', 'bigint'],
-    ['int104', 'bigint'],
-    ['int112', 'bigint'],
-    ['int120', 'bigint'],
-    ['int128', 'bigint'],
-    ['int136', 'bigint'],
-    ['int144', 'bigint'],
-    ['int152', 'bigint'],
-    ['int160', 'bigint'],
-    ['int168', 'bigint'],
-    ['int176', 'bigint'],
-    ['int184', 'bigint'],
-    ['int192', 'bigint'],
-    ['int200', 'bigint'],
-    ['int208', 'bigint'],
-    ['int216', 'bigint'],
-    ['int224', 'bigint'],
-    ['int232', 'bigint'],
-    ['int240', 'bigint'],
-    ['int248', 'bigint'],
-    ['int256', 'bigint'],
-  ];
+  it('maps uint types to codes 4-35', () => {
+    expect(SOLIDITY_TYPE_TO_CODE.get('uint8')).toBe(4);
+    expect(SOLIDITY_TYPE_TO_CODE.get('uint256')).toBe(35);
+  });
 
-  for (const [solidityType, expectedJsType] of testCases) {
-    it(`should map Solidity type "${solidityType}" to JavaScript type "${expectedJsType}"`, () => {
-      const jsType = solidityTypeToJsType(solidityType as any);
-      expect(jsType).toBe(expectedJsType);
-    });
-  }
+  it('maps int types to codes 36-67', () => {
+    expect(SOLIDITY_TYPE_TO_CODE.get('int8')).toBe(36);
+    expect(SOLIDITY_TYPE_TO_CODE.get('int256')).toBe(67);
+  });
 
-  it('should throw an error for invalid Solidity type', () => {
-    expect(() => solidityTypeToJsType('invalidType' as never)).toThrowError(
-      'Invalid Solidity type: invalidType'
-    );
+  it('maps bytesN types to codes 68-99', () => {
+    expect(SOLIDITY_TYPE_TO_CODE.get('bytes1')).toBe(68);
+    expect(SOLIDITY_TYPE_TO_CODE.get('bytes32')).toBe(99);
   });
 });
 
 describe('handleToSolidityType', () => {
-  for (const solidityType of SOLIDITY_TYPES_SET.values()) {
-    const handle =
-      DUMMY_TYPED_HANDLES[solidityType as keyof typeof DUMMY_TYPED_HANDLES];
-
-    it(`should map handle "${handle}" to Solidity type "${solidityType}"`, () => {
-      const solidityTypeResult = handleToSolidityType(handle as `0x${string}`);
-      expect(solidityTypeResult).toBe(solidityType);
-    });
-  }
-
-  it('should throw an error for invalid handle', () => {
-    expect(() => handleToSolidityType('0x1234' as never)).toThrowError(
-      'Invalid handle: 0x1234'
-    );
+  describe('valid type codes (0-99)', () => {
+    for (const solidityType of SOLIDITY_TYPES_SET.values()) {
+      const handle =
+        DUMMY_TYPED_HANDLES[solidityType as keyof typeof DUMMY_TYPED_HANDLES];
+      it(`extracts type ${solidityType} from hex code [${handle.slice(62, 64)}]`, () => {
+        expect(handleToSolidityType(handle)).toBe(solidityType);
+      });
+    }
   });
 
-  it('should throw an error for handle with unknown type code', () => {
-    // Construct a handle with an invalid type code (e.g., 0xff)
-    const invalidTypeCodeHandle =
-      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaffaa';
-    expect(() =>
-      handleToSolidityType(invalidTypeCodeHandle as `0x${string}`)
-    ).toThrowError('Unknown handle type code: 255');
+  describe('reserved type codes (100-255)', () => {
+    it('throws for type code 100', () => {
+      const handle = buildHandle({ typeCode: 100 });
+      expect(() => handleToSolidityType(handle)).toThrow(
+        'Unknown handle type code: 100'
+      );
+    });
+
+    it('throws for type code 255', () => {
+      const handle = buildHandle({ typeCode: 255 });
+      expect(() => handleToSolidityType(handle)).toThrow(
+        'Unknown handle type code: 255'
+      );
+    });
+  });
+
+  describe('invalid handle format', () => {
+    it('throws for handle too short', () => {
+      expect(() => handleToSolidityType('0x1234' as never)).toThrow(
+        'Invalid handle: 0x1234'
+      );
+    });
+
+    it('throws for handle too long', () => {
+      const longHandle = '0x' + 'aa'.repeat(33);
+      expect(() => handleToSolidityType(longHandle as never)).toThrow(
+        `Invalid handle: ${longHandle}`
+      );
+    });
+  });
+});
+
+describe('handleToChainId', () => {
+  describe('chain ID extraction (bytes 26-29, 4 bytes)', () => {
+    it('extracts chain ID 1 (Ethereum mainnet)', () => {
+      const handle = buildHandle({ chainId: 1 });
+      expect(handleToChainId(handle)).toBe(1);
+    });
+
+    it('extracts chain ID 421614 (Arbitrum Sepolia)', () => {
+      const handle = buildHandle({ chainId: 421_614 });
+      expect(handleToChainId(handle)).toBe(421_614);
+    });
+
+    it('extracts max uint32 chain ID (0xFFFFFFFF)', () => {
+      const maxUint32 = 0xff_ff_ff_ff;
+      const handle = buildHandle({ chainId: maxUint32 });
+      expect(handleToChainId(handle)).toBe(maxUint32);
+    });
+
+    it('extracts chain ID 0', () => {
+      const handle = buildHandle({ chainId: 0 });
+      expect(handleToChainId(handle)).toBe(0);
+    });
+  });
+
+  describe('invalid handle format', () => {
+    it('throws for invalid handle', () => {
+      expect(() => handleToChainId('0x1234' as never)).toThrow(
+        'Invalid handle: 0x1234'
+      );
+    });
+  });
+});
+
+describe('handleToVersion', () => {
+  describe('version extraction (byte 31)', () => {
+    it('extracts version 0', () => {
+      const handle = buildHandle({ version: 0 });
+      expect(handleToVersion(handle)).toBe(0);
+    });
+
+    it('extracts version 1', () => {
+      const handle = buildHandle({ version: 1 });
+      expect(handleToVersion(handle)).toBe(1);
+    });
+
+    it('extracts max version 255', () => {
+      const handle = buildHandle({ version: 255 });
+      expect(handleToVersion(handle)).toBe(255);
+    });
+  });
+
+  describe('invalid handle format', () => {
+    it('throws for invalid handle', () => {
+      expect(() => handleToVersion('0x1234' as never)).toThrow(
+        'Invalid handle: 0x1234'
+      );
+    });
+  });
+});
+
+describe('handle structure integrity', () => {
+  it('correctly isolates each field without overlap', () => {
+    const handle = buildHandle({
+      prehandle: 'ff'.repeat(26),
+      chainId: 0x12_34_56_78,
+      typeCode: 0x23,
+      version: 0x01,
+    });
+
+    expect(handleToChainId(handle)).toBe(0x12_34_56_78);
+    expect(handleToSolidityType(handle)).toBe('uint256');
+    expect(handleToVersion(handle)).toBe(0x01);
+  });
+
+  it('different prehandles do not affect metadata extraction', () => {
+    const handle1 = buildHandle({
+      prehandle: '00'.repeat(26),
+      chainId: 1,
+      typeCode: 0,
+      version: 0,
+    });
+    const handle2 = buildHandle({
+      prehandle: 'ff'.repeat(26),
+      chainId: 1,
+      typeCode: 0,
+      version: 0,
+    });
+
+    expect(handleToChainId(handle1)).toBe(handleToChainId(handle2));
+    expect(handleToSolidityType(handle1)).toBe(handleToSolidityType(handle2));
+    expect(handleToVersion(handle1)).toBe(handleToVersion(handle2));
   });
 });

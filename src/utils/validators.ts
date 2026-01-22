@@ -1,21 +1,70 @@
-import type { BaseUrl, EthereumAddress } from '../types/internalTypes.js';
+import {
+  type BaseUrl,
+  type EthereumAddress,
+  type HexString,
+} from '../types/internalTypes.js';
+import {
+  handleToChainId,
+  handleToSolidityType,
+  handleToVersion,
+  type SolidityType,
+} from './types.js';
 
-/**
- * Checks url is a base URL
- *
- * if starts with http:// or https:// and has no path segment (/) nor query parameters (?).
- */
 export function isBaseURL(url: unknown): url is BaseUrl {
   return typeof url === 'string' && /^https?:\/\/[^/?]+\/?$/.test(url);
 }
 
-/**
- * Checks address is a valid Ethereum address
- *
- * if starts with 0x and is 40 characters long.
- */
 export function isEthereumAddress(
   address: unknown
 ): address is EthereumAddress {
   return typeof address === 'string' && /^0x[0-9a-fA-F]{40}$/.test(address);
+}
+
+const HANDLE_PATTERN = /^0x[0-9a-fA-F]{64}$/;
+const INPUT_PROOF_PATTERN = /^0x[0-9a-fA-F]{274}$/;
+const SUPPORTED_VERSIONS = [0];
+
+export function validateHandle({
+  handle,
+  expectedChainId,
+  expectedSolidityType,
+}: {
+  handle: unknown;
+  expectedChainId: number;
+  expectedSolidityType: SolidityType;
+}): void {
+  if (typeof handle !== 'string' || !HANDLE_PATTERN.test(handle)) {
+    throw new TypeError(
+      `Invalid handle format: expected 0x + 64 hex chars (32 bytes), got ${handle}`
+    );
+  }
+  const chainId = handleToChainId(handle as HexString);
+  if (chainId !== expectedChainId) {
+    throw new Error(
+      `Handle chainId mismatch: expected ${expectedChainId}, got ${chainId}`
+    );
+  }
+
+  const solidityType = handleToSolidityType(handle as HexString);
+  if (solidityType !== expectedSolidityType) {
+    throw new Error(
+      `Handle type mismatch: expected ${expectedSolidityType}, got ${solidityType}`
+    );
+  }
+
+  const version = handleToVersion(handle as HexString);
+
+  if (!SUPPORTED_VERSIONS.includes(version)) {
+    throw new Error(
+      `Unsupported handle version: ${version}. Supported versions: ${SUPPORTED_VERSIONS}`
+    );
+  }
+}
+
+export function validateInputProof(inputProof: unknown): void {
+  if (typeof inputProof !== 'string' || !INPUT_PROOF_PATTERN.test(inputProof)) {
+    throw new TypeError(
+      `Invalid inputProof: expected 0x + 274 hex chars (137 bytes), got ${inputProof}`
+    );
+  }
 }

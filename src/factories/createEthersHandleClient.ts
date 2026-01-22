@@ -1,5 +1,6 @@
 import { HandleClient } from '../client/HandleClient.js';
 import { resolveNetworkConfig } from '../config/networks.js';
+import { ApiService } from '../services/api/ApiService.js';
 import {
   EthersBlockchainService,
   type EthersClient,
@@ -47,5 +48,10 @@ export const createEthersHandleClient = async (
   const ethersBlockchainService = new EthersBlockchainService(ethersClient);
   const chainId = await ethersBlockchainService.getChainId();
   const resolvedConfig = resolveNetworkConfig(chainId, config);
-  return new HandleClient(ethersBlockchainService, resolvedConfig);
+  const apiService = new ApiService(resolvedConfig.gatewayUrl);
+  return new HandleClient({
+    blockchainService: ethersBlockchainService,
+    apiService,
+    config: resolvedConfig,
+  });
 };

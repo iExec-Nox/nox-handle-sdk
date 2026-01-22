@@ -1,3 +1,4 @@
+import type { HexString } from '../types/internalTypes.js';
 import { bytesToHex, hexToBytes } from './hex.js';
 
 const DERIVATION_INFO = hexToBytes(
@@ -18,10 +19,10 @@ export async function eciesDecrypt({
   iv,
   sharedSecret,
 }: {
-  ciphertext: `0x${string}`;
-  iv: `0x${string}`;
-  sharedSecret: `0x${string}`;
-}): Promise<`0x${string}`> {
+  ciphertext: HexString;
+  iv: HexString;
+  sharedSecret: HexString;
+}): Promise<HexString> {
   // Convert hex strings to Uint8Array
   const ciphertextBytes = hexToBytes(ciphertext);
   const sharedSecretBytes = hexToBytes(sharedSecret);

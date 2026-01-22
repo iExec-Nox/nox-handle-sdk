@@ -1,3 +1,4 @@
+import type { HexString } from '../types/internalTypes.js';
 import { isHexString } from './hex.js';
 
 export type JsType<T extends SolidityType> =
@@ -178,50 +179,13 @@ const CODE_TO_SOLIDITY_TYPE: ReadonlyMap<number, SolidityType> = new Map(
 );
 
 /**
- * Maps a Solidity type to its corresponding JavaScript type.
- *
- * @param solidityType - The Solidity type to convert
- * @returns The corresponding JavaScript type name
- *
- * Mapping:
- * - bool → boolean
- * - string, address, bytes, bytesN → string
- * - uint*, int* → bigint
- */
-export function solidityTypeToJsType<T extends SolidityType>(
-  solidityType: T
-): JsType<T> {
-  if (!isSolidityType(solidityType)) {
-    throw new Error(`Invalid Solidity type: ${solidityType}`);
-  }
-  switch (solidityType) {
-    case 'bool': {
-      return 'boolean' as JsType<T>;
-    }
-    case 'string':
-    case 'address':
-    case 'bytes': {
-      return 'string' as JsType<T>;
-    }
-    default: {
-      // bytesN (bytes1-bytes32) → string
-      if (solidityType.startsWith('bytes')) {
-        return 'string' as JsType<T>;
-      }
-      // uint* / int* → bigint
-      return 'bigint' as JsType<T>;
-    }
-  }
-}
-
-/**
  * Maps a handle to its corresponding Solidity type.
  *
  * @param handle - The handle containing the type code to convert
  * @returns The corresponding Solidity type
  * @throws Error if the type code is not supported
  */
-export function handleToSolidityType(handle: `0x${string}`): SolidityType {
+export function handleToSolidityType(handle: HexString): SolidityType {
   if (!isHexString(handle, 32)) {
     throw new Error(`Invalid handle: ${handle}`);
   }
@@ -235,11 +199,18 @@ export function handleToSolidityType(handle: `0x${string}`): SolidityType {
   return solidityType;
 }
 
-/**
- * Checks if a given string is a valid Solidity type.
- * @param type
- * @returns true if the type is a valid Solidity type, false otherwise
- */
-export function isSolidityType(type: string): type is SolidityType {
-  return SOLIDITY_TYPES_SET.has(type);
+export function handleToChainId(handle: HexString): number {
+  if (!isHexString(handle, 32)) {
+    throw new Error(`Invalid handle: ${handle}`);
+  }
+  const chainIdHex = handle.slice(2 + 26 * 2, 2 + 30 * 2); // byte 26-29
+  return Number.parseInt(chainIdHex, 16);
+}
+
+export function handleToVersion(handle: HexString): number {
+  if (!isHexString(handle, 32)) {
+    throw new Error(`Invalid handle: ${handle}`);
+  }
+  const versionHex = handle.slice(2 + 31 * 2, 2 + 32 * 2); // byte 31
+  return Number.parseInt(versionHex, 16);
 }
