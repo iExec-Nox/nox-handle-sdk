@@ -161,6 +161,7 @@ export async function decrypt({
   let value: boolean | string | bigint;
 
   try {
+    /* eslint unicorn/prefer-switch: ["error", {"minimumCases": 5}] */
     if (solidityType === 'bool') {
       value = hexToBool(plaintext);
     } else if (solidityType === 'string') {
