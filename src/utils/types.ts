@@ -1,3 +1,6 @@
+import type { HexString } from '../types/internalTypes.js';
+import { isHexString } from './hex.js';
+
 export type JsType<T extends SolidityType> =
   | JsBool<T>
   | JsString<T>
@@ -45,7 +48,7 @@ type BigIntLike<T extends SolidityType> = T extends
  * WARNING: DO NOT reorder or remove entries from this array.
  * The array index is used as the type code (byte 30 of handle).
  */
-export const SOLIDITY_TYPES = [
+const SOLIDITY_TYPES = [
   // Special types
   'bool',
   'address',
@@ -170,3 +173,44 @@ export const SOLIDITY_TYPES_SET: ReadonlySet<string> = new Set(SOLIDITY_TYPES);
 export const SOLIDITY_TYPE_TO_CODE: ReadonlyMap<SolidityType, number> = new Map(
   SOLIDITY_TYPES.map((type, index) => [type, index])
 );
+
+const CODE_TO_SOLIDITY_TYPE: ReadonlyMap<number, SolidityType> = new Map(
+  SOLIDITY_TYPES.map((type, index) => [index, type])
+);
+
+/**
+ * Maps a handle to its corresponding Solidity type.
+ *
+ * @param handle - The handle containing the type code to convert
+ * @returns The corresponding Solidity type
+ * @throws Error if the type code is not supported
+ */
+export function handleToSolidityType(handle: HexString): SolidityType {
+  if (!isHexString(handle, 32)) {
+    throw new Error(`Invalid handle: ${handle}`);
+  }
+  const typeCodeHex = handle.slice(2 + 30 * 2, 2 + 31 * 2); // byte 30
+  const typeCode = Number.parseInt(typeCodeHex, 16);
+
+  const solidityType = CODE_TO_SOLIDITY_TYPE.get(typeCode);
+  if (!solidityType) {
+    throw new Error(`Unknown handle type code: ${typeCode}`);
+  }
+  return solidityType;
+}
+
+export function handleToChainId(handle: HexString): number {
+  if (!isHexString(handle, 32)) {
+    throw new Error(`Invalid handle: ${handle}`);
+  }
+  const chainIdHex = handle.slice(2 + 26 * 2, 2 + 30 * 2); // byte 26-29
+  return Number.parseInt(chainIdHex, 16);
+}
+
+export function handleToVersion(handle: HexString): number {
+  if (!isHexString(handle, 32)) {
+    throw new Error(`Invalid handle: ${handle}`);
+  }
+  const versionHex = handle.slice(2 + 31 * 2, 2 + 32 * 2); // byte 31
+  return Number.parseInt(versionHex, 16);
+}

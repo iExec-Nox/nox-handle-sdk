@@ -295,13 +295,11 @@ describe('encryptInput', () => {
   describe('API error handling', () => {
     it('throws on non-ok API response', async () => {
       mockApiService = createMockApiService({
-        post: vi
-          .fn()
-          .mockResolvedValue({
-            ok: false,
-            status: 400,
-            data: { error: 'Bad request' },
-          }),
+        post: vi.fn().mockResolvedValue({
+          ok: false,
+          status: 400,
+          data: { error: 'Bad request' },
+        }),
       });
       await expect(
         encryptInput({
@@ -315,13 +313,11 @@ describe('encryptInput', () => {
 
     it('throws on missing handle in response', async () => {
       mockApiService = createMockApiService({
-        post: vi
-          .fn()
-          .mockResolvedValue({
-            ok: true,
-            status: 200,
-            data: { inputProof: MOCK_INPUT_PROOF },
-          }),
+        post: vi.fn().mockResolvedValue({
+          ok: true,
+          status: 200,
+          data: { inputProof: MOCK_INPUT_PROOF },
+        }),
       });
       await expect(
         encryptInput({

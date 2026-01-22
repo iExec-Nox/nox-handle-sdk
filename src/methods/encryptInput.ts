@@ -53,7 +53,10 @@ function assertValidBytes(value: string): void {
   }
 }
 
-function assertValidBytesN(value: string, solidityType: string): void {
+function assertValidBytesN(
+  value: string,
+  solidityType: `bytes${number}`
+): void {
   const size = Number.parseInt(solidityType.slice(5), 10);
   if (!isHexString(value)) {
     throw new TypeError(
@@ -98,7 +101,7 @@ function encodeValue(
         return intXToHex(value as bigint, bits);
       }
       if (solidityType.startsWith('bytes')) {
-        assertValidBytesN(value as string, solidityType);
+        assertValidBytesN(value as string, solidityType as `bytes${number}`);
         return value as HexString;
       }
       throw new TypeError(`Unsupported Solidity type: ${solidityType}`);
@@ -113,9 +116,10 @@ export async function encryptInput({
   solidityType,
 }: EncryptInputParameters): Promise<EncryptInputResult> {
   const encodedValue = encodeValue(value, solidityType);
-  const owner = await blockchainService.getAddress();
-  const chainId = await blockchainService.getChainId();
-
+  const [owner, chainId] = await Promise.all([
+    blockchainService.getAddress(),
+    blockchainService.getChainId(),
+  ]);
   const response = await apiService.post({
     endpoint: '/v0/secrets',
     body: {

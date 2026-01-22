@@ -1,5 +1,14 @@
-import { type BaseUrl, type EthereumAddress } from '../types/internalTypes.js';
-import { SOLIDITY_TYPE_TO_CODE, type SolidityType } from './types.js';
+import {
+  type BaseUrl,
+  type EthereumAddress,
+  type HexString,
+} from '../types/internalTypes.js';
+import {
+  handleToChainId,
+  handleToSolidityType,
+  handleToVersion,
+  type SolidityType,
+} from './types.js';
 
 export function isBaseURL(url: unknown): url is BaseUrl {
   return typeof url === 'string' && /^https?:\/\/[^/?]+\/?$/.test(url);
@@ -13,49 +22,41 @@ export function isEthereumAddress(
 
 const HANDLE_PATTERN = /^0x[0-9a-fA-F]{64}$/;
 const INPUT_PROOF_PATTERN = /^0x[0-9a-fA-F]{274}$/;
-const HANDLE_VERSION = 0;
-
-interface ValidateHandleParameters {
-  handle: unknown;
-  expectedChainId: number;
-  expectedSolidityType: SolidityType;
-}
+const SUPPORTED_VERSIONS = [0];
 
 export function validateHandle({
   handle,
   expectedChainId,
   expectedSolidityType,
-}: ValidateHandleParameters): void {
+}: {
+  handle: unknown;
+  expectedChainId: number;
+  expectedSolidityType: SolidityType;
+}): void {
   if (typeof handle !== 'string' || !HANDLE_PATTERN.test(handle)) {
     throw new TypeError(
       `Invalid handle format: expected 0x + 64 hex chars (32 bytes), got ${handle}`
     );
   }
-
-  const hexWithoutPrefix = handle.slice(2);
-
-  const chainIdHex = hexWithoutPrefix.slice(52, 60);
-  const chainId = Number.parseInt(chainIdHex, 16);
+  const chainId = handleToChainId(handle as HexString);
   if (chainId !== expectedChainId) {
     throw new Error(
       `Handle chainId mismatch: expected ${expectedChainId}, got ${chainId}`
     );
   }
 
-  const typeCodeHex = hexWithoutPrefix.slice(60, 62);
-  const typeCode = Number.parseInt(typeCodeHex, 16);
-  const expectedTypeCode = SOLIDITY_TYPE_TO_CODE.get(expectedSolidityType);
-  if (typeCode !== expectedTypeCode) {
+  const solidityType = handleToSolidityType(handle as HexString);
+  if (solidityType !== expectedSolidityType) {
     throw new Error(
-      `Handle type mismatch: expected ${expectedTypeCode} (${expectedSolidityType}), got ${typeCode}`
+      `Handle type mismatch: expected ${expectedSolidityType}, got ${solidityType}`
     );
   }
 
-  const versionHex = hexWithoutPrefix.slice(62, 64);
-  const version = Number.parseInt(versionHex, 16);
-  if (version !== HANDLE_VERSION) {
+  const version = handleToVersion(handle as HexString);
+
+  if (!SUPPORTED_VERSIONS.includes(version)) {
     throw new Error(
-      `Handle version mismatch: expected ${HANDLE_VERSION}, got ${version}`
+      `Unsupported handle version: ${version}. Supported versions: ${SUPPORTED_VERSIONS}`
     );
   }
 }
