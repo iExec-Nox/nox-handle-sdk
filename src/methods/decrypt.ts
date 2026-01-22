@@ -30,6 +30,9 @@ export async function decrypt({
   blockchainService: IBlockchainService;
   config: HandleClientConfig;
 }): Promise<{ value: boolean | string | bigint; solidityType: SolidityType }> {
+  // TODO: Validate handle chainId
+  // TODO: Validate handle ACL
+
   const solidityType = handleToSolidityType(handle);
 
   const rsaKeyPair = await generateRsaKeyPair().catch((error) => {
