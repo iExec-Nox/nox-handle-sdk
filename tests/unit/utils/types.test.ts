@@ -121,7 +121,7 @@ describe('handleToChainId', () => {
     });
 
     it('extracts max uint32 chain ID (0xFFFFFFFF)', () => {
-      const maxUint32 = 0xffffffff;
+      const maxUint32 = 0xff_ff_ff_ff;
       const handle = buildHandle({ chainId: maxUint32 });
       expect(handleToChainId(handle)).toBe(maxUint32);
     });
@@ -172,12 +172,12 @@ describe('handle structure integrity', () => {
   it('correctly isolates each field without overlap', () => {
     const handle = buildHandle({
       prehandle: 'ff'.repeat(26),
-      chainId: 0x12345678,
+      chainId: 0x12_34_56_78,
       typeCode: 0x23,
       version: 0x01,
     });
 
-    expect(handleToChainId(handle)).toBe(0x12345678);
+    expect(handleToChainId(handle)).toBe(0x12_34_56_78);
     expect(handleToSolidityType(handle)).toBe('uint256');
     expect(handleToVersion(handle)).toBe(0x01);
   });
