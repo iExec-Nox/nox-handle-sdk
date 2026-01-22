@@ -4,7 +4,7 @@ import {
   type Eip1193Provider as EthersEip1193Provider,
   Wallet,
 } from 'ethers';
-import type { Hex, EIP1193Provider as ViemEIP1193Provider } from 'viem';
+import type { EIP1193Provider as ViemEIP1193Provider } from 'viem';
 import { NETWORK_CONFIGS } from '../../src/config/networks.js';
 import type { EIP712TypedData } from '../../src/services/blockchain/IBlockchainService.js';
 import type { SolidityType } from '../../src/utils/types.js';
