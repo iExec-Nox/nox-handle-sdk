@@ -40,7 +40,7 @@ function assertValidSolidityType(type: string): asserts type is SolidityType {
 function assertValidAddress(value: string): void {
   if (!isHexString(value, 20)) {
     throw new TypeError(
-      `Invalid value for address: expected 0x + 40 hex chars, got ${value}`
+      `Invalid value for address: expected 20 bytes hex string (0x...), got ${value}`
     );
   }
 }
