@@ -148,7 +148,9 @@ export class EthersBlockchainService implements IBlockchainService {
   async signTypedData(data: EIP712TypedData): Promise<string> {
     try {
       const signer = await this.adapter.getSigner();
-      return await signer.signTypedData(data.domain, data.types, data.message);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { EIP712Domain, ...types } = data.types; // strip out EIP712Domain for ethers
+      return await signer.signTypedData(data.domain, types, data.message);
     } catch (error) {
       throw new Error('Failed to sign typed data', { cause: error });
     }
