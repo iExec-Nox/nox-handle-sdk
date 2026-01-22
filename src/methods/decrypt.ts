@@ -18,6 +18,7 @@ import {
   isHexString,
 } from '../utils/hex.js';
 import { handleToSolidityType, type SolidityType } from '../utils/types.js';
+import type { HexString } from '../types/internalTypes.js';
 
 export async function decrypt({
   handle,
@@ -25,7 +26,7 @@ export async function decrypt({
   blockchainService,
   config,
 }: {
-  handle: `0x${string}`;
+  handle: HexString;
   apiService: IApiService;
   blockchainService: IBlockchainService;
   config: HandleClientConfig;
@@ -141,9 +142,9 @@ export async function decrypt({
     );
   }
   const { ciphertext, iv, encryptedSharedSecret } = data as {
-    ciphertext: `0x${string}`;
-    iv: `0x${string}`;
-    encryptedSharedSecret: `0x${string}`;
+    ciphertext: HexString;
+    iv: HexString;
+    encryptedSharedSecret: HexString;
   };
 
   const sharedSecret = await rsaDecrypt({
