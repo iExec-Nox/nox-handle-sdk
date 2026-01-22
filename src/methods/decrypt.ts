@@ -126,7 +126,7 @@ export async function decrypt<T extends SolidityType>({
 
   const authorization = `EIP712 ${btoa(
     JSON.stringify({
-      ...dataAccessAuthorizationTypedData.message,
+      payload: dataAccessAuthorizationTypedData.message,
       signature: signature,
     })
   )}`;
