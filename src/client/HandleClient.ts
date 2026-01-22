@@ -1,3 +1,4 @@
+import { decrypt } from '../methods/decrypt.js';
 import { encryptInput } from '../methods/encryptInput.js';
 import type { IApiService } from '../services/api/IApiService.js';
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
@@ -73,5 +74,34 @@ export class HandleClient {
       value,
       solidityType,
     });
+  }
+
+  /**
+   * Request the original value associated with a handle.
+   *
+   * @param handle - The handle representing the encrypted value
+   * @returns The decrypted value and its Solidity type
+   *
+   * The decryption key is shared with the connected wallet address via public key encryption.
+   * To request decryption, the connected wallet must be allowed to view the data and provide an EIP712 DataAccessAuthorization signature.
+   *
+   * @example
+   * ```typescript
+   * const { value, solidityType } = await client.decrypt(handle);
+   * ```
+   */
+  async decrypt<T extends SolidityType>(
+    handle: Handle<T>
+  ): Promise<{
+    value: JsValue<T>;
+    solidityType: T;
+  }> {
+    const result = await decrypt({
+      handle,
+      apiService: this.apiService,
+      blockchainService: this.blockchainService,
+      config: this.config,
+    });
+    return result;
   }
 }
