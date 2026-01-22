@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { decrypt } from '../../../src/methods/decrypt.js';
 import { BrowserProvider } from 'ethers';
-import { createMockEIP1193Provider } from '../../helpers/mocks.js';
+import { buildHandle, createMockEIP1193Provider } from '../../helpers/mocks.js';
 import { EthersBlockchainService } from '../../../src/services/blockchain/EthersBlockchainService.js';
 import type { IApiService } from '../../../src/services/api/IApiService.js';
 import * as rsa from '../../../src/utils/rsa.js';
@@ -124,6 +124,39 @@ describe('decrypt', () => {
         });
       });
     }
+  });
+
+  describe('when handle chain ID mismatches', () => {
+    it('should throw', async () => {
+      await expect(
+        decrypt({
+          handle: buildHandle({ chainId: SUPPORTED_CHAIN_ID + 1, typeCode: 0 }),
+          blockchainService: new EthersBlockchainService(
+            new BrowserProvider(
+              createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
+            )
+          ),
+          apiService: {
+            get: async () => {
+              const { iv, ciphertext, encryptedSharedSecret } =
+                TEST_ENCRYPTED_DATA.bool;
+              return {
+                status: 200,
+                data: { iv, encryptedSharedSecret, ciphertext },
+              };
+            },
+          } as unknown as IApiService,
+          config: {
+            gatewayUrl: 'https://example.com',
+            smartContractAddress: '0x0000000000000000000000000000000000000000',
+          },
+        })
+      ).rejects.toThrow(
+        new Error(
+          `Handle chainId (${SUPPORTED_CHAIN_ID + 1}) does not match connected chainId (${SUPPORTED_CHAIN_ID})`
+        )
+      );
+    });
   });
 
   describe('when RSA key generation fails', () => {

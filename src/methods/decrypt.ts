@@ -17,7 +17,11 @@ import {
   hexToUintX,
   isHexString,
 } from '../utils/hex.js';
-import { handleToSolidityType, type SolidityType } from '../utils/types.js';
+import {
+  handleToChainId,
+  handleToSolidityType,
+  type SolidityType,
+} from '../utils/types.js';
 import type { HexString } from '../types/internalTypes.js';
 
 export async function decrypt({
@@ -31,8 +35,17 @@ export async function decrypt({
   blockchainService: IBlockchainService;
   config: HandleClientConfig;
 }): Promise<{ value: boolean | string | bigint; solidityType: SolidityType }> {
-  // TODO: Validate handle chainId
   // TODO: Validate handle ACL
+  const [chainId, userAddress] = await Promise.all([
+    blockchainService.getChainId(),
+    blockchainService.getAddress(),
+  ]);
+  const chainIdFromHandle = handleToChainId(handle); // validate chainId
+  if (chainIdFromHandle !== chainId) {
+    throw new Error(
+      `Handle chainId (${chainIdFromHandle}) does not match connected chainId (${chainId})`
+    );
+  }
 
   const solidityType = handleToSolidityType(handle);
 
@@ -44,10 +57,7 @@ export async function decrypt({
       throw new Error('Failed to export RSA public key', { cause: error });
     }
   );
-  const [chainId, userAddress] = await Promise.all([
-    blockchainService.getChainId(),
-    blockchainService.getAddress(),
-  ]);
+
   const now = Math.floor(Date.now() / 1000);
 
   const dataAccessAuthorizationTypedData: EIP712TypedData = {
