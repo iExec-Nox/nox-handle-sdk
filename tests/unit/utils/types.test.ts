@@ -6,6 +6,7 @@ import {
   handleToChainId,
   handleToVersion,
 } from '../../../src/utils/types.js';
+import { DUMMY_TYPED_HANDLES } from '../../helpers/mocks.js';
 
 /**
  * Handle Structure (32 bytes):
@@ -66,23 +67,11 @@ describe('SOLIDITY_TYPE_TO_CODE', () => {
 
 describe('handleToSolidityType', () => {
   describe('valid type codes (0-99)', () => {
-    const testCases = [
-      { typeCode: 0, expected: 'bool' },
-      { typeCode: 1, expected: 'address' },
-      { typeCode: 2, expected: 'bytes' },
-      { typeCode: 3, expected: 'string' },
-      { typeCode: 4, expected: 'uint8' },
-      { typeCode: 35, expected: 'uint256' },
-      { typeCode: 36, expected: 'int8' },
-      { typeCode: 67, expected: 'int256' },
-      { typeCode: 68, expected: 'bytes1' },
-      { typeCode: 99, expected: 'bytes32' },
-    ];
-
-    for (const { typeCode, expected } of testCases) {
-      it(`extracts type ${expected} from code ${typeCode}`, () => {
-        const handle = buildHandle({ typeCode });
-        expect(handleToSolidityType(handle)).toBe(expected);
+    for (const solidityType of SOLIDITY_TYPES_SET.values()) {
+      const handle =
+        DUMMY_TYPED_HANDLES[solidityType as keyof typeof DUMMY_TYPED_HANDLES];
+      it(`extracts type ${solidityType} from hex code [${handle.slice(62, 64)}]`, () => {
+        expect(handleToSolidityType(handle)).toBe(solidityType);
       });
     }
   });
