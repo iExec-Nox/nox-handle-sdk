@@ -58,14 +58,9 @@ function assertValidBytesN(
   solidityType: `bytes${number}`
 ): void {
   const size = Number.parseInt(solidityType.slice(5), 10);
-  if (!isHexString(value)) {
+  if (!isHexString(value, size)) {
     throw new TypeError(
-      `Invalid value for ${solidityType}: expected hex string (0x...), got ${value}`
-    );
-  }
-  if (value.length > 2 + size * 2) {
-    throw new TypeError(
-      `Invalid value for ${solidityType}: expected hex string with max ${size * 2} hex chars, got ${value}`
+      `Invalid value for ${solidityType}: expected ${size} bytes hex string (0x...), got ${value}`
     );
   }
 }
