@@ -96,12 +96,11 @@ export class HandleClient {
     value: JsValue<T>;
     solidityType: T;
   }> {
-    const result = await decrypt({
+    return decrypt({
       handle,
       apiService: this.apiService,
       blockchainService: this.blockchainService,
       config: this.config,
     });
-    return result;
   }
 }
