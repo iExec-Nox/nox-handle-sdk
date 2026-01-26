@@ -1,27 +1,32 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createWalletClient, custom } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import {
-  createMockEIP1193Provider,
-  EIP712_TYPED_DATA_MOCK,
-  TEST_ADDRESS,
-  TEST_PRIVATE_KEY,
-} from '../../../helpers/mocks.js';
+import { createMockEIP1193Provider } from '../../../helpers/mocks.js';
 import { ViemBlockchainService } from '../../../../src/services/blockchain/ViemBlockchainService.js';
+import {
+  SUPPORTED_CHAIN_ID,
+  TEST_ADDRESS,
+  TEST_EIP712_TYPED_DATA,
+  TEST_PRIVATE_KEY,
+} from '../../../helpers/testData.js';
 
 describe('ViemBlockchainService', () => {
   const testCases = [
     {
       name: 'EIP-1193 provider',
       client: createWalletClient({
-        transport: custom(createMockEIP1193Provider(1)),
+        transport: custom(
+          createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
+        ),
       }),
     },
     {
       name: 'Local signer',
       client: createWalletClient({
         account: privateKeyToAccount(TEST_PRIVATE_KEY),
-        transport: custom(createMockEIP1193Provider(1)),
+        transport: custom(
+          createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
+        ),
       }),
     },
   ];
@@ -33,7 +38,7 @@ describe('ViemBlockchainService', () => {
       describe('getChainId', () => {
         it('should return the correct chainId', async () => {
           const chainId = await blockchainService.getChainId();
-          expect(chainId).toBe(1);
+          expect(chainId).toBe(SUPPORTED_CHAIN_ID);
         });
       });
 
@@ -47,7 +52,7 @@ describe('ViemBlockchainService', () => {
       describe('signTypedData', () => {
         it('should sign typed data correctly', async () => {
           const signature = await blockchainService.signTypedData(
-            EIP712_TYPED_DATA_MOCK
+            TEST_EIP712_TYPED_DATA
           );
           expect(signature).toMatch(/0x[a-fA-F0-9]{130}/);
         });
@@ -131,7 +136,7 @@ describe('ViemBlockchainService', () => {
         const service = new ViemBlockchainService(failingClient);
 
         try {
-          await service.signTypedData(EIP712_TYPED_DATA_MOCK);
+          await service.signTypedData(TEST_EIP712_TYPED_DATA);
           expect.fail('Should have thrown');
         } catch (error) {
           expect(error).toBeInstanceOf(Error);

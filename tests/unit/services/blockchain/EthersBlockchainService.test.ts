@@ -4,21 +4,29 @@ import { Wallet, BrowserProvider, type JsonRpcProvider } from 'ethers';
 import {
   createMockEIP1193Provider,
   createMockProvider,
-  EIP712_TYPED_DATA_MOCK,
-  TEST_ADDRESS,
-  TEST_PRIVATE_KEY,
 } from '../../../helpers/mocks.js';
 import { EthersBlockchainService } from '../../../../src/services/blockchain/EthersBlockchainService.js';
+import {
+  SUPPORTED_CHAIN_ID,
+  TEST_ADDRESS,
+  TEST_EIP712_TYPED_DATA,
+  TEST_PRIVATE_KEY,
+} from '../../../helpers/testData.js';
 
 describe('EthersBlockchainService', () => {
   const testCases = [
     {
       name: 'AbstractSigner',
-      client: new Wallet(TEST_PRIVATE_KEY, createMockProvider(1)),
+      client: new Wallet(
+        TEST_PRIVATE_KEY,
+        createMockProvider(SUPPORTED_CHAIN_ID)
+      ),
     },
     {
       name: 'BrowserProvider',
-      client: new BrowserProvider(createMockEIP1193Provider(1)),
+      client: new BrowserProvider(
+        createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
+      ),
     },
   ];
 
@@ -29,7 +37,7 @@ describe('EthersBlockchainService', () => {
       describe('getChainId', () => {
         it('should return the correct chainId', async () => {
           const chainId = await blockchainService.getChainId();
-          expect(chainId).toBe(1);
+          expect(chainId).toBe(SUPPORTED_CHAIN_ID);
         });
       });
 
@@ -43,7 +51,7 @@ describe('EthersBlockchainService', () => {
       describe('signTypedData', () => {
         it('should sign typed data correctly', async () => {
           const signature = await blockchainService.signTypedData(
-            EIP712_TYPED_DATA_MOCK
+            TEST_EIP712_TYPED_DATA
           );
           expect(signature).toMatch(/0x[a-fA-F0-9]{130}/);
         });
@@ -119,7 +127,7 @@ describe('EthersBlockchainService', () => {
         const service = new EthersBlockchainService(browserProvider);
 
         try {
-          await service.signTypedData(EIP712_TYPED_DATA_MOCK);
+          await service.signTypedData(TEST_EIP712_TYPED_DATA);
           expect.fail('Should have thrown');
         } catch (error) {
           expect(error).toBeInstanceOf(Error);

@@ -6,7 +6,8 @@ import {
   handleToChainId,
   handleToVersion,
 } from '../../../src/utils/types.js';
-import { buildHandle, DUMMY_TYPED_HANDLES } from '../../helpers/mocks.js';
+import { buildHandle } from '../../helpers/mocks.js';
+import { DUMMY_TYPED_HANDLES } from '../../helpers/testData.js';
 
 describe('SOLIDITY_TYPES_SET', () => {
   it('contains exactly 100 types (0-99)', () => {

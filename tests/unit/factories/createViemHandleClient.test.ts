@@ -2,12 +2,13 @@ import { it, describe, expect } from 'vitest';
 import { createViemHandleClient } from '../../../src/factories/createViemHandleClient.js';
 import { ViemBlockchainService } from '../../../src/services/blockchain/ViemBlockchainService.js';
 import { NETWORK_CONFIGS } from '../../../src/config/networks.js';
+import { createMockEIP1193Provider } from '../../helpers/mocks.js';
+import { createWalletClient, custom } from 'viem';
 import {
   SUPPORTED_CHAIN_ID,
+  TEST_PRIVATE_KEY,
   UNSUPPORTED_CHAIN_ID,
-  createMockEIP1193Provider,
-} from '../../helpers/mocks.js';
-import { createWalletClient, custom } from 'viem';
+} from '../../helpers/testData.js';
 
 describe('createViemHandleClient', () => {
   describe('with an invalid client', () => {
@@ -25,7 +26,9 @@ describe('createViemHandleClient', () => {
   describe('with a ViemClient', () => {
     describe('with a supported chainId', () => {
       const viemClient = createWalletClient({
-        transport: custom(createMockEIP1193Provider(SUPPORTED_CHAIN_ID)),
+        transport: custom(
+          createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
+        ),
       });
 
       it('should create a HandleClient instance with a blockchainService of type ViemBlockchainService', async () => {
@@ -64,7 +67,9 @@ describe('createViemHandleClient', () => {
 
     describe('with an unsupported chainId', () => {
       const viemClient = createWalletClient({
-        transport: custom(createMockEIP1193Provider(UNSUPPORTED_CHAIN_ID)),
+        transport: custom(
+          createMockEIP1193Provider(UNSUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
+        ),
       });
       it('should throw if chainId not supported and no config provided', async () => {
         await expect(createViemHandleClient(viemClient)).rejects.toThrow(
