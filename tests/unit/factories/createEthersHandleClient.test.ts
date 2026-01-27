@@ -8,13 +8,15 @@ import {
 } from '../../../src/services/blockchain/EthersBlockchainService.js';
 import { NETWORK_CONFIGS } from '../../../src/config/networks.js';
 import {
-  TEST_PRIVATE_KEY,
-  SUPPORTED_CHAIN_ID,
-  UNSUPPORTED_CHAIN_ID,
   createMockProvider,
   createMockEIP1193Provider,
 } from '../../helpers/mocks.js';
 import { BrowserProvider } from 'ethers';
+import {
+  SUPPORTED_CHAIN_ID,
+  TEST_PRIVATE_KEY,
+  UNSUPPORTED_CHAIN_ID,
+} from '../../helpers/testData.js';
 
 describe('createEthersHandleClient', () => {
   describe('with an AbstractSigner connected to a provider', () => {
@@ -40,7 +42,7 @@ describe('createEthersHandleClient', () => {
 
   describe('with a BrowserProvider', () => {
     const browserProvider = new BrowserProvider(
-      createMockEIP1193Provider(SUPPORTED_CHAIN_ID)
+      createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
     );
     it('should create a HandleClient instance with a blockchainService of type EthersBlockchainService and a BrowserProviderAdapter', async () => {
       const ethersHandleClient =

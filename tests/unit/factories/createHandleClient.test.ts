@@ -5,13 +5,15 @@ import { createHandleClient } from '../../../src/factories/createHandleClient.js
 import { ViemBlockchainService } from '../../../src/services/blockchain/ViemBlockchainService.js';
 import { NETWORK_CONFIGS } from '../../../src/config/networks.js';
 import {
-  TEST_PRIVATE_KEY,
-  SUPPORTED_CHAIN_ID,
-  UNSUPPORTED_CHAIN_ID,
   createMockProvider,
   createMockEIP1193Provider,
 } from '../../helpers/mocks.js';
 import { createWalletClient, custom } from 'viem';
+import {
+  SUPPORTED_CHAIN_ID,
+  TEST_PRIVATE_KEY,
+  UNSUPPORTED_CHAIN_ID,
+} from '../../helpers/testData.js';
 
 describe('createHandleClient', () => {
   describe('with an invalid client', () => {
@@ -43,7 +45,9 @@ describe('createHandleClient', () => {
 
   describe('with a ViemClient', () => {
     const viemClient = createWalletClient({
-      transport: custom(createMockEIP1193Provider(SUPPORTED_CHAIN_ID)),
+      transport: custom(
+        createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
+      ),
     });
 
     it('should create a HandleClient instance with a blockchainService of type ViemBlockchainService', async () => {
@@ -68,12 +72,14 @@ describe('createHandleClient', () => {
 
     it('should throw if chainId not supported and no config provided', async () => {
       const viemClient = createWalletClient({
-        transport: custom(createMockEIP1193Provider(UNSUPPORTED_CHAIN_ID)),
+        transport: custom(
+          createMockEIP1193Provider(UNSUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
+        ),
       });
 
       await expect(createHandleClient(viemClient)).rejects.toThrow(
         new Error(
-          'Chain 999999 is not supported. Supported chains: 42161, 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
+          `Chain ${UNSUPPORTED_CHAIN_ID} is not supported. Supported chains: 42161, 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.`
         )
       );
     });

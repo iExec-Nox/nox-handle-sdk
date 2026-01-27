@@ -1,12 +1,9 @@
 import type { IApiService } from '../services/api/IApiService.js';
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
-import type {
-  EncryptInputResult,
-  EthereumAddress,
-  HexString,
-} from '../types/internalTypes.js';
+import type { EthereumAddress, HexString } from '../types/internalTypes.js';
 import {
   SOLIDITY_TYPES_SET,
+  type Handle,
   type JsValue,
   type SolidityType,
 } from '../utils/types.js';
@@ -105,13 +102,16 @@ function encodeValue(
   }
 }
 
-export async function encryptInput({
+export async function encryptInput<T extends SolidityType>({
   blockchainService,
   apiService,
   smartContractAddress,
   value,
   solidityType,
-}: EncryptInputParameters): Promise<EncryptInputResult> {
+}: EncryptInputParameters): Promise<{
+  handle: Handle<T>;
+  handleProof: HexString;
+}> {
   const encodedValue = encodeValue(value, solidityType);
   const [owner, chainId] = await Promise.all([
     blockchainService.getAddress(),

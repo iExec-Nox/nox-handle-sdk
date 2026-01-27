@@ -1,12 +1,13 @@
+import { decrypt } from '../methods/decrypt.js';
 import { encryptInput } from '../methods/encryptInput.js';
 import type { IApiService } from '../services/api/IApiService.js';
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
 import type {
   BaseUrl,
-  EncryptInputResult,
   EthereumAddress,
+  HexString,
 } from '../types/internalTypes.js';
-import type { JsValue, SolidityType } from '../utils/types.js';
+import type { Handle, JsValue, SolidityType } from '../utils/types.js';
 
 export interface HandleClientConfig {
   gatewayUrl: BaseUrl;
@@ -60,16 +61,47 @@ export class HandleClient {
    * const { handle, handleProof } = await client.encryptInput(true, 'bool');
    * ```
    */
-  async encryptInput(
-    value: JsValue<SolidityType>,
-    solidityType: SolidityType
-  ): Promise<EncryptInputResult> {
+  async encryptInput<T extends SolidityType>(
+    value: JsValue<T>,
+    solidityType: T
+  ): Promise<{
+    handle: Handle<T>;
+    handleProof: HexString;
+  }> {
     return encryptInput({
       blockchainService: this.blockchainService,
       apiService: this.apiService,
       smartContractAddress: this.config.smartContractAddress,
       value,
       solidityType,
+    });
+  }
+
+  /**
+   * Request the original value associated with a handle.
+   *
+   * @param handle - The handle representing the encrypted value
+   * @returns The decrypted value and its Solidity type
+   *
+   * The decryption key is shared with the connected wallet address via public key encryption.
+   * To request decryption, the connected wallet must be allowed to view the data and provide an EIP712 DataAccessAuthorization signature.
+   *
+   * @example
+   * ```typescript
+   * const { value, solidityType } = await client.decrypt(handle);
+   * ```
+   */
+  async decrypt<T extends SolidityType>(
+    handle: Handle<T>
+  ): Promise<{
+    value: JsValue<T>;
+    solidityType: T;
+  }> {
+    return decrypt({
+      handle,
+      apiService: this.apiService,
+      blockchainService: this.blockchainService,
+      config: this.config,
     });
   }
 }
