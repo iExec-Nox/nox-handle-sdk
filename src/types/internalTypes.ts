@@ -13,5 +13,5 @@ export interface EncryptInputResult {
   /** The encrypted handle for the value */
   handle: HexString;
   /** The proof required for smart contract verification */
-  inputProof: HexString;
+  handleProof: HexString;
 }

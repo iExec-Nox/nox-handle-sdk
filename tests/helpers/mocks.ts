@@ -78,6 +78,38 @@ export function buildHandle(options: {
 }
 
 /**
+ * Handle Proof Structure (137 bytes = 274 hex chars) per spec:
+ * [0-19]    Owner (20 bytes = 40 hex chars)
+ * [20-39]   SmartContractAddress (20 bytes = 40 hex chars)
+ * [40-71]   Created At (32 bytes = 64 hex chars, uint256 timestamp)
+ * [72-136]  Signature (65 bytes = 130 hex chars)
+ */
+export function buildHandleProof(options?: {
+  owner?: string;
+  createdAt?: string;
+  signature?: string;
+  smartContractAddress?: string;
+}): HexString {
+  const owner = options?.owner?.slice(2, 42) ?? 'ab'.repeat(20);
+  const smartContractAddress =
+    options?.smartContractAddress?.slice(2, 42) ?? 'ab'.repeat(20);
+  // Default to current timestamp
+  const defaultTimestamp = Math.floor(Date.now() / 1000)
+    .toString(16)
+    .padStart(64, '0');
+  const createdAt = options?.createdAt ?? defaultTimestamp;
+  const signature = options?.signature ?? 'ab'.repeat(65);
+  return `0x${owner}${smartContractAddress}${createdAt}${signature}`;
+}
+
+/**
+ * Converts a Unix timestamp (seconds) to a 32-byte hex string
+ */
+export function timestampToHex(timestamp: number | bigint): string {
+  return BigInt(timestamp).toString(16).padStart(64, '0');
+}
+
+/**
  * Mock EIP-712 typed data for testing purposes.
  */
 export const EIP712_TYPED_DATA_MOCK: EIP712TypedData = {

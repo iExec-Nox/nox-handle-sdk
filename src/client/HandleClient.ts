@@ -25,8 +25,6 @@ export interface HandleClientDependencies {
 export class HandleClient {
   private readonly blockchainService: IBlockchainService;
   private readonly apiService: IApiService;
-  // TODO: config will be used in future methods
-  // @ts-expect-error Property will be used in upcoming features
   private readonly config: HandleClientConfig;
 
   /**
@@ -51,15 +49,15 @@ export class HandleClient {
    *
    * @param value - The value to encrypt (boolean, string, or bigint)
    * @param solidityType - The Solidity type of the value
-   * @returns Handle and inputProof for smart contract usage
+   * @returns Handle and handleProof for smart contract usage
    *
    * @example
    * ```typescript
    * // Encrypt a uint256
-   * const { handle, inputProof } = await client.encryptInput(1000000n, 'uint256');
+   * const { handle, handleProof } = await client.encryptInput(1000000n, 'uint256');
    *
    * // Encrypt a boolean
-   * const { handle, inputProof } = await client.encryptInput(true, 'bool');
+   * const { handle, handleProof } = await client.encryptInput(true, 'bool');
    * ```
    */
   async encryptInput(
@@ -69,6 +67,7 @@ export class HandleClient {
     return encryptInput({
       blockchainService: this.blockchainService,
       apiService: this.apiService,
+      smartContractAddress: this.config.smartContractAddress,
       value,
       solidityType,
     });

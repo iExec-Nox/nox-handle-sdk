@@ -1,12 +1,17 @@
+/* eslint-disable unicorn/numeric-separators-style */
 import { describe, it, expect } from 'vitest';
 import {
   isBaseURL,
   isEthereumAddress,
   validateHandle,
-  validateInputProof,
+  validateHandleProof,
 } from '../../../src/utils/validators.js';
 import { SOLIDITY_TYPE_TO_CODE } from '../../../src/utils/types.js';
-import { buildHandle } from '../../helpers/mocks.js';
+import {
+  buildHandle,
+  buildHandleProof,
+  timestampToHex,
+} from '../../helpers/mocks.js';
 
 describe('isBaseURL', () => {
   const validUrls = [
@@ -121,6 +126,7 @@ describe('validateHandle', () => {
     it('rejects non-string handle', () => {
       expect(() =>
         validateHandle({
+          // eslint-disable-next-line unicorn/no-null
           handle: 12345,
           expectedChainId: 1,
           expectedSolidityType: 'bool',
@@ -153,7 +159,7 @@ describe('validateHandle', () => {
     });
 
     it('should accept handle with max uint32 chain ID (0xFFFFFFFF)', () => {
-      const maxChainId = 0xffffffff;
+      const maxChainId = 0xff_ff_ff_ff;
       const handle = buildHandle({
         chainId: maxChainId,
         typeCode: 0,
@@ -291,32 +297,188 @@ describe('validateHandle', () => {
   });
 });
 
-describe('validateInputProof', () => {
-  it('should accept valid 137-byte inputProof', () => {
-    const validProof = '0x' + 'ab'.repeat(137);
-    expect(() => validateInputProof(validProof)).not.toThrow();
+/**
+ * Handle Proof Structure (137 bytes = 274 hex chars):
+ * - [0-19]   Owner (20 bytes)
+ * - [20-39]  SmartContractAddress (20 bytes)
+ * - [40-71]  CreatedAt (32 bytes)
+ * - [72-136] Signature (65 bytes)
+ */
+describe('validateHandleProof', () => {
+  const owner = '0x1234567890123456789012345678901234567890';
+  const smartContractAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+
+  it('accepts valid handleProof', () => {
+    expect(() =>
+      validateHandleProof({
+        handleProof: buildHandleProof({ owner, smartContractAddress }),
+        expectedOwner: owner,
+        expectedSmartContractAddress: smartContractAddress,
+      })
+    ).not.toThrow();
   });
 
-  it('should reject inputProof with wrong length', () => {
-    const shortProof = '0x' + 'ab'.repeat(100);
-    expect(() => validateInputProof(shortProof)).toThrow(TypeError);
-    expect(() => validateInputProof(shortProof)).toThrow(
-      'Invalid inputProof: expected 0x + 274 hex chars (137 bytes)'
-    );
+  describe('format validation', () => {
+    it('rejects wrong length (short)', () => {
+      const short = '0x' + 'ab'.repeat(100);
+      expect(() =>
+        validateHandleProof({
+          handleProof: short,
+          expectedOwner: owner,
+          expectedSmartContractAddress: smartContractAddress,
+        })
+      ).toThrow(
+        `Invalid handleProof: expected 0x + 274 hex chars (137 bytes), got ${short}`
+      );
+    });
+
+    it('rejects wrong length (long)', () => {
+      const long = '0x' + 'ab'.repeat(150);
+      expect(() =>
+        validateHandleProof({
+          handleProof: long,
+          expectedOwner: owner,
+          expectedSmartContractAddress: smartContractAddress,
+        })
+      ).toThrow(
+        `Invalid handleProof: expected 0x + 274 hex chars (137 bytes), got ${long}`
+      );
+    });
+
+    it('rejects invalid hex characters', () => {
+      expect(() =>
+        validateHandleProof({
+          handleProof: '0x' + 'zz'.repeat(137),
+          expectedOwner: owner,
+          expectedSmartContractAddress: smartContractAddress,
+        })
+      ).toThrow(/Invalid handleProof/);
+    });
+
+    it('rejects missing 0x prefix', () => {
+      expect(() =>
+        validateHandleProof({
+          handleProof: 'ab'.repeat(137),
+          expectedOwner: owner,
+          expectedSmartContractAddress: smartContractAddress,
+        })
+      ).toThrow(/Invalid handleProof/);
+    });
+
+    it('rejects non-string', () => {
+      expect(() =>
+        validateHandleProof({
+          // eslint-disable-next-line unicorn/no-null
+          handleProof: null as unknown as string,
+          expectedOwner: owner,
+          expectedSmartContractAddress: smartContractAddress,
+        })
+      ).toThrow(/Invalid handleProof/);
+    });
   });
 
-  it('should reject inputProof with wrong length', () => {
-    const longProof = '0x' + 'ab'.repeat(150);
-    expect(() => validateInputProof(longProof)).toThrow(TypeError);
+  describe('owner validation', () => {
+    it('rejects mismatched owner', () => {
+      const wrongOwner = '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef';
+      const proof = buildHandleProof({ owner });
+      expect(() =>
+        validateHandleProof({
+          handleProof: proof,
+          expectedOwner: wrongOwner,
+          expectedSmartContractAddress: smartContractAddress,
+        })
+      ).toThrow(`Invalid owner: expected ${wrongOwner}, got ${owner}`);
+    });
   });
 
-  it('should reject inputProof with invalid hex characters', () => {
-    const invalidProof = '0x' + 'gg'.repeat(137);
-    expect(() => validateInputProof(invalidProof)).toThrow(TypeError);
+  describe('smartContractAddress validation', () => {
+    it('rejects mismatched smartContractAddress', () => {
+      const wrongAddress = '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef';
+      const proof = buildHandleProof({ owner, smartContractAddress });
+      expect(() =>
+        validateHandleProof({
+          handleProof: proof,
+          expectedOwner: owner,
+          expectedSmartContractAddress: wrongAddress,
+        })
+      ).toThrow(
+        `Invalid smartContractAddress: expected ${wrongAddress}, got ${smartContractAddress}`
+      );
+    });
   });
 
-  it('should reject inputProof without 0x prefix', () => {
-    const noPrefix = 'ab'.repeat(137);
-    expect(() => validateInputProof(noPrefix)).toThrow(TypeError);
+  describe('timestamp validation', () => {
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const MIN_VALID_TIMESTAMP = 1_767_225_600n; // Jan 1, 2026
+    const MAX_FUTURE_DRIFT_SECONDS = 300n; // 5 minutes
+
+    it('should accept recent past timestamp', () => {
+      const proof = buildHandleProof({
+        createdAt: timestampToHex(nowSeconds - 3600),
+        owner,
+        smartContractAddress,
+      });
+      expect(() =>
+        validateHandleProof({
+          handleProof: proof,
+          expectedOwner: owner,
+          expectedSmartContractAddress: smartContractAddress,
+        })
+      ).not.toThrow();
+    });
+
+    it('rejects zero timestamp', () => {
+      const proof = buildHandleProof({
+        createdAt: '00'.repeat(32),
+        owner,
+        smartContractAddress,
+      });
+      expect(() =>
+        validateHandleProof({
+          handleProof: proof,
+          expectedOwner: owner,
+          expectedSmartContractAddress: smartContractAddress,
+        })
+      ).toThrow('Invalid createdAt: timestamp cannot be zero');
+    });
+
+    it('rejects timestamp before Jan 2026', () => {
+      const old = 1_700_000_000n; // Nov 2023
+      const proof = buildHandleProof({
+        createdAt: timestampToHex(old),
+        owner,
+        smartContractAddress,
+      });
+      expect(() =>
+        validateHandleProof({
+          handleProof: proof,
+          expectedOwner: owner,
+          expectedSmartContractAddress: smartContractAddress,
+        })
+      ).toThrow(
+        `Invalid createdAt: timestamp ${old} is before minimum valid timestamp ${MIN_VALID_TIMESTAMP}`
+      );
+    });
+
+    it('rejects timestamp too far in future (> 5 min)', () => {
+      const future = BigInt(nowSeconds) + MAX_FUTURE_DRIFT_SECONDS + 1n;
+      const proof = buildHandleProof({
+        createdAt: timestampToHex(future),
+        owner,
+        smartContractAddress,
+      });
+      expect(() =>
+        validateHandleProof({
+          handleProof: proof,
+          expectedOwner: owner,
+          expectedSmartContractAddress: smartContractAddress,
+        })
+      ).toThrow(
+        `Invalid createdAt: timestamp ${future} is too far in the future (max drift: ${MAX_FUTURE_DRIFT_SECONDS}s)`
+      );
+    });
   });
+
+  // Note: Signature length (65 bytes) is implicitly validated by INPUT_PROOF_PATTERN regex
+  // If format validation passes, signature is always correct length
 });

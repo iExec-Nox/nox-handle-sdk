@@ -6,13 +6,15 @@ import type { IBlockchainService } from '../../../src/services/blockchain/IBlock
 vi.mock('../../../src/utils/validators.js', async (importOriginal) => {
   const actual =
     await importOriginal<typeof import('../../../src/utils/validators.js')>();
-  return { ...actual, validateHandle: vi.fn(), validateInputProof: vi.fn() };
+  return { ...actual, validateHandle: vi.fn(), validateHandleProof: vi.fn() };
 });
 
 const TEST_ADDRESS = '0x1234567890123456789012345678901234567890';
 const MOCK_HANDLE =
   '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
-const MOCK_INPUT_PROOF = '0x' + 'ab'.repeat(137);
+const MOCK_HANDLE_PROOF = '0x' + 'ab'.repeat(137);
+const MOCK_SMART_CONTRACT_ADDRESS =
+  '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
 
 function createMockBlockchainService(
   overrides: Partial<IBlockchainService> = {}
@@ -33,7 +35,7 @@ function createMockApiService(
     post: vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      data: { handle: MOCK_HANDLE, inputProof: MOCK_INPUT_PROOF },
+      data: { handle: MOCK_HANDLE, handleProof: MOCK_HANDLE_PROOF },
     }),
     ...overrides,
   };
@@ -53,6 +55,7 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
+        smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
         value: true,
         solidityType: 'bool',
       });
@@ -66,6 +69,7 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
+        smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
         value: false,
         solidityType: 'bool',
       });
@@ -79,6 +83,7 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
+        smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
         value: 'hello world',
         solidityType: 'string',
       });
@@ -97,6 +102,7 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
+        smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
         value: address,
         solidityType: 'address',
       });
@@ -111,6 +117,7 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
+        smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
         value: bytes,
         solidityType: 'bytes',
       });
@@ -124,6 +131,7 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
+        smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
         value: 1_000_000n,
         solidityType: 'uint256',
       });
@@ -142,6 +150,7 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
+        smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
         value: -500n,
         solidityType: 'int128',
       });
@@ -162,6 +171,7 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
           value: 'value',
           solidityType: 'invalidType' as never,
         })
@@ -173,6 +183,7 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
           value: 1n,
           solidityType: 'uint7' as never,
         })
@@ -184,6 +195,7 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
           value: '0x',
           solidityType: 'bytes33' as never,
         })
@@ -197,6 +209,7 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
           value: 'true',
           solidityType: 'bool',
         })
@@ -208,6 +221,7 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
           value: true,
           solidityType: 'string',
         })
@@ -219,6 +233,7 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
           value: '0x1234',
           solidityType: 'address',
         })
@@ -230,6 +245,7 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
           value: 'not hex',
           solidityType: 'bytes',
         })
@@ -241,6 +257,7 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
           value: '0x1234567890',
           solidityType: 'bytes4',
         })
@@ -252,6 +269,7 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
           value: '1000',
           solidityType: 'uint256',
         })
@@ -263,6 +281,7 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
           value: -1n,
           solidityType: 'uint256',
         })
@@ -274,6 +293,7 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
           value: 256n,
           solidityType: 'uint8',
         })
@@ -285,6 +305,7 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
           value: 128n,
           solidityType: 'int8',
         })
@@ -305,6 +326,7 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
           value: true,
           solidityType: 'bool',
         })
@@ -316,13 +338,14 @@ describe('encryptInput', () => {
         post: vi.fn().mockResolvedValue({
           ok: true,
           status: 200,
-          data: { inputProof: MOCK_INPUT_PROOF },
+          data: { handleProof: MOCK_HANDLE_PROOF },
         }),
       });
       await expect(
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
           value: true,
           solidityType: 'bool',
         })
@@ -337,6 +360,7 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
           value: true,
           solidityType: 'bool',
         })
@@ -349,6 +373,7 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
+        smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
         value: true,
         solidityType: 'bool',
       });
@@ -364,6 +389,7 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
+        smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
         value: true,
         solidityType: 'bool',
       });
@@ -383,6 +409,7 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          smartContractAddress: MOCK_SMART_CONTRACT_ADDRESS,
           value: true,
           solidityType: 'bool',
         })

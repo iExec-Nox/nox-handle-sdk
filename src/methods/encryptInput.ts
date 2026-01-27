@@ -10,7 +10,7 @@ import {
   type JsValue,
   type SolidityType,
 } from '../utils/types.js';
-import { validateHandle, validateInputProof } from '../utils/validators.js';
+import { validateHandle, validateHandleProof } from '../utils/validators.js';
 import {
   boolToHex,
   intXToHex,
@@ -21,12 +21,13 @@ import {
 
 interface GatewaySecretResponse {
   handle: string;
-  inputProof: string;
+  handleProof: string;
 }
 
 interface EncryptInputParameters {
   blockchainService: IBlockchainService;
   apiService: IApiService;
+  smartContractAddress: EthereumAddress;
   value: JsValue<SolidityType>;
   solidityType: SolidityType;
 }
@@ -107,6 +108,7 @@ function encodeValue(
 export async function encryptInput({
   blockchainService,
   apiService,
+  smartContractAddress,
   value,
   solidityType,
 }: EncryptInputParameters): Promise<EncryptInputResult> {
@@ -131,8 +133,8 @@ export async function encryptInput({
   }
 
   const data = response.data as GatewaySecretResponse;
-  if (!data?.handle || !data?.inputProof) {
-    throw new Error('Invalid gateway response: missing handle or inputProof');
+  if (!data?.handle || !data?.handleProof) {
+    throw new Error('Invalid gateway response: missing handle or handleProof');
   }
 
   validateHandle({
@@ -140,10 +142,14 @@ export async function encryptInput({
     expectedChainId: chainId,
     expectedSolidityType: solidityType,
   });
-  validateInputProof(data.inputProof);
+  validateHandleProof({
+    handleProof: data.handleProof,
+    expectedOwner: owner,
+    expectedSmartContractAddress: smartContractAddress,
+  });
 
   return {
     handle: data.handle as HexString,
-    inputProof: data.inputProof as HexString,
+    handleProof: data.handleProof as HexString,
   };
 }
