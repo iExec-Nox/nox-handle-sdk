@@ -106,7 +106,7 @@ describe('EthersBlockchainService', () => {
           expect(typeof result).toBe('bigint');
         });
 
-        it('should read contract with multiple output correctly', async () => {
+        it('should read contract with multiple outputs correctly', async () => {
           // Mock a simple contract with a view function
           const contractAddress = '0x0000000000000000000000000000000000000001';
           const abiFunctionFragment = {
