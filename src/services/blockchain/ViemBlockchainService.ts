@@ -84,7 +84,7 @@ export class ViemBlockchainService implements IBlockchainService {
         abi: [abiFunctionFragment],
         functionName: abiFunctionFragment.name,
         args: parameters,
-      })) as Promise<AbiFragmentTypes<T, 'outputs'>>;
+      })) as AbiFragmentTypes<T, 'outputs'>;
     } catch (error) {
       throw new Error(
         `Failed to read contract at ${contractAddress} (method: ${abiFunctionFragment.name}, parameters: ${JSON.stringify(parameters)})`,
