@@ -132,7 +132,7 @@ export async function decrypt<T extends SolidityType>({
   )}`;
 
   const { status, data } = await apiService.get({
-    endpoint: `/v0/handles/${handle}`,
+    endpoint: `/v0/secrets/${handle}`,
     headers: {
       Authorization: authorization,
     },
