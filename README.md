@@ -22,13 +22,21 @@ const signer = new Wallet(privateKey, provider);
 const handleClient = await createEthersHandleClient(signer);
 
 // Encrypt a value
-const { handle, inputProof } = await handleClient.encryptInput(
-  100_000_000n,
-  'uint256'
-);
+const { handle, inputProof } = await handleClient.encryptInput(42n, 'uint256');
 
 // Use handle and inputProof in your smart contract call
-await myContract.deposit(handle, inputProof);
+await myConfidentialTokenContract.confidentialTransfer(
+  toAddress,
+  handle,
+  inputProof
+);
+
+// Get a handle from your smart contract
+const balanceHandle =
+  await myConfidentialTokenContract.confidentialBalanceOf(accountAddress);
+
+// Decrypt a value from a handle
+const { value, solidityType } = await handleClient.decrypt(balanceHandle);
 ```
 
 ### With Viem
@@ -47,10 +55,21 @@ const walletClient = createWalletClient({
 const handleClient = await createViemHandleClient(walletClient);
 
 // Encrypt a value
-const { handle, inputProof } = await handleClient.encryptInput(true, 'bool');
+const { handle, inputProof } = await handleClient.encryptInput(42n, 'uint256');
 
 // Use handle and inputProof in your smart contract call
-await myContract.isAllowed(handle, inputProof);
+await myConfidentialTokenContract.confidentialTransfer(
+  toAddress,
+  handle,
+  inputProof
+);
+
+// Get a handle from your smart contract
+const balanceHandle =
+  await myConfidentialTokenContract.confidentialBalanceOf(accountAddress);
+
+// Decrypt a value from a handle
+const { value, solidityType } = await handleClient.decrypt(balanceHandle);
 ```
 
 ## Architecture
@@ -268,16 +287,6 @@ type Config = {
   smartContractAddress: string; // Protocol contract address
 };
 ```
-
-## Security & Signatures
-
-| Method         | Signature Required   | Protocol      |
-| -------------- | -------------------- | ------------- |
-| `encryptInput` | None                 | TLS           |
-| `decrypt`      | 1x EIP-712 (gasless) | Re-encryption |
-
-- **encryptInput**: Values are encrypted client-side and transmitted over TLS. No on-chain transaction or signature required.
-- **decrypt**: Requires a gasless EIP-712 signature to prove ownership. The gateway re-encrypts the value for the requester.
 
 ## Status & Limitations
 
