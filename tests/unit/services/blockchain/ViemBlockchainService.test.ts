@@ -11,22 +11,23 @@ import {
 } from '../../../helpers/testData.js';
 
 describe('ViemBlockchainService', () => {
+  const mockProvider = createMockEIP1193Provider(
+    SUPPORTED_CHAIN_ID,
+    TEST_PRIVATE_KEY
+  );
+
   const testCases = [
     {
       name: 'EIP-1193 provider',
       client: createWalletClient({
-        transport: custom(
-          createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
-        ),
+        transport: custom(mockProvider),
       }),
     },
     {
       name: 'Local signer',
       client: createWalletClient({
         account: privateKeyToAccount(TEST_PRIVATE_KEY),
-        transport: custom(
-          createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
-        ),
+        transport: custom(mockProvider),
       }),
     },
   ];
@@ -75,6 +76,114 @@ describe('ViemBlockchainService', () => {
           expect(recoveredAddress.toLowerCase()).toBe(
             TEST_ADDRESS.toLowerCase()
           );
+        });
+      });
+
+      describe('readContract', () => {
+        it('should read contract with single output correctly', async () => {
+          // Mock a simple contract with a view function
+          const contractAddress = '0x0000000000000000000000000000000000000001';
+          const abiFunctionFragment = {
+            name: 'getValue',
+            type: 'function',
+            stateMutability: 'view',
+            inputs: [],
+            outputs: [
+              {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+              },
+            ],
+          } as const;
+          // Set the mock provider to return a specific value
+          mockProvider.mocks.call.mockResolvedValue(
+            '0x0000000000000000000000000000000000000000000000000000000000000000'
+          );
+          const result = await blockchainService.readContract(
+            contractAddress,
+            abiFunctionFragment,
+            []
+          );
+          expect(typeof result).toBe('bigint');
+        });
+
+        it('should read contract with multiple output correctly', async () => {
+          // Mock a simple contract with a view function
+          const contractAddress = '0x0000000000000000000000000000000000000001';
+          const abiFunctionFragment = {
+            name: 'getValue',
+            type: 'function',
+            stateMutability: 'view',
+            inputs: [],
+            outputs: [
+              {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+              },
+            ],
+          } as const;
+          // Set the mock provider to return a specific value (two uint256 values)
+          mockProvider.mocks.call.mockResolvedValue(
+            '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+          );
+          const result = await blockchainService.readContract(
+            contractAddress,
+            abiFunctionFragment,
+            []
+          );
+          expect(Array.isArray(result)).toBe(true);
+          expect(result.length).toBe(2);
+          expect(typeof result[0]).toBe('bigint');
+          expect(typeof result[1]).toBe('bigint');
+        });
+
+        it('should read contract with struct output correctly', async () => {
+          // Mock a simple contract with a view function
+          const contractAddress = '0x0000000000000000000000000000000000000001';
+          const abiFunctionFragment = {
+            name: 'getValue',
+            type: 'function',
+            stateMutability: 'view',
+            inputs: [],
+            outputs: [
+              {
+                components: [
+                  {
+                    internalType: 'uint256',
+                    name: 'value1',
+                    type: 'uint256',
+                  },
+                  {
+                    internalType: 'uint256',
+                    name: 'value2',
+                    type: 'uint256',
+                  },
+                ],
+                internalType: 'struct TestStruct',
+                name: '',
+                type: 'tuple',
+              },
+            ],
+          } as const;
+          // Set the mock provider to return a specific value (two uint256 values)
+          mockProvider.mocks.call.mockResolvedValue(
+            '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+          );
+          const result = await blockchainService.readContract(
+            contractAddress,
+            abiFunctionFragment,
+            []
+          );
+          expect(typeof result).toBe('object');
+          expect(typeof result.value1).toBe('bigint');
+          expect(typeof result.value2).toBe('bigint');
         });
       });
     });
@@ -188,6 +297,46 @@ describe('ViemBlockchainService', () => {
           expect((error as Error).message).toBe('Failed to verify typed data');
           expect((error as Error)?.cause).toBeInstanceOf(Error);
         }
+      });
+    });
+
+    describe('readContract', () => {
+      it('should throw wrapped error when contract read fails', async () => {
+        const mockProvider = createMockEIP1193Provider(
+          SUPPORTED_CHAIN_ID,
+          TEST_PRIVATE_KEY
+        );
+        const client = createWalletClient({
+          transport: custom(mockProvider),
+        });
+        const service = new ViemBlockchainService(client);
+
+        const abiFunctionFragment = {
+          name: 'getValue',
+          type: 'function',
+          stateMutability: 'view',
+          inputs: [],
+          outputs: [
+            {
+              internalType: 'uint256',
+              name: '',
+              type: 'uint256',
+            },
+          ],
+        } as const;
+        mockProvider.mocks.call.mockResolvedValue('0xdeadbeef'); // invalid data for uint256 to cause decoding error
+
+        await expect(
+          service.readContract(
+            '0x0000000000000000000000000000000000000001',
+            abiFunctionFragment,
+            []
+          )
+        ).rejects.toThrow(
+          new Error(
+            'Failed to read contract at 0x0000000000000000000000000000000000000001 (method: getValue, parameters: [])'
+          )
+        );
       });
     });
   });
