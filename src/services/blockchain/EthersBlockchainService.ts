@@ -1,7 +1,9 @@
 import type { AbstractSigner, BrowserProvider, Provider, Signer } from 'ethers';
+import { verifyTypedData } from 'ethers';
 import type {
   EIP712TypedData,
   IBlockchainService,
+  TypedDataDomain,
 } from './IBlockchainService.js';
 
 export type EthersClient = AbstractSigner | BrowserProvider;
@@ -12,6 +14,12 @@ export type EthersClient = AbstractSigner | BrowserProvider;
 interface EthersAdapter {
   getSigner(): Promise<Signer>;
   getProvider(): Promise<Provider>;
+  verifyTypedData(
+    domain: TypedDataDomain,
+    types: Record<string, { name: string; type: string }[]>,
+    message: Record<string, unknown>,
+    signature: string
+  ): Promise<string>;
 }
 
 /**
@@ -53,6 +61,15 @@ export class SignerAdapter implements EthersAdapter {
 
   async getProvider(): Promise<Provider> {
     return this.signer.provider;
+  }
+
+  async verifyTypedData(
+    domain: TypedDataDomain,
+    types: Record<string, { name: string; type: string }[]>,
+    message: Record<string, unknown>,
+    signature: string
+  ): Promise<string> {
+    return verifyTypedData(domain, types, message, signature);
   }
 }
 
@@ -98,6 +115,15 @@ export class BrowserProviderAdapter implements EthersAdapter {
 
   async getProvider(): Promise<Provider> {
     return this.provider;
+  }
+
+  async verifyTypedData(
+    domain: TypedDataDomain,
+    types: Record<string, { name: string; type: string }[]>,
+    message: Record<string, unknown>,
+    signature: string
+  ): Promise<string> {
+    return verifyTypedData(domain, types, message, signature);
   }
 }
 
@@ -153,6 +179,19 @@ export class EthersBlockchainService implements IBlockchainService {
       return await signer.signTypedData(data.domain, types, data.message);
     } catch (error) {
       throw new Error('Failed to sign typed data', { cause: error });
+    }
+  }
+
+  async verifyTypedData(
+    domain: TypedDataDomain,
+    types: Record<string, { name: string; type: string }[]>,
+    message: Record<string, unknown>,
+    signature: string
+  ): Promise<string> {
+    try {
+      return verifyTypedData(domain, types, message, signature);
+    } catch (error) {
+      throw new Error('Failed to verify typed data', { cause: error });
     }
   }
 }

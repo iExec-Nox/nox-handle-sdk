@@ -1,10 +1,10 @@
-import type { WalletClient, TypedDataDomain } from 'viem';
+import { type WalletClient, recoverTypedDataAddress } from 'viem';
 import type {
   EIP712TypedData,
   IBlockchainService,
+  TypedDataDomain,
 } from './IBlockchainService.js';
-import type { EthereumAddress } from '../../types/internalTypes.js';
-
+import type { EthereumAddress, HexString } from '../../types/internalTypes.js';
 export type ViemClient = WalletClient;
 
 /**
@@ -82,4 +82,33 @@ export class ViemBlockchainService implements IBlockchainService {
       throw new Error('Failed to sign typed data', { cause: error });
     }
   }
+
+  async verifyTypedData(
+    domain: TypedDataDomain,
+    types: Record<string, { name: string; type: string }[]>,
+    message: Record<string, unknown>,
+    signature: string
+  ): Promise<string> {
+    try {
+      return recoverTypedDataAddress({
+        domain,
+        types,
+        primaryType: resolvePrimaryType(types),
+        message,
+        signature: signature as HexString,
+      });
+    } catch (error) {
+      throw new Error('Failed to verify typed data', { cause: error });
+    }
+  }
+}
+
+function resolvePrimaryType(
+  types: Record<string, { name: string; type: string }[]>
+): string {
+  const primaryType = Object.keys(types).find((key) => key !== 'EIP712Domain');
+  if (!primaryType) {
+    throw new Error('No primary type found in types');
+  }
+  return primaryType;
 }

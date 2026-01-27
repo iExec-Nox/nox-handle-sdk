@@ -1,3 +1,5 @@
+import type { HexString } from '../../types/internalTypes.js';
+
 /**
  * Interface for Blockchain Service
  *
@@ -7,17 +9,25 @@ export interface IBlockchainService {
   getChainId(): Promise<number>;
   getAddress(): Promise<string>;
   signTypedData(data: EIP712TypedData): Promise<string>;
+  verifyTypedData(
+    domain: TypedDataDomain,
+    types: Record<string, { name: string; type: string }[]>,
+    message: Record<string, unknown>,
+    signature: string
+  ): Promise<string>;
 }
+
+export type TypedDataDomain = {
+  name?: string;
+  version?: string;
+  chainId?: number | bigint;
+  verifyingContract?: HexString;
+  salt?: HexString;
+};
 
 export type EIP712TypedData = {
   types: Record<string, { name: string; type: string }[]>;
   primaryType: string;
-  domain: {
-    name?: string;
-    version?: string;
-    chainId?: number | bigint;
-    verifyingContract?: string;
-    salt?: string;
-  };
+  domain: TypedDataDomain;
   message: Record<string, unknown>;
 };

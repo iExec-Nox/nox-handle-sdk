@@ -56,6 +56,21 @@ describe('EthersBlockchainService', () => {
           expect(signature).toMatch(/0x[a-fA-F0-9]{130}/);
         });
       });
+
+      describe('verifyTypedData', () => {
+        it('should verify typed data correctly', async () => {
+          const signature = await blockchainService.signTypedData(
+            TEST_EIP712_TYPED_DATA
+          );
+          const recoveredAddress = await blockchainService.verifyTypedData(
+            TEST_EIP712_TYPED_DATA.domain,
+            TEST_EIP712_TYPED_DATA.types,
+            TEST_EIP712_TYPED_DATA.message,
+            signature
+          );
+          expect(recoveredAddress).toBe(TEST_ADDRESS);
+        });
+      });
     });
   }
 
