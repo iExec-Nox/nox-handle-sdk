@@ -1,6 +1,14 @@
-import type { AbstractSigner, BrowserProvider, Provider, Signer } from 'ethers';
-import { verifyTypedData } from 'ethers';
+import {
+  Contract,
+  verifyTypedData,
+  type AbstractSigner,
+  type BrowserProvider,
+  type Provider,
+  type Signer,
+} from 'ethers';
 import type {
+  AbiFragmentTypes,
+  AbiReadFunctionJsonFragment,
   EIP712TypedData,
   IBlockchainService,
 } from './IBlockchainService.js';
@@ -143,6 +151,30 @@ export class EthersBlockchainService implements IBlockchainService {
       return await signer.getAddress();
     } catch (error) {
       throw new Error('Failed to get address', { cause: error });
+    }
+  }
+
+  async readContract<T extends AbiReadFunctionJsonFragment>(
+    contractAddress: string,
+    abiFunctionFragment: T,
+    parameters: AbiFragmentTypes<T, 'inputs'>
+  ): Promise<AbiFragmentTypes<T, 'outputs'>> {
+    try {
+      const provider = await this.adapter.getProvider();
+      const contract = new Contract(
+        contractAddress,
+        [abiFunctionFragment],
+        provider
+      );
+      const method = contract[abiFunctionFragment.name];
+      return await method!(...parameters);
+    } catch (error) {
+      throw new Error(
+        `Failed to read contract at ${contractAddress} (method: ${abiFunctionFragment.name}, parameters: ${JSON.stringify(parameters)})`,
+        {
+          cause: error,
+        }
+      );
     }
   }
 

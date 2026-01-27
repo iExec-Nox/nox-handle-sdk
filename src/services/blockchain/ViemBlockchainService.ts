@@ -1,5 +1,11 @@
-import { type WalletClient, recoverTypedDataAddress } from 'viem';
+import {
+  publicActions,
+  recoverTypedDataAddress,
+  type WalletClient,
+} from 'viem';
 import type {
+  AbiFragmentTypes,
+  AbiReadFunctionJsonFragment,
   EIP712TypedData,
   IBlockchainService,
 } from './IBlockchainService.js';
@@ -63,6 +69,29 @@ export class ViemBlockchainService implements IBlockchainService {
       return address;
     } catch (error) {
       throw new Error('Failed to get address', { cause: error });
+    }
+  }
+
+  async readContract<T extends AbiReadFunctionJsonFragment>(
+    contractAddress: string,
+    abiFunctionFragment: T,
+    parameters: AbiFragmentTypes<T, 'inputs'>
+  ): Promise<AbiFragmentTypes<T, 'outputs'>> {
+    try {
+      const publicClient = this.walletClient.extend(publicActions);
+      return (await publicClient.readContract({
+        address: contractAddress as `0x${string}`,
+        abi: [abiFunctionFragment],
+        functionName: abiFunctionFragment.name,
+        args: parameters,
+      })) as Promise<AbiFragmentTypes<T, 'outputs'>>;
+    } catch (error) {
+      throw new Error(
+        `Failed to read contract at ${contractAddress} (method: ${abiFunctionFragment.name}, parameters: ${JSON.stringify(parameters)})`,
+        {
+          cause: error,
+        }
+      );
     }
   }
 
