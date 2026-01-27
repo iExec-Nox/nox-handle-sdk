@@ -1,6 +1,4 @@
-<!-- TODO: Rename package: replace @iexec/handles with the final npm package name -->
-
-# @iexec/handles
+# nox-handle-sdk
 
 A TypeScript SDK for encrypting, decrypting, and managing confidential values on blockchain using Handles. Works with both ethers and viem.
 
@@ -9,7 +7,7 @@ Handles are 32-byte identifiers that reference encrypted values stored off-chain
 ## Installation
 
 ```bash
-npm install @iexec/handles
+npm install nox-handle-sdk
 ```
 
 ## Quick Start
@@ -17,7 +15,7 @@ npm install @iexec/handles
 ### With Ethers
 
 ```typescript
-import { createEthersHandleClient } from '@iexec/handles';
+import { createEthersHandleClient } from 'nox-handle-sdk';
 import { Wallet } from 'ethers';
 
 const signer = new Wallet(privateKey, provider);
@@ -36,7 +34,7 @@ await myContract.deposit(handle, inputProof);
 ### With Viem
 
 ```typescript
-import { createViemHandleClient } from '@iexec/handles';
+import { createViemHandleClient } from 'nox-handle-sdk';
 import { createWalletClient, http } from 'viem';
 import { mainnet } from 'viem/chains';
 
@@ -50,6 +48,9 @@ const handleClient = await createViemHandleClient(walletClient);
 
 // Encrypt a value
 const { handle, inputProof } = await handleClient.encryptInput(true, 'bool');
+
+// Use handle and inputProof in your smart contract call
+await myContract.isAllowed(handle, inputProof);
 ```
 
 ## Architecture
@@ -58,7 +59,7 @@ The SDK provides a unified `HandleClient` that abstracts blockchain interactions
 
 **Core components:**
 
-- **HandleClient**: Main entry point exposing `encryptInput`, `decrypt`, and `viewACL` methods
+- **HandleClient**: Entry point to work with handles, exposing `encryptInput` and `decrypt` methods
 - **Blockchain adapters**: Handle wallet signing and chain interactions for ethers or viem
 - **Gateway API**: Manages encryption, storage, and retrieval of confidential values
 
@@ -82,16 +83,12 @@ const { handle, inputProof } = await handleClient.encryptInput(
 | `value`        | `boolean \| string \| bigint` | The value to encrypt                                            |
 | `solidityType` | `SolidityType`                | Target Solidity type (e.g., `"uint256"`, `"bool"`, `"address"`) |
 
-**Returns:** `EncryptInputResult`
+**Returns:** `{ handle: string, inputProof: string }`
 
-```typescript
-type EncryptInputResult = {
-  handle: string; // bytes32 - reference to the encrypted value
-  inputProof: string; // bytes - proof for smart contract verification
-};
-```
+- `handle`: bytes32 - reference to the encrypted value
+- `inputProof`: bytes - input type proof verifiable by the smart contract
 
-**Security:** No wallet signature required. Uses TLS encryption only.
+**Security:** Plaintext input is transmitted to the trusted Gateway for encryption over a secure TLS connection.
 
 **Examples:**
 
@@ -120,7 +117,7 @@ const { handle, inputProof } = await handleClient.encryptInput(
 
 ### decrypt
 
-Decrypts a handle and returns the original value. Requires an EIP-712 signature.
+Decrypts a handle for an allowed user and returns the original value. Requires an EIP-712 signature.
 
 ```typescript
 const { value, solidityType } = await handleClient.decrypt(handle);
@@ -132,16 +129,12 @@ const { value, solidityType } = await handleClient.decrypt(handle);
 | --------- | -------- | ------------------------------- |
 | `handle`  | `string` | The handle (bytes32) to decrypt |
 
-**Returns:** `HandleViewResult<T>`
+**Returns:** `{  value: JsValue<T>; solidityType: T extends SolidityType }`
 
-```typescript
-type HandleViewResult<T> = {
-  value: T; // The decrypted value
-  solidityType: SolidityType; // The Solidity type of the value
-};
-```
+- `value`: The decrypted value cast in the JS type (`boolean`|`bigint`|`string`) corresponding to the Solidity type
+- `solidityType`: The Solidity type of the value
 
-**Security:** Requires 1 gasless EIP-712 signature. Uses re-encryption protocol.
+**Security:** Requires a gasless EIP-712 signature from the authorized user. Uses ECIES with a shared secret encrypted with the user's ephemeral RSA public key to guarantee only the authorized user can decrypt the data.
 
 **Example:**
 
@@ -149,40 +142,6 @@ type HandleViewResult<T> = {
 const { value, solidityType } = await handleClient.decrypt(
   '0x7a3b9c8d2e1f0a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b'
 );
-```
-
-<!-- TODO : validate Spec of view ACL not yet implemented -->
-
-### viewACL
-
-Retrieves access control information for a handle.
-
-```typescript
-const acl = await handleClient.viewACL(handle);
-```
-
-**Parameters:**
-
-| Parameter | Type     | Description                   |
-| --------- | -------- | ----------------------------- |
-| `handle`  | `string` | The handle (bytes32) to query |
-
-**Returns:** `HandleACL`
-
-```typescript
-type HandleACL = {
-  handle: string; // The queried handle
-  owner: string; // Owner address
-  solidityType: string; // Solidity type of the encrypted value
-  allowedAddresses: string[]; // Addresses permitted to decrypt
-  publiclyDecryptable: boolean; // Whether anyone can decrypt
-};
-```
-
-**Example:**
-
-```typescript
-const acl = await handleClient.viewACL(handle);
 ```
 
 ## Types
@@ -316,26 +275,10 @@ type Config = {
 | -------------- | -------------------- | ------------- |
 | `encryptInput` | None                 | TLS           |
 | `decrypt`      | 1x EIP-712 (gasless) | Re-encryption |
-| `viewACL`      | None                 | TLS           |
 
 - **encryptInput**: Values are encrypted client-side and transmitted over TLS. No on-chain transaction or signature required.
 - **decrypt**: Requires a gasless EIP-712 signature to prove ownership. The gateway re-encrypts the value for the requester.
-- **viewACL**: Public metadata query, no authentication required.
 
 ## Status & Limitations
 
-|               |                       |
-| ------------- | --------------------- |
-| **Version**   | 0.1.0                 |
-| **Status**    | Draft / MVP           |
-| **Stability** | API subject to change |
-
-**Current limitations:**
-
-- Network support limited to configured chains
-- Handle format may evolve in future versions
-- ACL management methods not yet exposed
-
-## License
-
-MIT
+This library is still under development, and interfaces may slightly change in the next versions.
