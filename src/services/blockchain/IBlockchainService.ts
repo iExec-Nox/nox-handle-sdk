@@ -1,4 +1,4 @@
-import type { HexString } from '../../types/internalTypes.js';
+import type { EthereumAddress, HexString } from '../../types/internalTypes.js';
 import type {
   AbiFragmentTypes,
   AbiReadFunctionJsonFragment,
@@ -13,7 +13,7 @@ export interface IBlockchainService {
   getChainId(): Promise<number>;
   getAddress(): Promise<string>;
   readContract<T extends AbiReadFunctionJsonFragment>(
-    contractAddress: string,
+    contractAddress: EthereumAddress,
     /**
      * The ABI function fragment describing the contract method to call
      *

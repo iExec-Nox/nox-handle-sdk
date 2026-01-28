@@ -76,7 +76,7 @@ export class ViemBlockchainService implements IBlockchainService {
   }
 
   async readContract<T extends AbiReadFunctionJsonFragment>(
-    contractAddress: string,
+    contractAddress: EthereumAddress,
     abiFunctionFragment: T,
     parameters: AbiFragmentTypes<T, 'inputs'>
   ): Promise<AbiFragmentTypes<T, 'outputs'>> {

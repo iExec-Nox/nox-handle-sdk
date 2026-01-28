@@ -14,6 +14,7 @@ import type {
   AbiFragmentTypes,
   AbiReadFunctionJsonFragment,
 } from './abi.types.js';
+import type { EthereumAddress } from '../../types/internalTypes.js';
 
 export type EthersClient = AbstractSigner | BrowserProvider;
 
@@ -157,7 +158,7 @@ export class EthersBlockchainService implements IBlockchainService {
   }
 
   async readContract<T extends AbiReadFunctionJsonFragment>(
-    contractAddress: string,
+    contractAddress: EthereumAddress,
     abiFunctionFragment: T,
     parameters: AbiFragmentTypes<T, 'inputs'>
   ): Promise<AbiFragmentTypes<T, 'outputs'>> {
