@@ -1,9 +1,21 @@
-import type { AbstractSigner, BrowserProvider, Provider, Signer } from 'ethers';
-import { verifyTypedData } from 'ethers';
+import {
+  Contract,
+  verifyTypedData,
+  type AbstractSigner,
+  type BrowserProvider,
+  type Provider,
+  type Signer,
+} from 'ethers';
 import type {
   EIP712TypedData,
   IBlockchainService,
 } from './IBlockchainService.js';
+import type {
+  AbiFragmentTypes,
+  AbiReadFunctionJsonFragment,
+} from './abi.types.js';
+import type { EthereumAddress, HexString } from '../../types/internalTypes.js';
+import { safeJsonStringify } from '../../utils/format.js';
 
 export type EthersClient = AbstractSigner | BrowserProvider;
 
@@ -146,12 +158,40 @@ export class EthersBlockchainService implements IBlockchainService {
     }
   }
 
-  async signTypedData(data: EIP712TypedData): Promise<string> {
+  async readContract<T extends AbiReadFunctionJsonFragment>(
+    contractAddress: EthereumAddress,
+    abiFunctionFragment: T,
+    parameters: AbiFragmentTypes<T, 'inputs'>
+  ): Promise<AbiFragmentTypes<T, 'outputs'>> {
+    try {
+      const provider = await this.adapter.getProvider();
+      const contract = new Contract(
+        contractAddress,
+        [abiFunctionFragment],
+        provider
+      );
+      const method = contract[abiFunctionFragment.name];
+      return await method!(...parameters);
+    } catch (error) {
+      throw new Error(
+        `Failed to read contract at ${contractAddress} (method: ${abiFunctionFragment.name}, parameters: ${safeJsonStringify(parameters)})`,
+        {
+          cause: error,
+        }
+      );
+    }
+  }
+
+  async signTypedData(data: EIP712TypedData): Promise<HexString> {
     try {
       const signer = await this.adapter.getSigner();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { EIP712Domain, ...types } = data.types; // strip out EIP712Domain for ethers
-      return await signer.signTypedData(data.domain, types, data.message);
+      return (await signer.signTypedData(
+        data.domain,
+        types,
+        data.message
+      )) as HexString;
     } catch (error) {
       throw new Error('Failed to sign typed data', { cause: error });
     }
@@ -159,10 +199,15 @@ export class EthersBlockchainService implements IBlockchainService {
 
   async verifyTypedData(
     data: EIP712TypedData,
-    signature: string
-  ): Promise<string> {
+    signature: HexString
+  ): Promise<EthereumAddress> {
     try {
-      return verifyTypedData(data.domain, data.types, data.message, signature);
+      return verifyTypedData(
+        data.domain,
+        data.types,
+        data.message,
+        signature
+      ) as EthereumAddress;
     } catch (error) {
       throw new Error('Failed to verify typed data', { cause: error });
     }

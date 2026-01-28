@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi, type Mock } from 'vitest';
 import {
   type JsonRpcProvider,
   type Eip1193Provider as EthersEip1193Provider,
@@ -8,13 +8,29 @@ import type { EIP1193Provider as ViemEIP1193Provider } from 'viem';
 import type { EIP712TypedData } from '../../src/services/blockchain/IBlockchainService.js';
 import type { HexString } from '../../src/types/internalTypes.js';
 
+type MockProvider = {
+  /**
+   * methods mocks
+   */
+  mocks: {
+    call: Mock;
+  };
+};
+
 /**
  * Creates a mock JsonRpcProvider that returns the specified chainId
  */
-export function createMockProvider(chainId: number): JsonRpcProvider {
+export function createMockProvider(
+  chainId: number
+): JsonRpcProvider & MockProvider {
+  const callMock = vi.fn().mockResolvedValue('0x');
   return {
     getNetwork: vi.fn().mockResolvedValue({ chainId: BigInt(chainId) }),
-  } as unknown as JsonRpcProvider;
+    call: callMock,
+    mocks: {
+      call: callMock,
+    },
+  } as unknown as JsonRpcProvider & MockProvider;
 }
 
 type EIP1193Provider = EthersEip1193Provider & ViemEIP1193Provider;
@@ -24,8 +40,9 @@ type EIP1193Provider = EthersEip1193Provider & ViemEIP1193Provider;
 export function createMockEIP1193Provider(
   chainId: number,
   privateKey: string
-): EIP1193Provider {
+): EIP1193Provider & MockProvider {
   const wallet = new Wallet(privateKey);
+  const callMock = vi.fn().mockResolvedValue('0x');
   return {
     async request({ method, params }: { method: string; params?: string[] }) {
       if (method === 'eth_chainId') {
@@ -44,11 +61,17 @@ export function createMockEIP1193Provider(
           typedData.message
         );
       }
+      if (method === 'eth_call') {
+        return await callMock(params![0]);
+      }
       throw new Error(
         `Unsupported method: ${method} called with params: ${JSON.stringify(params)}`
       );
     },
-  } as unknown as EIP1193Provider;
+    mocks: {
+      call: callMock,
+    },
+  } as unknown as EIP1193Provider & MockProvider;
 }
 
 /**
