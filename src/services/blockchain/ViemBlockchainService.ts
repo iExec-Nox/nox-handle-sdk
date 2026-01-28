@@ -18,6 +18,7 @@ import type {
   AbiFragmentTypes,
   AbiReadFunctionJsonFragment,
 } from './abi.types.js';
+import { safeJsonStringify } from '../../utils/format.js';
 
 export type ViemClient = WalletClient;
 
@@ -103,7 +104,7 @@ export class ViemBlockchainService implements IBlockchainService {
       })) as AbiFragmentTypes<T, 'outputs'>;
     } catch (error) {
       throw new Error(
-        `Failed to read contract at ${contractAddress} (method: ${abiFunctionFragment.name}, parameters: ${JSON.stringify(parameters)})`,
+        `Failed to read contract at ${contractAddress} (method: ${abiFunctionFragment.name}, parameters: ${safeJsonStringify(parameters)})`,
         {
           cause: error,
         }

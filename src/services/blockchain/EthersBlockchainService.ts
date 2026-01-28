@@ -15,6 +15,7 @@ import type {
   AbiReadFunctionJsonFragment,
 } from './abi.types.js';
 import type { EthereumAddress } from '../../types/internalTypes.js';
+import { safeJsonStringify } from '../../utils/format.js';
 
 export type EthersClient = AbstractSigner | BrowserProvider;
 
@@ -173,7 +174,7 @@ export class EthersBlockchainService implements IBlockchainService {
       return await method!(...parameters);
     } catch (error) {
       throw new Error(
-        `Failed to read contract at ${contractAddress} (method: ${abiFunctionFragment.name}, parameters: ${JSON.stringify(parameters)})`,
+        `Failed to read contract at ${contractAddress} (method: ${abiFunctionFragment.name}, parameters: ${safeJsonStringify(parameters)})`,
         {
           cause: error,
         }
