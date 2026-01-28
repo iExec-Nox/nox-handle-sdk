@@ -62,7 +62,7 @@ export function createMockEIP1193Provider(
         );
       }
       if (method === 'eth_call') {
-        return await callMock();
+        return await callMock(params![0]);
       }
       throw new Error(
         `Unsupported method: ${method} called with params: ${JSON.stringify(params)}`

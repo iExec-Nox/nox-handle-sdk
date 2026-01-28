@@ -80,6 +80,55 @@ describe('ViemBlockchainService', () => {
       });
 
       describe('readContract', () => {
+        it('should apply parameters correctly', async () => {
+          // Mock a simple contract with a view function that takes parameters
+          const contractAddress = '0x0000000000000000000000000000000000000001';
+          const abiFunctionFragment = {
+            name: 'getValueWithParams',
+            type: 'function',
+            stateMutability: 'view',
+            inputs: [
+              {
+                internalType: 'uint256',
+                name: 'inputValue',
+                type: 'uint256',
+              },
+              {
+                internalType: 'address',
+                name: 'inputAddress',
+                type: 'address',
+              },
+            ],
+            outputs: [
+              {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+              },
+            ],
+          } as const;
+          // Set the mock provider to return a specific value based on input
+          mockProvider.mocks.call.mockReturnValue('0x' + '00'.repeat(32));
+
+          const inputs: [bigint, string] = [
+            42n,
+            '0x1234567890abcdef1234567890abcdef12345678',
+          ];
+
+          await blockchainService.readContract(
+            contractAddress,
+            abiFunctionFragment,
+            inputs
+          );
+          expect(mockProvider.mocks.call).toHaveBeenCalledWith(
+            expect.objectContaining({
+              data: '0x2e2d028e000000000000000000000000000000000000000000000000000000000000002a0000000000000000000000001234567890abcdef1234567890abcdef12345678',
+              to: '0x0000000000000000000000000000000000000001',
+              // other call parameters such as from can be ignored
+            })
+          );
+        });
+
         it('should read contract with single output correctly', async () => {
           // Mock a simple contract with a view function
           const contractAddress = '0x0000000000000000000000000000000000000001';
