@@ -109,11 +109,11 @@ export async function decrypt<T extends SolidityType>({
         },
         {
           name: 'notBefore',
-          type: 'uint256',
+          type: 'int64',
         },
         {
           name: 'expiresAt',
-          type: 'uint256',
+          type: 'int64',
         },
       ],
     },
