@@ -2,7 +2,6 @@ import { type WalletClient, recoverTypedDataAddress } from 'viem';
 import type {
   EIP712TypedData,
   IBlockchainService,
-  TypedDataDomain,
 } from './IBlockchainService.js';
 import type { EthereumAddress, HexString } from '../../types/internalTypes.js';
 export type ViemClient = WalletClient;
@@ -72,7 +71,7 @@ export class ViemBlockchainService implements IBlockchainService {
       const address = await this.getAddress();
       const signature = await this.walletClient.signTypedData({
         account: address as EthereumAddress,
-        domain: data.domain as TypedDataDomain,
+        domain: data.domain,
         types: data.types,
         primaryType: data.primaryType,
         message: data.message,

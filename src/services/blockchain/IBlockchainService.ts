@@ -12,17 +12,15 @@ export interface IBlockchainService {
   verifyTypedData(data: EIP712TypedData, signature: string): Promise<string>;
 }
 
-export type TypedDataDomain = {
-  name?: string;
-  version?: string;
-  chainId?: number | bigint;
-  verifyingContract?: HexString;
-  salt?: HexString;
-};
-
 export type EIP712TypedData = {
   types: Record<string, { name: string; type: string }[]>;
   primaryType: string;
-  domain: TypedDataDomain;
+  domain: {
+    name?: string;
+    version?: string;
+    chainId?: number | bigint;
+    verifyingContract?: HexString;
+    salt?: HexString;
+  };
   message: Record<string, unknown>;
 };
