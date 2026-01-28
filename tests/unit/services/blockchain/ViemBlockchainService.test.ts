@@ -168,5 +168,27 @@ describe('ViemBlockchainService', () => {
         }
       });
     });
+
+    describe('verifyTypedData', () => {
+      it('should throw wrapped error when address recovery fails', async () => {
+        const client = createWalletClient({
+          transport: custom(
+            createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
+          ),
+        });
+        const service = new ViemBlockchainService(client);
+        try {
+          await service.verifyTypedData(
+            TEST_EIP712_TYPED_DATA,
+            '0xinvalidsignature'
+          );
+          expect.fail('Should have thrown');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe('Failed to verify typed data');
+          expect((error as Error)?.cause).toBeInstanceOf(Error);
+        }
+      });
+    });
   });
 });

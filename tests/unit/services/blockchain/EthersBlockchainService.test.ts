@@ -159,5 +159,26 @@ describe('EthersBlockchainService', () => {
         }
       });
     });
+
+    describe('verifyTypedData', () => {
+      it('should throw wrapped error when address recovery fails', async () => {
+        const browserProvider = new BrowserProvider(
+          createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
+        );
+        const service = new EthersBlockchainService(browserProvider);
+
+        try {
+          await service.verifyTypedData(
+            TEST_EIP712_TYPED_DATA,
+            '0xinvalidsignature'
+          );
+          expect.fail('Should have thrown');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe('Failed to verify typed data');
+          expect((error as Error)?.cause).toBeInstanceOf(Error);
+        }
+      });
+    });
   });
 });
