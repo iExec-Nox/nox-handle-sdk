@@ -22,8 +22,11 @@ export interface IBlockchainService {
     abiFunctionFragment: T,
     parameters: AbiFragmentTypes<T, 'inputs'>
   ): Promise<AbiFragmentTypes<T, 'outputs'>>;
-  signTypedData(data: EIP712TypedData): Promise<string>;
-  verifyTypedData(data: EIP712TypedData, signature: string): Promise<string>;
+  signTypedData(data: EIP712TypedData): Promise<HexString>;
+  verifyTypedData(
+    data: EIP712TypedData,
+    signature: HexString
+  ): Promise<EthereumAddress>;
 }
 
 /**
