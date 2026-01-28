@@ -4,12 +4,15 @@ import {
   type WalletClient,
 } from 'viem';
 import type {
-  AbiFragmentTypes,
-  AbiReadFunctionJsonFragment,
   EIP712TypedData,
   IBlockchainService,
 } from './IBlockchainService.js';
 import type { EthereumAddress, HexString } from '../../types/internalTypes.js';
+import type {
+  AbiFragmentTypes,
+  AbiReadFunctionJsonFragment,
+} from './abi.types.js';
+
 export type ViemClient = WalletClient;
 
 /**
