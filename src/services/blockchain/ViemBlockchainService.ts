@@ -1,10 +1,9 @@
-import type { WalletClient, TypedDataDomain } from 'viem';
+import { type WalletClient, recoverTypedDataAddress } from 'viem';
 import type {
   EIP712TypedData,
   IBlockchainService,
 } from './IBlockchainService.js';
-import type { EthereumAddress } from '../../types/internalTypes.js';
-
+import type { EthereumAddress, HexString } from '../../types/internalTypes.js';
 export type ViemClient = WalletClient;
 
 /**
@@ -72,7 +71,7 @@ export class ViemBlockchainService implements IBlockchainService {
       const address = await this.getAddress();
       const signature = await this.walletClient.signTypedData({
         account: address as EthereumAddress,
-        domain: data.domain as TypedDataDomain,
+        domain: data.domain,
         types: data.types,
         primaryType: data.primaryType,
         message: data.message,
@@ -80,6 +79,23 @@ export class ViemBlockchainService implements IBlockchainService {
       return signature;
     } catch (error) {
       throw new Error('Failed to sign typed data', { cause: error });
+    }
+  }
+
+  async verifyTypedData(
+    data: EIP712TypedData,
+    signature: string
+  ): Promise<string> {
+    try {
+      return await recoverTypedDataAddress({
+        domain: data.domain,
+        types: data.types,
+        primaryType: data.primaryType,
+        message: data.message,
+        signature: signature as HexString,
+      });
+    } catch (error) {
+      throw new Error('Failed to verify typed data', { cause: error });
     }
   }
 }

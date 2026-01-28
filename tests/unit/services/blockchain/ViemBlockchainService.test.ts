@@ -57,6 +57,26 @@ describe('ViemBlockchainService', () => {
           expect(signature).toMatch(/0x[a-fA-F0-9]{130}/);
         });
       });
+
+      describe('verifyTypedData', () => {
+        it('should verify typed data and recover signer address', async () => {
+          const signature = await blockchainService.signTypedData(
+            TEST_EIP712_TYPED_DATA
+          );
+          const recoveredAddress = await blockchainService.verifyTypedData(
+            {
+              domain: TEST_EIP712_TYPED_DATA.domain,
+              types: TEST_EIP712_TYPED_DATA.types,
+              primaryType: TEST_EIP712_TYPED_DATA.primaryType,
+              message: TEST_EIP712_TYPED_DATA.message,
+            },
+            signature
+          );
+          expect(recoveredAddress.toLowerCase()).toBe(
+            TEST_ADDRESS.toLowerCase()
+          );
+        });
+      });
     });
   }
 
@@ -145,6 +165,28 @@ describe('ViemBlockchainService', () => {
           const cause = (error as Error).cause as Error & { details?: string };
           expect(cause).toBeDefined();
           expect(cause.details).toBe('User rejected');
+        }
+      });
+    });
+
+    describe('verifyTypedData', () => {
+      it('should throw wrapped error when address recovery fails', async () => {
+        const client = createWalletClient({
+          transport: custom(
+            createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
+          ),
+        });
+        const service = new ViemBlockchainService(client);
+        try {
+          await service.verifyTypedData(
+            TEST_EIP712_TYPED_DATA,
+            '0xinvalidsignature'
+          );
+          expect.fail('Should have thrown');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe('Failed to verify typed data');
+          expect((error as Error)?.cause).toBeInstanceOf(Error);
         }
       });
     });

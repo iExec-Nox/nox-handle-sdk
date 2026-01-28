@@ -1,4 +1,5 @@
 import type { AbstractSigner, BrowserProvider, Provider, Signer } from 'ethers';
+import { verifyTypedData } from 'ethers';
 import type {
   EIP712TypedData,
   IBlockchainService,
@@ -153,6 +154,17 @@ export class EthersBlockchainService implements IBlockchainService {
       return await signer.signTypedData(data.domain, types, data.message);
     } catch (error) {
       throw new Error('Failed to sign typed data', { cause: error });
+    }
+  }
+
+  async verifyTypedData(
+    data: EIP712TypedData,
+    signature: string
+  ): Promise<string> {
+    try {
+      return verifyTypedData(data.domain, data.types, data.message, signature);
+    } catch (error) {
+      throw new Error('Failed to verify typed data', { cause: error });
     }
   }
 }
