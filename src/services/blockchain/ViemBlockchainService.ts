@@ -1,6 +1,12 @@
 import {
   publicActions,
   recoverTypedDataAddress,
+  type Account,
+  type Chain,
+  type Client,
+  type PublicActions,
+  type Transport,
+  type WalletActions,
   type WalletClient,
 } from 'viem';
 import type {
@@ -35,7 +41,14 @@ export function isViemWalletClient(object: unknown): object is ViemClient {
  * Implements IBlockchainService using viem library.
  */
 export class ViemBlockchainService implements IBlockchainService {
-  private readonly walletClient: ViemClient;
+  // client suitable for both wallet and public actions
+  private readonly viemClient: Client<
+    Transport,
+    Chain | undefined,
+    Account | undefined,
+    undefined,
+    WalletActions & PublicActions
+  >;
 
   /**
    * Creates an instance of ViemBlockchainService.
@@ -45,7 +58,7 @@ export class ViemBlockchainService implements IBlockchainService {
    */
   constructor(client: ViemClient) {
     if (isViemWalletClient(client)) {
-      this.walletClient = client;
+      this.viemClient = client.extend(publicActions);
     } else {
       throw new TypeError(
         'Unsupported client. Expected a viem WalletClient instance connected to an account.'
@@ -55,7 +68,7 @@ export class ViemBlockchainService implements IBlockchainService {
 
   async getChainId(): Promise<number> {
     try {
-      const chainId = await this.walletClient.getChainId();
+      const chainId = await this.viemClient.getChainId();
       return chainId;
     } catch (error) {
       throw new Error('Failed to get chain ID', { cause: error });
@@ -64,7 +77,7 @@ export class ViemBlockchainService implements IBlockchainService {
 
   async getAddress(): Promise<string> {
     try {
-      const addresses = await this.walletClient.getAddresses();
+      const addresses = await this.viemClient.getAddresses();
       const address = addresses[0];
       if (!address) {
         throw new Error('No connected account');
@@ -81,9 +94,9 @@ export class ViemBlockchainService implements IBlockchainService {
     parameters: AbiFragmentTypes<T, 'inputs'>
   ): Promise<AbiFragmentTypes<T, 'outputs'>> {
     try {
-      const publicClient = this.walletClient.extend(publicActions);
+      const publicClient = this.viemClient;
       return (await publicClient.readContract({
-        address: contractAddress as `0x${string}`,
+        address: contractAddress,
         abi: [abiFunctionFragment],
         functionName: abiFunctionFragment.name,
         args: parameters,
@@ -101,7 +114,7 @@ export class ViemBlockchainService implements IBlockchainService {
   async signTypedData(data: EIP712TypedData): Promise<string> {
     try {
       const address = await this.getAddress();
-      const signature = await this.walletClient.signTypedData({
+      const signature = await this.viemClient.signTypedData({
         account: address as EthereumAddress,
         domain: data.domain,
         types: data.types,
