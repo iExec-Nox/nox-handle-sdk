@@ -64,9 +64,12 @@ describe('ViemBlockchainService', () => {
             TEST_EIP712_TYPED_DATA
           );
           const recoveredAddress = await blockchainService.verifyTypedData(
-            TEST_EIP712_TYPED_DATA.domain,
-            TEST_EIP712_TYPED_DATA.types,
-            TEST_EIP712_TYPED_DATA.message,
+            {
+              domain: TEST_EIP712_TYPED_DATA.domain,
+              types: TEST_EIP712_TYPED_DATA.types,
+              primaryType: TEST_EIP712_TYPED_DATA.primaryType,
+              message: TEST_EIP712_TYPED_DATA.message,
+            },
             signature
           );
           expect(recoveredAddress.toLowerCase()).toBe(

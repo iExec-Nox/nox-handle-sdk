@@ -9,12 +9,7 @@ export interface IBlockchainService {
   getChainId(): Promise<number>;
   getAddress(): Promise<string>;
   signTypedData(data: EIP712TypedData): Promise<string>;
-  verifyTypedData(
-    domain: TypedDataDomain,
-    types: Record<string, { name: string; type: string }[]>,
-    message: Record<string, unknown>,
-    signature: string
-  ): Promise<string>;
+  verifyTypedData(data: EIP712TypedData, signature: string): Promise<string>;
 }
 
 export type TypedDataDomain = {

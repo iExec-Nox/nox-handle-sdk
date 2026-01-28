@@ -84,31 +84,19 @@ export class ViemBlockchainService implements IBlockchainService {
   }
 
   async verifyTypedData(
-    domain: TypedDataDomain,
-    types: Record<string, { name: string; type: string }[]>,
-    message: Record<string, unknown>,
+    data: EIP712TypedData,
     signature: string
   ): Promise<string> {
     try {
-      return recoverTypedDataAddress({
-        domain,
-        types,
-        primaryType: resolvePrimaryType(types),
-        message,
+      return await recoverTypedDataAddress({
+        domain: data.domain,
+        types: data.types,
+        primaryType: data.primaryType,
+        message: data.message,
         signature: signature as HexString,
       });
     } catch (error) {
       throw new Error('Failed to verify typed data', { cause: error });
     }
   }
-}
-
-function resolvePrimaryType(
-  types: Record<string, { name: string; type: string }[]>
-): string {
-  const primaryType = Object.keys(types).find((key) => key !== 'EIP712Domain');
-  if (!primaryType) {
-    throw new Error('No primary type found in types');
-  }
-  return primaryType;
 }
