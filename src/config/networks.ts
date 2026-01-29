@@ -4,12 +4,8 @@ import { isBaseURL, isEthereumAddress } from '../utils/validators.js';
 // TODO: replace with production endpoints
 export const NETWORK_CONFIGS: Record<number, HandleClientConfig> = {
   421_614: {
-    gatewayUrl: 'https://gateway.testnet.nox.com',
-    smartContractAddress: '0x0000000000000000000000000000000000000000',
-  },
-  42_161: {
-    gatewayUrl: 'https://gateway.mainnet.nox.com',
-    smartContractAddress: '0x0000000000000000000000000000000000000000',
+    gatewayUrl: 'https://nox-gateway.arbitrum-sepolia-testnet.iex.ec',
+    smartContractAddress: '0x4e5eFffc593B22A50e37C772DaC0F3aFD905B1a2',
   },
 };
 

@@ -127,7 +127,7 @@ describe('createEthersHandleClient', () => {
 
       await expect(createEthersHandleClient(ethersClient)).rejects.toThrow(
         new Error(
-          'Chain 999999 is not supported. Supported chains: 42161, 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
+          'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
         )
       );
     });
@@ -163,7 +163,7 @@ describe('createEthersHandleClient', () => {
         })
       ).rejects.toThrow(
         new Error(
-          'Chain 999999 is not supported. Supported chains: 42161, 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
+          'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
         )
       );
     });

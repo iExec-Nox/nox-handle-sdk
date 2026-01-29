@@ -74,7 +74,7 @@ describe('createViemHandleClient', () => {
       it('should throw if chainId not supported and no config provided', async () => {
         await expect(createViemHandleClient(viemClient)).rejects.toThrow(
           new Error(
-            'Chain 999999 is not supported. Supported chains: 42161, 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
+            'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
           )
         );
       });
@@ -100,7 +100,7 @@ describe('createViemHandleClient', () => {
           })
         ).rejects.toThrow(
           new Error(
-            'Chain 999999 is not supported. Supported chains: 42161, 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
+            'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
           )
         );
       });
