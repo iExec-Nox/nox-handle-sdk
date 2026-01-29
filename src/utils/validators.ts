@@ -61,10 +61,13 @@ export function validateHandle({
   }
 }
 
-export function validateInputProof(inputProof: unknown): void {
-  if (typeof inputProof !== 'string' || !INPUT_PROOF_PATTERN.test(inputProof)) {
+export function validateHandleProof(handleProof: unknown): void {
+  if (
+    typeof handleProof !== 'string' ||
+    !INPUT_PROOF_PATTERN.test(handleProof)
+  ) {
     throw new TypeError(
-      `Invalid inputProof: expected 0x + 274 hex chars (137 bytes), got ${inputProof}`
+      `Invalid handleProof: expected 0x + 274 hex chars (137 bytes), got ${handleProof}`
     );
   }
 }

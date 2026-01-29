@@ -22,13 +22,13 @@ const signer = new Wallet(privateKey, provider);
 const handleClient = await createEthersHandleClient(signer);
 
 // Encrypt a value
-const { handle, inputProof } = await handleClient.encryptInput(42n, 'uint256');
+const { handle, handleProof } = await handleClient.encryptInput(42n, 'uint256');
 
-// Use handle and inputProof in your smart contract call
+// Use handle and handleProof in your smart contract call
 await myConfidentialTokenContract.confidentialTransfer(
   toAddress,
   handle,
-  inputProof
+  handleProof
 );
 
 // Get a handle from your smart contract
@@ -55,13 +55,13 @@ const walletClient = createWalletClient({
 const handleClient = await createViemHandleClient(walletClient);
 
 // Encrypt a value
-const { handle, inputProof } = await handleClient.encryptInput(42n, 'uint256');
+const { handle, handleProof } = await handleClient.encryptInput(42n, 'uint256');
 
-// Use handle and inputProof in your smart contract call
+// Use handle and handleProof in your smart contract call
 await myConfidentialTokenContract.confidentialTransfer(
   toAddress,
   handle,
-  inputProof
+  handleProof
 );
 
 // Get a handle from your smart contract
@@ -89,7 +89,7 @@ The SDK provides a unified `HandleClient` that abstracts blockchain interactions
 Encrypts a value and returns a handle for use in smart contracts.
 
 ```typescript
-const { handle, inputProof } = await handleClient.encryptInput(
+const { handle, handleProof } = await handleClient.encryptInput(
   value,
   solidityType
 );
@@ -102,10 +102,10 @@ const { handle, inputProof } = await handleClient.encryptInput(
 | `value`        | `boolean \| string \| bigint` | The value to encrypt                                            |
 | `solidityType` | `SolidityType`                | Target Solidity type (e.g., `"uint256"`, `"bool"`, `"address"`) |
 
-**Returns:** `{ handle: string, inputProof: string }`
+**Returns:** `{ handle: string, handleProof: string }`
 
 - `handle`: bytes32 - reference to the encrypted value
-- `inputProof`: bytes - input type proof verifiable by the smart contract
+- `handleProof`: bytes - input type proof verifiable by the smart contract
 
 **Security:** Plaintext input is transmitted to the trusted Gateway for encryption over a secure TLS connection.
 
@@ -113,22 +113,22 @@ const { handle, inputProof } = await handleClient.encryptInput(
 
 ```typescript
 // Encrypt an unsigned integer
-const { handle, inputProof } = await handleClient.encryptInput(
+const { handle, handleProof } = await handleClient.encryptInput(
   1000n,
   'uint256'
 );
 
 // Encrypt a boolean
-const { handle, inputProof } = await handleClient.encryptInput(true, 'bool');
+const { handle, handleProof } = await handleClient.encryptInput(true, 'bool');
 
 // Encrypt an address
-const { handle, inputProof } = await handleClient.encryptInput(
+const { handle, handleProof } = await handleClient.encryptInput(
   '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb2',
   'address'
 );
 
 // Encrypt fixed-size bytes
-const { handle, inputProof } = await handleClient.encryptInput(
+const { handle, handleProof } = await handleClient.encryptInput(
   '0xdeadbeef',
   'bytes4'
 );

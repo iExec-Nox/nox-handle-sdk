@@ -3,7 +3,7 @@ import {
   isBaseURL,
   isEthereumAddress,
   validateHandle,
-  validateInputProof,
+  validateHandleProof,
 } from '../../../src/utils/validators.js';
 import { SOLIDITY_TYPE_TO_CODE } from '../../../src/utils/types.js';
 import { buildHandle } from '../../helpers/mocks.js';
@@ -291,32 +291,32 @@ describe('validateHandle', () => {
   });
 });
 
-describe('validateInputProof', () => {
-  it('should accept valid 137-byte inputProof', () => {
+describe('validateHandleProof', () => {
+  it('should accept valid 137-byte handleProof', () => {
     const validProof = '0x' + 'ab'.repeat(137);
-    expect(() => validateInputProof(validProof)).not.toThrow();
+    expect(() => validateHandleProof(validProof)).not.toThrow();
   });
 
-  it('should reject inputProof with wrong length', () => {
+  it('should reject handleProof with wrong length', () => {
     const shortProof = '0x' + 'ab'.repeat(100);
-    expect(() => validateInputProof(shortProof)).toThrow(TypeError);
-    expect(() => validateInputProof(shortProof)).toThrow(
-      'Invalid inputProof: expected 0x + 274 hex chars (137 bytes)'
+    expect(() => validateHandleProof(shortProof)).toThrow(TypeError);
+    expect(() => validateHandleProof(shortProof)).toThrow(
+      'Invalid handleProof: expected 0x + 274 hex chars (137 bytes)'
     );
   });
 
-  it('should reject inputProof with wrong length', () => {
+  it('should reject handleProof with wrong length', () => {
     const longProof = '0x' + 'ab'.repeat(150);
-    expect(() => validateInputProof(longProof)).toThrow(TypeError);
+    expect(() => validateHandleProof(longProof)).toThrow(TypeError);
   });
 
-  it('should reject inputProof with invalid hex characters', () => {
+  it('should reject handleProof with invalid hex characters', () => {
     const invalidProof = '0x' + 'gg'.repeat(137);
-    expect(() => validateInputProof(invalidProof)).toThrow(TypeError);
+    expect(() => validateHandleProof(invalidProof)).toThrow(TypeError);
   });
 
-  it('should reject inputProof without 0x prefix', () => {
+  it('should reject handleProof without 0x prefix', () => {
     const noPrefix = 'ab'.repeat(137);
-    expect(() => validateInputProof(noPrefix)).toThrow(TypeError);
+    expect(() => validateHandleProof(noPrefix)).toThrow(TypeError);
   });
 });

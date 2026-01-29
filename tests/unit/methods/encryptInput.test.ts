@@ -6,7 +6,7 @@ import type { IBlockchainService } from '../../../src/services/blockchain/IBlock
 vi.mock('../../../src/utils/validators.js', async (importOriginal) => {
   const actual =
     await importOriginal<typeof import('../../../src/utils/validators.js')>();
-  return { ...actual, validateHandle: vi.fn(), validateInputProof: vi.fn() };
+  return { ...actual, validateHandle: vi.fn(), validateHandleProof: vi.fn() };
 });
 
 const TEST_ADDRESS = '0x1234567890123456789012345678901234567890';
