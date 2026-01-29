@@ -10,7 +10,7 @@ import {
 import {
   assertRequiredParams,
   validateHandle,
-  validateInputProof,
+  validateHandleProof,
 } from '../utils/validators.js';
 import {
   boolToHex,
@@ -112,7 +112,7 @@ export async function encryptInput<T extends SolidityType>({
   solidityType,
 }: EncryptInputParameters): Promise<{
   handle: Handle<T>;
-  inputProof: HexString;
+  handleProof: HexString;
 }> {
   assertRequiredParams({ value, solidityType }, ['value', 'solidityType']);
   const encodedValue = encodeValue(value, solidityType);
@@ -137,7 +137,7 @@ export async function encryptInput<T extends SolidityType>({
 
   const data = response.data as GatewaySecretResponse;
   if (!data?.handle || !data?.proof) {
-    throw new Error('Invalid gateway response: missing handle or inputProof');
+    throw new Error('Invalid gateway response: missing handle or handleProof');
   }
 
   validateHandle({
@@ -145,10 +145,10 @@ export async function encryptInput<T extends SolidityType>({
     expectedChainId: chainId,
     expectedSolidityType: solidityType,
   });
-  validateInputProof(data.proof);
+  validateHandleProof(data.proof);
 
   return {
     handle: data.handle as HexString,
-    inputProof: data.proof as HexString,
+    handleProof: data.proof as HexString,
   };
 }
