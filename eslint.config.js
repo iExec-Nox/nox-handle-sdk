@@ -18,6 +18,7 @@ export default defineConfig(
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/explicit-module-boundary-types': 'error',
       'sonarjs/todo-tag': 'warn',
+      'unicorn/prevent-abbreviations': 'off',
     },
   },
 

@@ -7,7 +7,11 @@ import {
   type JsValue,
   type SolidityType,
 } from '../utils/types.js';
-import { validateHandle, validateInputProof } from '../utils/validators.js';
+import {
+  assertRequiredParams,
+  validateHandle,
+  validateInputProof,
+} from '../utils/validators.js';
 import {
   boolToHex,
   intXToHex,
@@ -110,6 +114,7 @@ export async function encryptInput<T extends SolidityType>({
   handle: Handle<T>;
   inputProof: HexString;
 }> {
+  assertRequiredParams({ value, solidityType }, ['value', 'solidityType']);
   const encodedValue = encodeValue(value, solidityType);
   const [owner, chainId] = await Promise.all([
     blockchainService.getAddress(),
