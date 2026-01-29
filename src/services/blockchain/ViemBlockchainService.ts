@@ -1,14 +1,4 @@
-import {
-  publicActions,
-  recoverTypedDataAddress,
-  type Account,
-  type Chain,
-  type Client,
-  type PublicActions,
-  type Transport,
-  type WalletActions,
-  type WalletClient,
-} from 'viem';
+import type { WalletClient } from 'viem';
 import type {
   EIP712TypedData,
   IBlockchainService,
@@ -42,14 +32,7 @@ export function isViemWalletClient(object: unknown): object is ViemClient {
  * Implements IBlockchainService using viem library.
  */
 export class ViemBlockchainService implements IBlockchainService {
-  // client suitable for both wallet and public actions
-  private readonly viemClient: Client<
-    Transport,
-    Chain | undefined,
-    Account | undefined,
-    undefined,
-    WalletActions & PublicActions
-  >;
+  private readonly viemClient: WalletClient;
 
   /**
    * Creates an instance of ViemBlockchainService.
@@ -59,7 +42,7 @@ export class ViemBlockchainService implements IBlockchainService {
    */
   constructor(client: ViemClient) {
     if (isViemWalletClient(client)) {
-      this.viemClient = client.extend(publicActions);
+      this.viemClient = client;
     } else {
       throw new TypeError(
         'Unsupported client. Expected a viem WalletClient instance connected to an account.'
@@ -95,7 +78,8 @@ export class ViemBlockchainService implements IBlockchainService {
     parameters: AbiFragmentTypes<T, 'inputs'>
   ): Promise<AbiFragmentTypes<T, 'outputs'>> {
     try {
-      const publicClient = this.viemClient;
+      const { publicActions } = await import('viem');
+      const publicClient = this.viemClient.extend(publicActions);
       return (await publicClient.readContract({
         address: contractAddress,
         abi: [abiFunctionFragment],
@@ -133,6 +117,7 @@ export class ViemBlockchainService implements IBlockchainService {
     signature: HexString
   ): Promise<EthereumAddress> {
     try {
+      const { recoverTypedDataAddress } = await import('viem');
       return await recoverTypedDataAddress({
         domain: data.domain,
         types: data.types,
