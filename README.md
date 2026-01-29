@@ -22,13 +22,13 @@ const signer = new Wallet(privateKey, provider);
 const handleClient = await createEthersHandleClient(signer);
 
 // Encrypt a value
-const { handle, inputProof } = await handleClient.encryptInput(42n, 'uint256');
+const { handle, handleProof } = await handleClient.encryptInput(42n, 'uint256');
 
 // Use handle and inputProof in your smart contract call
 await myConfidentialTokenContract.confidentialTransfer(
   toAddress,
   handle,
-  inputProof
+  handleProof
 );
 
 // Get a handle from your smart contract
@@ -55,13 +55,13 @@ const walletClient = createWalletClient({
 const handleClient = await createViemHandleClient(walletClient);
 
 // Encrypt a value
-const { handle, inputProof } = await handleClient.encryptInput(42n, 'uint256');
+const { handle, handleProof } = await handleClient.encryptInput(42n, 'uint256');
 
-// Use handle and inputProof in your smart contract call
+// Use handle and handleProof in your smart contract call
 await myConfidentialTokenContract.confidentialTransfer(
   toAddress,
   handle,
-  inputProof
+  handleProof
 );
 
 // Get a handle from your smart contract
