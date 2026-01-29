@@ -481,4 +481,14 @@ describe('decrypt', () => {
       });
     }
   });
+  describe('required parameters validation', () => {
+    it('rejects missing handle', async () => {
+      await expect(
+        decrypt({
+          // @ts-expect-error - Testing runtime validation of missing required params
+          handle: undefined,
+        })
+      ).rejects.toThrow('Missing required parameters: handle');
+    });
+  });
 });

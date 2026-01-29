@@ -68,3 +68,18 @@ export function validateInputProof(inputProof: unknown): void {
     );
   }
 }
+
+export function assertRequiredParams<
+  T extends Record<string, unknown>,
+  K extends keyof T,
+>(params: T, requiredKeys: K[]): void {
+  // eslint-disable-next-line sonarjs/different-types-comparison
+  const missingKeys = requiredKeys.filter((key) => params[key] === undefined);
+
+  if (missingKeys.length === 0) {
+    return;
+  }
+  throw new Error(
+    `Missing required parameters: ${missingKeys.map(String).join(', ')}`
+  );
+}

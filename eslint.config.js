@@ -13,6 +13,17 @@ export default defineConfig(
   prettier,
   {
     rules: {
+      'unicorn/prevent-abbreviations': [
+        'error',
+        {
+          replacements: {
+            params: false,
+          },
+          allowList: {
+            assertRequiredParams: true,
+          },
+        },
+      ],
       'no-console': 'error',
       'unicorn/filename-case': 'off',
       '@typescript-eslint/no-floating-promises': 'error',

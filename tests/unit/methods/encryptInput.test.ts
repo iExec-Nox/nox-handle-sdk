@@ -60,7 +60,11 @@ describe('encryptInput', () => {
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
-        body: { value: '0x01', solidityType: 'bool', owner: TEST_ADDRESS },
+        body: {
+          value: '0x01',
+          solidityType: 'bool',
+          owner: TEST_ADDRESS,
+        },
       });
     });
 
@@ -73,7 +77,11 @@ describe('encryptInput', () => {
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
-        body: { value: '0x00', solidityType: 'bool', owner: TEST_ADDRESS },
+        body: {
+          value: '0x00',
+          solidityType: 'bool',
+          owner: TEST_ADDRESS,
+        },
       });
     });
 
@@ -104,7 +112,11 @@ describe('encryptInput', () => {
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
-        body: { value: address, solidityType: 'address', owner: TEST_ADDRESS },
+        body: {
+          value: address,
+          solidityType: 'address',
+          owner: TEST_ADDRESS,
+        },
       });
     });
 
@@ -118,7 +130,11 @@ describe('encryptInput', () => {
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
-        body: { value: bytes, solidityType: 'bytes', owner: TEST_ADDRESS },
+        body: {
+          value: bytes,
+          solidityType: 'bytes',
+          owner: TEST_ADDRESS,
+        },
       });
     });
 
@@ -158,6 +174,39 @@ describe('encryptInput', () => {
     });
   });
 
+  describe('required parameters validation', () => {
+    it('rejects missing value', async () => {
+      await expect(
+        // @ts-expect-error - Testing runtime validation of missing required param
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          solidityType: 'bool',
+        })
+      ).rejects.toThrow('Missing required parameters: value');
+    });
+
+    it('rejects missing solidityType', async () => {
+      await expect(
+        // @ts-expect-error - Testing runtime validation of missing required params
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          value: true,
+        })
+      ).rejects.toThrow('Missing required parameters: solidityType');
+    });
+
+    it('rejects missing multiple required parameters', async () => {
+      await expect(
+        // @ts-expect-error - Testing runtime validation of missing required params
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+        })
+      ).rejects.toThrow('Missing required parameters: value, solidityType');
+    });
+  });
   describe('solidity type validation', () => {
     it('rejects invalid solidity type', async () => {
       await expect(
@@ -371,7 +420,11 @@ describe('encryptInput', () => {
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
-        body: { value: '0x01', solidityType: 'bool', owner: customAddress },
+        body: {
+          value: '0x01',
+          solidityType: 'bool',
+          owner: customAddress,
+        },
       });
     });
 

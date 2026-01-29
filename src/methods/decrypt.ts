@@ -25,6 +25,7 @@ import {
   type SolidityType,
 } from '../utils/types.js';
 import type { HexString } from '../types/internalTypes.js';
+import { assertRequiredParams } from '../utils/validators.js';
 
 export async function decrypt<T extends SolidityType>({
   handle,
@@ -37,6 +38,7 @@ export async function decrypt<T extends SolidityType>({
   blockchainService: IBlockchainService;
   config: HandleClientConfig;
 }): Promise<{ value: JsValue<T>; solidityType: T }> {
+  assertRequiredParams({ handle }, ['handle']);
   // TODO: Validate handle ACL
   const [chainId, userAddress] = await Promise.all([
     blockchainService.getChainId(),
