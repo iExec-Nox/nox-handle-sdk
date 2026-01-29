@@ -20,7 +20,7 @@ import type { HandleClientConfig } from '../client/HandleClient.js';
  * ```
  * // BrowserProvider
  * import { BrowserProvider } from 'ethers';
- * import { createEthersHandleClient } from 'nox-handle-sdk';
+ * import { createEthersHandleClient } from '@iexec-nox/handle';
  *
  * const ethersClient = new BrowserProvider(window.ethereum);
  *
@@ -31,7 +31,7 @@ import type { HandleClientConfig } from '../client/HandleClient.js';
  * ```
  * // Ethers Wallet
  * import { JsonRpcProvider, Wallet } from 'ethers';
- * import { createEthersHandleClient } from 'nox-handle-sdk';
+ * import { createEthersHandleClient } from '@iexec-nox/handle';
  *
  * const { RPC_URL, PRIVATE_KEY } = process.env;
  *
