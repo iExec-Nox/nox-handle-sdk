@@ -1,29 +1,11 @@
 import type { HexString } from '../types/internalTypes.js';
 import { isHexString } from './hex.js';
 
-export type JsType<T extends SolidityType> =
-  | JsBool<T>
-  | JsString<T>
-  | JsBigInt<T>;
-type JsBool<T extends SolidityType> = T extends 'bool' ? 'boolean' : never;
-type JsString<T extends SolidityType> = T extends
-  | 'string'
-  | 'address'
-  | 'bytes'
-  | `bytes${number}`
-  ? 'string'
-  : never;
-type JsBigInt<T extends SolidityType> = T extends
-  | `uint${number}`
-  | `int${number}`
-  ? 'bigint'
-  : never;
-
 /**
- * Value types accepted by encryptInput based on Solidity type:
+ * Value types associated to Solidity type:
  * - bool → boolean
  * - string → string
- * - address, bytes, bytesN → string (hex)
+ * - address, bytes, bytes* → string (hex)
  * - uint*, int* → bigint
  */
 export type JsValue<T extends SolidityType> =
@@ -43,8 +25,8 @@ type BigIntLike<T extends SolidityType> = T extends
   : never;
 
 /**
- * Handle type representing an encrypted value on-chain.
- * The generic parameter T indicates the Solidity type of the value.
+ * Handle type representing an off-chain encrypted value manipulable on-chain.
+ * The generic parameter T indicates the Solidity type of the represented value.
  */
 export type Handle<T extends SolidityType> = HexString & { __solidityType?: T };
 
@@ -161,6 +143,9 @@ const SOLIDITY_TYPES = [
   'bytes32',
 ] as const;
 
+/**
+ * Solidity types supported for encryption.
+ */
 export type SolidityType = (typeof SOLIDITY_TYPES)[number];
 
 /** Set for O(1) type validation lookup */
