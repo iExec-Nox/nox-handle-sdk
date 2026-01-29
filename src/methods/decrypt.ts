@@ -46,6 +46,13 @@ export async function decrypt<T extends SolidityType>({
     blockchainService.getAddress(),
   ]);
 
+  const chainIdFromHandle = handleToChainId(handle); // validate chainId
+  if (chainIdFromHandle !== chainId) {
+    throw new Error(
+      `Handle chainId (${chainIdFromHandle}) does not match connected chainId (${chainId})`
+    );
+  }
+
   const isViewer = await blockchainService.readContract(
     config.smartContractAddress,
     IS_VIEWER_ABI,
@@ -54,13 +61,6 @@ export async function decrypt<T extends SolidityType>({
   if (!isViewer) {
     throw new Error(
       `User (${userAddress}) is not authorized to decrypt the handle`
-    );
-  }
-
-  const chainIdFromHandle = handleToChainId(handle); // validate chainId
-  if (chainIdFromHandle !== chainId) {
-    throw new Error(
-      `Handle chainId (${chainIdFromHandle}) does not match connected chainId (${chainId})`
     );
   }
 
