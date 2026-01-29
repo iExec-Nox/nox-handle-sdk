@@ -1,9 +1,24 @@
-import type { WalletClient, TypedDataDomain } from 'viem';
+import {
+  publicActions,
+  recoverTypedDataAddress,
+  type Account,
+  type Chain,
+  type Client,
+  type PublicActions,
+  type Transport,
+  type WalletActions,
+  type WalletClient,
+} from 'viem';
 import type {
   EIP712TypedData,
   IBlockchainService,
 } from './IBlockchainService.js';
-import type { EthereumAddress } from '../../types/internalTypes.js';
+import type { EthereumAddress, HexString } from '../../types/internalTypes.js';
+import type {
+  AbiFragmentTypes,
+  AbiReadFunctionJsonFragment,
+} from './abi.types.js';
+import { safeJsonStringify } from '../../utils/format.js';
 
 export type ViemClient = WalletClient;
 
@@ -27,7 +42,14 @@ export function isViemWalletClient(object: unknown): object is ViemClient {
  * Implements IBlockchainService using viem library.
  */
 export class ViemBlockchainService implements IBlockchainService {
-  private readonly walletClient: ViemClient;
+  // client suitable for both wallet and public actions
+  private readonly viemClient: Client<
+    Transport,
+    Chain | undefined,
+    Account | undefined,
+    undefined,
+    WalletActions & PublicActions
+  >;
 
   /**
    * Creates an instance of ViemBlockchainService.
@@ -37,7 +59,7 @@ export class ViemBlockchainService implements IBlockchainService {
    */
   constructor(client: ViemClient) {
     if (isViemWalletClient(client)) {
-      this.walletClient = client;
+      this.viemClient = client.extend(publicActions);
     } else {
       throw new TypeError(
         'Unsupported client. Expected a viem WalletClient instance connected to an account.'
@@ -47,7 +69,7 @@ export class ViemBlockchainService implements IBlockchainService {
 
   async getChainId(): Promise<number> {
     try {
-      const chainId = await this.walletClient.getChainId();
+      const chainId = await this.viemClient.getChainId();
       return chainId;
     } catch (error) {
       throw new Error('Failed to get chain ID', { cause: error });
@@ -56,7 +78,7 @@ export class ViemBlockchainService implements IBlockchainService {
 
   async getAddress(): Promise<string> {
     try {
-      const addresses = await this.walletClient.getAddresses();
+      const addresses = await this.viemClient.getAddresses();
       const address = addresses[0];
       if (!address) {
         throw new Error('No connected account');
@@ -67,12 +89,35 @@ export class ViemBlockchainService implements IBlockchainService {
     }
   }
 
-  async signTypedData(data: EIP712TypedData): Promise<string> {
+  async readContract<T extends AbiReadFunctionJsonFragment>(
+    contractAddress: EthereumAddress,
+    abiFunctionFragment: T,
+    parameters: AbiFragmentTypes<T, 'inputs'>
+  ): Promise<AbiFragmentTypes<T, 'outputs'>> {
+    try {
+      const publicClient = this.viemClient;
+      return (await publicClient.readContract({
+        address: contractAddress,
+        abi: [abiFunctionFragment],
+        functionName: abiFunctionFragment.name,
+        args: parameters,
+      })) as AbiFragmentTypes<T, 'outputs'>;
+    } catch (error) {
+      throw new Error(
+        `Failed to read contract at ${contractAddress} (method: ${abiFunctionFragment.name}, parameters: ${safeJsonStringify(parameters)})`,
+        {
+          cause: error,
+        }
+      );
+    }
+  }
+
+  async signTypedData(data: EIP712TypedData): Promise<HexString> {
     try {
       const address = await this.getAddress();
-      const signature = await this.walletClient.signTypedData({
+      const signature = await this.viemClient.signTypedData({
         account: address as EthereumAddress,
-        domain: data.domain as TypedDataDomain,
+        domain: data.domain,
         types: data.types,
         primaryType: data.primaryType,
         message: data.message,
@@ -80,6 +125,23 @@ export class ViemBlockchainService implements IBlockchainService {
       return signature;
     } catch (error) {
       throw new Error('Failed to sign typed data', { cause: error });
+    }
+  }
+
+  async verifyTypedData(
+    data: EIP712TypedData,
+    signature: HexString
+  ): Promise<EthereumAddress> {
+    try {
+      return await recoverTypedDataAddress({
+        domain: data.domain,
+        types: data.types,
+        primaryType: data.primaryType,
+        message: data.message,
+        signature: signature,
+      });
+    } catch (error) {
+      throw new Error('Failed to verify typed data', { cause: error });
     }
   }
 }

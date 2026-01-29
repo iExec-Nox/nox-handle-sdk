@@ -1,3 +1,9 @@
+import type { EthereumAddress, HexString } from '../../types/internalTypes.js';
+import type {
+  AbiFragmentTypes,
+  AbiReadFunctionJsonFragment,
+} from './abi.types.js';
+
 /**
  * Interface for Blockchain Service
  *
@@ -6,18 +12,35 @@
 export interface IBlockchainService {
   getChainId(): Promise<number>;
   getAddress(): Promise<string>;
-  signTypedData(data: EIP712TypedData): Promise<string>;
+  readContract<T extends AbiReadFunctionJsonFragment>(
+    contractAddress: EthereumAddress,
+    /**
+     * The ABI function fragment describing the contract method to call
+     *
+     * ⚠️ must be passed with 'as const' to preserve literal types
+     */
+    abiFunctionFragment: T,
+    parameters: AbiFragmentTypes<T, 'inputs'>
+  ): Promise<AbiFragmentTypes<T, 'outputs'>>;
+  signTypedData(data: EIP712TypedData): Promise<HexString>;
+  verifyTypedData(
+    data: EIP712TypedData,
+    signature: HexString
+  ): Promise<EthereumAddress>;
 }
 
-export type EIP712TypedData = {
+/**
+ * EIP-712 Typed Data structure
+ */
+export interface EIP712TypedData {
   types: Record<string, { name: string; type: string }[]>;
   primaryType: string;
   domain: {
     name?: string;
     version?: string;
     chainId?: number | bigint;
-    verifyingContract?: string;
-    salt?: string;
+    verifyingContract?: HexString;
+    salt?: HexString;
   };
   message: Record<string, unknown>;
-};
+}

@@ -14,26 +14,28 @@ import {
 } from '../../../helpers/testData.js';
 
 describe('EthersBlockchainService', () => {
+  const mockJsonRpcProvider = createMockProvider(SUPPORTED_CHAIN_ID);
+  const mockEIP1193Provider = createMockEIP1193Provider(
+    SUPPORTED_CHAIN_ID,
+    TEST_PRIVATE_KEY
+  );
+
   const testCases = [
     {
       name: 'AbstractSigner',
-      client: new Wallet(
-        TEST_PRIVATE_KEY,
-        createMockProvider(SUPPORTED_CHAIN_ID)
-      ),
+      client: new Wallet(TEST_PRIVATE_KEY, mockJsonRpcProvider),
+      mockProvider: mockJsonRpcProvider,
     },
     {
       name: 'BrowserProvider',
-      client: new BrowserProvider(
-        createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
-      ),
+      client: new BrowserProvider(mockEIP1193Provider),
+      mockProvider: mockEIP1193Provider,
     },
   ];
 
-  for (const { name, client } of testCases) {
+  for (const { name, client, mockProvider } of testCases) {
     describe(`with ${name}`, () => {
       const blockchainService = new EthersBlockchainService(client);
-
       describe('getChainId', () => {
         it('should return the correct chainId', async () => {
           const chainId = await blockchainService.getChainId();
@@ -54,6 +56,178 @@ describe('EthersBlockchainService', () => {
             TEST_EIP712_TYPED_DATA
           );
           expect(signature).toMatch(/0x[a-fA-F0-9]{130}/);
+        });
+      });
+
+      describe('verifyTypedData', () => {
+        it('should verify typed data correctly', async () => {
+          const signature = await blockchainService.signTypedData(
+            TEST_EIP712_TYPED_DATA
+          );
+          const recoveredAddress = await blockchainService.verifyTypedData(
+            {
+              domain: TEST_EIP712_TYPED_DATA.domain,
+              types: TEST_EIP712_TYPED_DATA.types,
+              primaryType: TEST_EIP712_TYPED_DATA.primaryType,
+              message: TEST_EIP712_TYPED_DATA.message,
+            },
+            signature
+          );
+          expect(recoveredAddress).toBe(TEST_ADDRESS);
+        });
+      });
+
+      describe('readContract', () => {
+        it('should apply parameters correctly', async () => {
+          // Mock a simple contract with a view function that takes parameters
+          const contractAddress = '0x0000000000000000000000000000000000000001';
+          const abiFunctionFragment = {
+            name: 'getValueWithParams',
+            type: 'function',
+            stateMutability: 'view',
+            inputs: [
+              {
+                internalType: 'uint256',
+                name: 'inputValue',
+                type: 'uint256',
+              },
+              {
+                internalType: 'address',
+                name: 'inputAddress',
+                type: 'address',
+              },
+            ],
+            outputs: [
+              {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+              },
+            ],
+          } as const;
+          // Set the mock provider to return a specific value based on input
+          mockProvider.mocks.call.mockReturnValue('0x' + '00'.repeat(32));
+
+          const inputs: [bigint, string] = [
+            42n,
+            '0x1234567890abcdef1234567890abcdef12345678',
+          ];
+
+          await blockchainService.readContract(
+            contractAddress,
+            abiFunctionFragment,
+            inputs
+          );
+          expect(mockProvider.mocks.call).toHaveBeenCalledWith({
+            data: '0x2e2d028e000000000000000000000000000000000000000000000000000000000000002a0000000000000000000000001234567890abcdef1234567890abcdef12345678',
+            to: '0x0000000000000000000000000000000000000001',
+          });
+        });
+
+        it('should read contract with single output correctly', async () => {
+          // Mock a simple contract with a view function
+          const contractAddress = '0x0000000000000000000000000000000000000001';
+          const abiFunctionFragment = {
+            name: 'getValue',
+            type: 'function',
+            stateMutability: 'view',
+            inputs: [],
+            outputs: [
+              {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+              },
+            ],
+          } as const;
+          // Set the mock provider to return a specific value
+          mockProvider.mocks.call.mockResolvedValue(
+            '0x0000000000000000000000000000000000000000000000000000000000000000'
+          );
+          const result = await blockchainService.readContract(
+            contractAddress,
+            abiFunctionFragment,
+            []
+          );
+          expect(typeof result).toBe('bigint');
+        });
+
+        it('should read contract with multiple outputs correctly', async () => {
+          // Mock a simple contract with a view function
+          const contractAddress = '0x0000000000000000000000000000000000000001';
+          const abiFunctionFragment = {
+            name: 'getValue',
+            type: 'function',
+            stateMutability: 'view',
+            inputs: [],
+            outputs: [
+              {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: '',
+                type: 'uint256',
+              },
+            ],
+          } as const;
+          // Set the mock provider to return a specific value (two uint256 values)
+          mockProvider.mocks.call.mockResolvedValue(
+            '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+          );
+          const result = await blockchainService.readContract(
+            contractAddress,
+            abiFunctionFragment,
+            []
+          );
+          expect(Array.isArray(result)).toBe(true);
+          expect(result.length).toBe(2);
+          expect(typeof result[0]).toBe('bigint');
+          expect(typeof result[1]).toBe('bigint');
+        });
+
+        it('should read contract with struct output correctly', async () => {
+          // Mock a simple contract with a view function
+          const contractAddress = '0x0000000000000000000000000000000000000001';
+          const abiFunctionFragment = {
+            name: 'getValue',
+            type: 'function',
+            stateMutability: 'view',
+            inputs: [],
+            outputs: [
+              {
+                components: [
+                  {
+                    internalType: 'uint256',
+                    name: 'value1',
+                    type: 'uint256',
+                  },
+                  {
+                    internalType: 'uint256',
+                    name: 'value2',
+                    type: 'uint256',
+                  },
+                ],
+                internalType: 'struct TestStruct',
+                name: '',
+                type: 'tuple',
+              },
+            ],
+          } as const;
+          // Set the mock provider to return a specific value (two uint256 values)
+          mockProvider.mocks.call.mockResolvedValue(
+            '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+          );
+          const result = await blockchainService.readContract(
+            contractAddress,
+            abiFunctionFragment,
+            []
+          );
+          expect(typeof result).toBe('object');
+          expect(typeof result.value1).toBe('bigint');
+          expect(typeof result.value2).toBe('bigint');
         });
       });
     });
@@ -139,6 +313,62 @@ describe('EthersBlockchainService', () => {
           expect(cause).toBeDefined();
           expect(cause.error?.message).toBe('User rejected');
         }
+      });
+    });
+
+    describe('verifyTypedData', () => {
+      it('should throw wrapped error when address recovery fails', async () => {
+        const browserProvider = new BrowserProvider(
+          createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
+        );
+        const service = new EthersBlockchainService(browserProvider);
+
+        try {
+          await service.verifyTypedData(
+            TEST_EIP712_TYPED_DATA,
+            '0xinvalidsignature'
+          );
+          expect.fail('Should have thrown');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe('Failed to verify typed data');
+          expect((error as Error)?.cause).toBeInstanceOf(Error);
+        }
+      });
+    });
+
+    describe('readContract', () => {
+      it('should throw wrapped error when contract read fails', async () => {
+        const mockProvider = createMockProvider(SUPPORTED_CHAIN_ID);
+        const signer = new Wallet(TEST_PRIVATE_KEY, mockProvider);
+        const service = new EthersBlockchainService(signer);
+
+        const abiFunctionFragment = {
+          name: 'getValue',
+          type: 'function',
+          stateMutability: 'view',
+          inputs: [],
+          outputs: [
+            {
+              internalType: 'uint256',
+              name: '',
+              type: 'uint256',
+            },
+          ],
+        } as const;
+        mockProvider.mocks.call.mockResolvedValue('0xdeadbeef'); // invalid data for uint256 to cause decoding error
+
+        await expect(
+          service.readContract(
+            '0x0000000000000000000000000000000000000001',
+            abiFunctionFragment,
+            []
+          )
+        ).rejects.toThrow(
+          new Error(
+            'Failed to read contract at 0x0000000000000000000000000000000000000001 (method: getValue, parameters: [])'
+          )
+        );
       });
     });
   });
