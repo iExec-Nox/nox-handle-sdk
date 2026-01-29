@@ -1,11 +1,4 @@
-import {
-  Contract,
-  verifyTypedData,
-  type AbstractSigner,
-  type BrowserProvider,
-  type Provider,
-  type Signer,
-} from 'ethers';
+import type { AbstractSigner, BrowserProvider, Provider, Signer } from 'ethers';
 import type {
   EIP712TypedData,
   IBlockchainService,
@@ -165,6 +158,7 @@ export class EthersBlockchainService implements IBlockchainService {
   ): Promise<AbiFragmentTypes<T, 'outputs'>> {
     try {
       const provider = await this.adapter.getProvider();
+      const { Contract } = await import('ethers');
       const contract = new Contract(
         contractAddress,
         [abiFunctionFragment],
@@ -202,6 +196,7 @@ export class EthersBlockchainService implements IBlockchainService {
     signature: HexString
   ): Promise<EthereumAddress> {
     try {
+      const { verifyTypedData } = await import('ethers');
       return verifyTypedData(
         data.domain,
         data.types,
