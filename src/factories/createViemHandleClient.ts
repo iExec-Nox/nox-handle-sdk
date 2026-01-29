@@ -32,7 +32,7 @@ import type { HandleClientConfig } from '../client/HandleClient.js';
  * import { createWalletClient, http } from "viem";
  * import { privateKeyToAccount } from "viem/accounts";
  *
- * import { createViemHandleClient } from "nox-handle-sdk";
+ * import { createViemHandleClient } from "@iexec-nox/handle";
  *
  * const { RPC_URL, PRIVATE_KEY } = process.env;
  *

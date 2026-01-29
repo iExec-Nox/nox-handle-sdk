@@ -1,4 +1,4 @@
-# nox-handle-sdk
+# @iexec-nox/handle
 
 A TypeScript SDK for encrypting, decrypting, and managing confidential values on blockchain using Handles. Works with both ethers and viem.
 
@@ -7,7 +7,7 @@ Handles are 32-byte identifiers that reference encrypted values stored off-chain
 ## Installation
 
 ```bash
-npm install nox-handle-sdk
+npm install @iexec-nox/handle
 ```
 
 ## Quick Start
@@ -15,7 +15,7 @@ npm install nox-handle-sdk
 ### With Ethers
 
 ```typescript
-import { createEthersHandleClient } from 'nox-handle-sdk';
+import { createEthersHandleClient } from '@iexec-nox/handle';
 import { Wallet } from 'ethers';
 
 const signer = new Wallet(privateKey, provider);
@@ -42,7 +42,7 @@ const { value, solidityType } = await handleClient.decrypt(balanceHandle);
 ### With Viem
 
 ```typescript
-import { createViemHandleClient } from 'nox-handle-sdk';
+import { createViemHandleClient } from '@iexec-nox/handle';
 import { createWalletClient, http } from 'viem';
 import { mainnet } from 'viem/chains';
 
