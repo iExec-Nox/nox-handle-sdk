@@ -21,11 +21,11 @@ export function isEthereumAddress(
   return typeof address === 'string' && /^0x[0-9a-fA-F]{40}$/.test(address);
 }
 
-const isHandleProof = (handleProof: unknown): handleProof is HexString => {
+function isHandleProof(handleProof: unknown): handleProof is HexString {
   return (
     typeof handleProof === 'string' && INPUT_PROOF_PATTERN.test(handleProof)
   );
-};
+}
 
 const HANDLE_PATTERN = /^0x[0-9a-fA-F]{64}$/;
 const INPUT_PROOF_PATTERN = /^0x[0-9a-fA-F]{274}$/;
