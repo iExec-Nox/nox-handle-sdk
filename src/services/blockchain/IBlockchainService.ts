@@ -11,7 +11,7 @@ import type {
  */
 export interface IBlockchainService {
   getChainId(): Promise<number>;
-  getAddress(): Promise<string>;
+  getAddress(): Promise<EthereumAddress>;
   readContract<T extends AbiReadFunctionJsonFragment>(
     contractAddress: EthereumAddress,
     /**

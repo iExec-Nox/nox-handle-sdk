@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { decrypt } from '../../../src/methods/decrypt.js';
 import { BrowserProvider } from 'ethers';
+import { decrypt } from '../../../src/methods/decrypt.js';
 import { buildHandle, createMockEIP1193Provider } from '../../helpers/mocks.js';
 import { EthersBlockchainService } from '../../../src/services/blockchain/EthersBlockchainService.js';
 import type { IApiService } from '../../../src/services/api/IApiService.js';
@@ -9,11 +9,13 @@ import { hexToBytes } from '../../../src/utils/hex.js';
 import {
   DUMMY_TYPED_HANDLES,
   SUPPORTED_CHAIN_ID,
+  TEST_ADDRESS,
   TEST_ENCRYPTED_DATA,
   TEST_PRIVATE_KEY,
   TEST_RSA_PKCS8_PRIV_KEY,
   TEST_RSA_SPKI_PUB_KEY,
 } from '../../helpers/testData.js';
+import type { HandleClientConfig } from '../../../src/index.js';
 
 async function generateRsaKeyPairMock() {
   const privateKey = await crypto.subtle.importKey(
@@ -40,6 +42,23 @@ async function generateRsaKeyPairMock() {
 }
 
 describe('decrypt', () => {
+  const mockProvider = createMockEIP1193Provider(
+    SUPPORTED_CHAIN_ID,
+    TEST_PRIVATE_KEY
+  );
+
+  const mockConfig: HandleClientConfig = {
+    gatewayUrl: 'https://example.com',
+    smartContractAddress: '0x0000000000000000000000000000000000000000',
+  };
+
+  const mockBlockchainService = new EthersBlockchainService(
+    new BrowserProvider(mockProvider)
+  );
+
+  // by default, mock isViewer to return true
+  mockProvider.mocks.call.mockResolvedValue('0x01'.padEnd(66, '0')); // true
+
   describe('successful decryptions', () => {
     const testCases = [
       {
@@ -99,11 +118,7 @@ describe('decrypt', () => {
 
         const result = await decrypt({
           handle: dummyTypedHandle,
-          blockchainService: new EthersBlockchainService(
-            new BrowserProvider(
-              createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
-            )
-          ),
+          blockchainService: mockBlockchainService,
           apiService: {
             get: async () => {
               const { encryptedSharedSecret, iv, ciphertext } = encryptedData;
@@ -113,10 +128,7 @@ describe('decrypt', () => {
               };
             },
           } as unknown as IApiService,
-          config: {
-            gatewayUrl: 'https://example.com',
-            smartContractAddress: '0x0000000000000000000000000000000000000000',
-          },
+          config: mockConfig,
         });
         expect(result).toStrictEqual({
           value: encryptedData.value,
@@ -126,16 +138,15 @@ describe('decrypt', () => {
     }
   });
 
-  describe('when handle chain ID mismatches', () => {
+  describe('when user is not authorized', () => {
     it('should throw', async () => {
+      // Reset mock to return false for isViewer
+      mockProvider.mocks.call.mockResolvedValueOnce('0x00'.padEnd(66, '0')); // false
+
       await expect(
         decrypt({
-          handle: buildHandle({ chainId: SUPPORTED_CHAIN_ID + 1, typeCode: 0 }),
-          blockchainService: new EthersBlockchainService(
-            new BrowserProvider(
-              createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
-            )
-          ),
+          handle: DUMMY_TYPED_HANDLES.bool,
+          blockchainService: mockBlockchainService,
           apiService: {
             get: async () => {
               const { iv, ciphertext, encryptedSharedSecret } =
@@ -146,10 +157,33 @@ describe('decrypt', () => {
               };
             },
           } as unknown as IApiService,
-          config: {
-            gatewayUrl: 'https://example.com',
-            smartContractAddress: '0x0000000000000000000000000000000000000000',
-          },
+          config: mockConfig,
+        })
+      ).rejects.toThrow(
+        new Error(
+          `User (${TEST_ADDRESS}) is not authorized to decrypt the handle`
+        )
+      );
+    });
+  });
+
+  describe('when handle chain ID mismatches', () => {
+    it('should throw', async () => {
+      await expect(
+        decrypt({
+          handle: buildHandle({ chainId: SUPPORTED_CHAIN_ID + 1, typeCode: 0 }),
+          blockchainService: mockBlockchainService,
+          apiService: {
+            get: async () => {
+              const { iv, ciphertext, encryptedSharedSecret } =
+                TEST_ENCRYPTED_DATA.bool;
+              return {
+                status: 200,
+                data: { iv, encryptedSharedSecret, ciphertext },
+              };
+            },
+          } as unknown as IApiService,
+          config: mockConfig,
         })
       ).rejects.toThrow(
         new Error(
@@ -168,11 +202,7 @@ describe('decrypt', () => {
       await expect(
         decrypt({
           handle: DUMMY_TYPED_HANDLES.bool,
-          blockchainService: new EthersBlockchainService(
-            new BrowserProvider(
-              createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
-            )
-          ),
+          blockchainService: mockBlockchainService,
           apiService: {
             get: async () => {
               const { iv, ciphertext, encryptedSharedSecret } =
@@ -183,10 +213,7 @@ describe('decrypt', () => {
               };
             },
           } as unknown as IApiService,
-          config: {
-            gatewayUrl: 'https://example.com',
-            smartContractAddress: '0x0000000000000000000000000000000000000000',
-          },
+          config: mockConfig,
         })
       ).rejects.toThrow(
         new Error('Failed to generate RSA key pair', {
@@ -205,11 +232,7 @@ describe('decrypt', () => {
       await expect(
         decrypt({
           handle: DUMMY_TYPED_HANDLES.bool,
-          blockchainService: new EthersBlockchainService(
-            new BrowserProvider(
-              createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
-            )
-          ),
+          blockchainService: mockBlockchainService,
           apiService: {
             get: async () => {
               const { iv, ciphertext, encryptedSharedSecret } =
@@ -220,10 +243,7 @@ describe('decrypt', () => {
               };
             },
           } as unknown as IApiService,
-          config: {
-            gatewayUrl: 'https://example.com',
-            smartContractAddress: '0x0000000000000000000000000000000000000000',
-          },
+          config: mockConfig,
         })
       ).rejects.toThrow(
         new Error('Failed to export RSA public key', {
@@ -245,11 +265,7 @@ describe('decrypt', () => {
       await expect(
         decrypt({
           handle: DUMMY_TYPED_HANDLES.bool,
-          blockchainService: new EthersBlockchainService(
-            new BrowserProvider(
-              createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
-            )
-          ),
+          blockchainService: mockBlockchainService,
           apiService: {
             get: async () => {
               const { iv, ciphertext, encryptedSharedSecret } =
@@ -260,10 +276,7 @@ describe('decrypt', () => {
               };
             },
           } as unknown as IApiService,
-          config: {
-            gatewayUrl: 'https://example.com',
-            smartContractAddress: '0x0000000000000000000000000000000000000000',
-          },
+          config: mockConfig,
         })
       ).rejects.toThrow(
         new Error('Failed to sign data access authorization', {
@@ -327,21 +340,13 @@ describe('decrypt', () => {
         await expect(
           decrypt({
             handle: DUMMY_TYPED_HANDLES.bool,
-            blockchainService: new EthersBlockchainService(
-              new BrowserProvider(
-                createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
-              )
-            ),
+            blockchainService: mockBlockchainService,
             apiService: {
               get: async () => {
                 return apiResponse;
               },
             } as unknown as IApiService,
-            config: {
-              gatewayUrl: 'https://example.com',
-              smartContractAddress:
-                '0x0000000000000000000000000000000000000000',
-            },
+            config: mockConfig,
           })
         ).rejects.toThrow(
           new Error(
@@ -358,11 +363,7 @@ describe('decrypt', () => {
       await expect(
         decrypt({
           handle: DUMMY_TYPED_HANDLES.bool,
-          blockchainService: new EthersBlockchainService(
-            new BrowserProvider(
-              createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
-            )
-          ),
+          blockchainService: mockBlockchainService,
           apiService: {
             get: async () => {
               const { iv, ciphertext, encryptedSharedSecret } =
@@ -377,10 +378,7 @@ describe('decrypt', () => {
               };
             },
           } as unknown as IApiService,
-          config: {
-            gatewayUrl: 'https://example.com',
-            smartContractAddress: '0x0000000000000000000000000000000000000000',
-          },
+          config: mockConfig,
         })
       ).rejects.toThrow(
         new Error('Failed to decrypt shared secret', {
@@ -398,11 +396,7 @@ describe('decrypt', () => {
       await expect(
         decrypt({
           handle: DUMMY_TYPED_HANDLES.bool,
-          blockchainService: new EthersBlockchainService(
-            new BrowserProvider(
-              createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
-            )
-          ),
+          blockchainService: mockBlockchainService,
           apiService: {
             get: async () => {
               const { iv, encryptedSharedSecret } = TEST_ENCRYPTED_DATA.bool;
@@ -417,10 +411,7 @@ describe('decrypt', () => {
               };
             },
           } as unknown as IApiService,
-          config: {
-            gatewayUrl: 'https://example.com',
-            smartContractAddress: '0x0000000000000000000000000000000000000000',
-          },
+          config: mockConfig,
         })
       ).rejects.toThrow(
         new Error('Failed to decrypt ciphertext', {
@@ -453,11 +444,7 @@ describe('decrypt', () => {
         await expect(
           decrypt({
             handle,
-            blockchainService: new EthersBlockchainService(
-              new BrowserProvider(
-                createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
-              )
-            ),
+            blockchainService: mockBlockchainService,
             apiService: {
               get: async () => {
                 const { iv, encryptedSharedSecret, ciphertext } = encryptedData;
@@ -467,11 +454,7 @@ describe('decrypt', () => {
                 };
               },
             } as unknown as IApiService,
-            config: {
-              gatewayUrl: 'https://example.com',
-              smartContractAddress:
-                '0x0000000000000000000000000000000000000000',
-            },
+            config: mockConfig,
           })
         ).rejects.toThrow(
           new Error(

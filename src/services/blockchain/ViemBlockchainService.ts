@@ -67,7 +67,7 @@ export class ViemBlockchainService implements IBlockchainService {
     }
   }
 
-  async getAddress(): Promise<string> {
+  async getAddress(): Promise<EthereumAddress> {
     try {
       const addresses = await this.viemClient.getAddresses();
       const address = addresses[0];

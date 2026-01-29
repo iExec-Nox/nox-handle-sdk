@@ -26,6 +26,7 @@ import {
 } from '../utils/types.js';
 import type { HexString } from '../types/internalTypes.js';
 import { assertRequiredParams } from '../utils/validators.js';
+import { IS_VIEWER_ABI } from '../abis/isViewer.abi.js';
 
 export async function decrypt<T extends SolidityType>({
   handle,
@@ -39,11 +40,23 @@ export async function decrypt<T extends SolidityType>({
   config: HandleClientConfig;
 }): Promise<{ value: JsValue<T>; solidityType: T }> {
   assertRequiredParams({ handle }, ['handle']);
-  // TODO: Validate handle ACL
+
   const [chainId, userAddress] = await Promise.all([
     blockchainService.getChainId(),
     blockchainService.getAddress(),
   ]);
+
+  const isViewer = await blockchainService.readContract(
+    config.smartContractAddress,
+    IS_VIEWER_ABI,
+    [handle, userAddress]
+  );
+  if (!isViewer) {
+    throw new Error(
+      `User (${userAddress}) is not authorized to decrypt the handle`
+    );
+  }
+
   const chainIdFromHandle = handleToChainId(handle); // validate chainId
   if (chainIdFromHandle !== chainId) {
     throw new Error(
@@ -177,36 +190,8 @@ export async function decrypt<T extends SolidityType>({
   });
 
   let value: JsValue<T>;
-
   try {
-    /* eslint unicorn/prefer-switch: ["error", {"minimumCases": 5}] */
-    if (solidityType === 'bool') {
-      value = hexToBool(plaintext) as JsValue<T>;
-    } else if (solidityType === 'string') {
-      value = hexToString(plaintext) as JsValue<T>;
-    } else if (solidityType === 'bytes') {
-      // no validation needed plaintext is always hex
-      value = plaintext as JsValue<T>;
-    } else if (solidityType === 'address') {
-      if (!isHexString(plaintext, 20)) {
-        throw new TypeError('Invalid address');
-      }
-      value = plaintext as JsValue<T>;
-    } else if (solidityType.startsWith('uint')) {
-      const bitSize = Number.parseInt(solidityType.slice(4), 10);
-      value = hexToUintX(plaintext, bitSize) as JsValue<T>;
-    } else if (solidityType.startsWith('int')) {
-      const bitSize = Number.parseInt(solidityType.slice(3), 10);
-      value = hexToIntX(plaintext, bitSize) as JsValue<T>;
-    } else if (solidityType.startsWith('bytes')) {
-      const byteSize = Number.parseInt(solidityType.slice(5), 10);
-      if (!isHexString(plaintext, byteSize)) {
-        throw new TypeError(`Invalid ${solidityType}`);
-      }
-      value = plaintext as JsValue<T>;
-    } else {
-      throw new Error(`Unsupported solidity type ${solidityType}`); // should never happen
-    }
+    value = decodeValue<T>(plaintext, solidityType);
   } catch (error) {
     throw new Error(
       `Failed to decode decrypted plaintext: expected hex encoded ${solidityType}, got ${plaintext}`,
@@ -214,4 +199,41 @@ export async function decrypt<T extends SolidityType>({
     );
   }
   return { value, solidityType };
+}
+
+// eslint-disable-next-line sonarjs/function-return-type
+function decodeValue<T extends SolidityType>(
+  plaintext: HexString,
+  solidityType: T
+): JsValue<T> {
+  let value: JsValue<T>;
+  /* eslint unicorn/prefer-switch: ["error", {"minimumCases": 5}] */
+  if (solidityType === 'bool') {
+    value = hexToBool(plaintext) as JsValue<T>;
+  } else if (solidityType === 'string') {
+    value = hexToString(plaintext) as JsValue<T>;
+  } else if (solidityType === 'bytes') {
+    // no validation needed plaintext is always hex
+    value = plaintext as JsValue<T>;
+  } else if (solidityType === 'address') {
+    if (!isHexString(plaintext, 20)) {
+      throw new TypeError('Invalid address');
+    }
+    value = plaintext as JsValue<T>;
+  } else if (solidityType.startsWith('uint')) {
+    const bitSize = Number.parseInt(solidityType.slice(4), 10);
+    value = hexToUintX(plaintext, bitSize) as JsValue<T>;
+  } else if (solidityType.startsWith('int')) {
+    const bitSize = Number.parseInt(solidityType.slice(3), 10);
+    value = hexToIntX(plaintext, bitSize) as JsValue<T>;
+  } else if (solidityType.startsWith('bytes')) {
+    const byteSize = Number.parseInt(solidityType.slice(5), 10);
+    if (!isHexString(plaintext, byteSize)) {
+      throw new TypeError(`Invalid ${solidityType}`);
+    }
+    value = plaintext as JsValue<T>;
+  } else {
+    throw new Error(`Unsupported solidity type ${solidityType}`); // should never happen
+  }
+  return value;
 }
