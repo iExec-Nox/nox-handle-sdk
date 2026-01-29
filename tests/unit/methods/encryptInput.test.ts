@@ -37,7 +37,7 @@ function createMockApiService(
     post: vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      data: { handle: MOCK_HANDLE, handleProof: MOCK_HANDLE_PROOF },
+      data: { handle: MOCK_HANDLE, proof: MOCK_HANDLE_PROOF },
     }),
     ...overrides,
   };
@@ -340,7 +340,7 @@ describe('encryptInput', () => {
         post: vi.fn().mockResolvedValue({
           ok: true,
           status: 200,
-          data: { handleProof: MOCK_HANDLE_PROOF },
+          data: { proof: MOCK_HANDLE_PROOF },
         }),
       });
       await expect(

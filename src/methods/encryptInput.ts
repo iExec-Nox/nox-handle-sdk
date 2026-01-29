@@ -18,7 +18,7 @@ import {
 
 interface GatewaySecretResponse {
   handle: string;
-  handleProof: string;
+  proof: string;
 }
 
 interface EncryptInputParameters {
@@ -133,7 +133,7 @@ export async function encryptInput<T extends SolidityType>({
   }
 
   const data = response.data as GatewaySecretResponse;
-  if (!data?.handle || !data?.handleProof) {
+  if (!data?.handle || !data?.proof) {
     throw new Error('Invalid gateway response: missing handle or handleProof');
   }
 
@@ -143,13 +143,13 @@ export async function encryptInput<T extends SolidityType>({
     expectedSolidityType: solidityType,
   });
   validateHandleProof({
-    handleProof: data.handleProof,
+    handleProof: data.proof,
     expectedOwner: owner,
     expectedSmartContractAddress: smartContractAddress,
   });
 
   return {
     handle: data.handle as HexString,
-    handleProof: data.handleProof as HexString,
+    handleProof: data.proof as HexString,
   };
 }
