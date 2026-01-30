@@ -22,7 +22,11 @@ const signer = new Wallet(privateKey, provider);
 const handleClient = await createEthersHandleClient(signer);
 
 // Encrypt a value
-const { handle, handleProof } = await handleClient.encryptInput(42n, 'uint256');
+const { handle, handleProof } = await handleClient.encryptInput(
+  42n,
+  'uint256',
+  '0x123...abc' // target smart contract consuming this handle
+);
 
 // Use handle and handleProof in your smart contract call
 await myConfidentialTokenContract.confidentialTransfer(
@@ -55,7 +59,11 @@ const walletClient = createWalletClient({
 const handleClient = await createViemHandleClient(walletClient);
 
 // Encrypt a value
-const { handle, handleProof } = await handleClient.encryptInput(42n, 'uint256');
+const { handle, handleProof } = await handleClient.encryptInput(
+  42n,
+  'uint256',
+  '0x123...abc' // target smart contract consuming this handle
+);
 
 // Use handle and handleProof in your smart contract call
 await myConfidentialTokenContract.confidentialTransfer(
@@ -91,16 +99,18 @@ Encrypts a value and returns a handle for use in smart contracts.
 ```typescript
 const { handle, handleProof } = await handleClient.encryptInput(
   value,
-  solidityType
+  solidityType,
+  applicationContract
 );
 ```
 
 **Parameters:**
 
-| Parameter      | Type                          | Description                                                     |
-| -------------- | ----------------------------- | --------------------------------------------------------------- |
-| `value`        | `boolean \| string \| bigint` | The value to encrypt                                            |
-| `solidityType` | `SolidityType`                | Target Solidity type (e.g., `"uint256"`, `"bool"`, `"address"`) |
+| Parameter             | Type                          | Description                                                     |
+| --------------------- | ----------------------------- | --------------------------------------------------------------- |
+| `value`               | `boolean \| string \| bigint` | The value to encrypt                                            |
+| `solidityType`        | `SolidityType`                | Target Solidity type (e.g., `"uint256"`, `"bool"`, `"address"`) |
+| `applicationContract` | `string`                      | The address of the contract that will use this handle on-chain  |
 
 **Returns:** `{ handle: string, handleProof: string }`
 
@@ -115,22 +125,29 @@ const { handle, handleProof } = await handleClient.encryptInput(
 // Encrypt an unsigned integer
 const { handle, handleProof } = await handleClient.encryptInput(
   1000n,
-  'uint256'
+  'uint256',
+  '0x123...abc' // target smart contract consuming this handle
 );
 
 // Encrypt a boolean
-const { handle, handleProof } = await handleClient.encryptInput(true, 'bool');
+const { handle, handleProof } = await handleClient.encryptInput(
+  true,
+  'bool',
+  '0x123...abc' // target smart contract consuming this handle
+);
 
 // Encrypt an address
 const { handle, handleProof } = await handleClient.encryptInput(
   '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb2',
-  'address'
+  'address',
+  '0x123...abc' // target smart contract consuming this handle
 );
 
 // Encrypt fixed-size bytes
 const { handle, handleProof } = await handleClient.encryptInput(
   '0xdeadbeef',
-  'bytes4'
+  'bytes4',
+  '0x123...abc' // target smart contract consuming this handle
 );
 ```
 
