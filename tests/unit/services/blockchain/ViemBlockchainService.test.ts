@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable unicorn/no-null */
-/* eslint-disable sonarjs/constructor-for-side-effects */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createWalletClient, custom } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -258,18 +255,20 @@ describe('ViemBlockchainService', () => {
 
     beforeEach(() => {
       // reset static cache before each test
-      (ViemBlockchainService as any).viemModule = null;
+      // eslint-disable-next-line unicorn/no-null
+      ViemBlockchainService['viemModule'] = null;
       mockProvider.mocks.call.mockResolvedValue('0x' + '00'.repeat(32));
     });
 
     it('should not load viem module at instantiation', () => {
-      expect((ViemBlockchainService as any).viemModule).toBeNull();
+      expect(ViemBlockchainService['viemModule']).toBeNull();
+      // eslint-disable-next-line sonarjs/constructor-for-side-effects
       new ViemBlockchainService(
         createWalletClient({
           transport: custom(mockProvider),
         })
       );
-      expect((ViemBlockchainService as any).viemModule).toBeNull();
+      expect(ViemBlockchainService['viemModule']).toBeNull();
     });
 
     it('should load viem module on first readContract call', async () => {
@@ -279,14 +278,12 @@ describe('ViemBlockchainService', () => {
         })
       );
 
-      expect((ViemBlockchainService as any).viemModule).toBeNull();
+      expect(ViemBlockchainService['viemModule']).toBeNull();
 
       await service.readContract(contractAddress, abiFunctionFragment, []);
 
-      expect((ViemBlockchainService as any).viemModule).not.toBeNull();
-      expect(
-        (ViemBlockchainService as any).viemModule.publicActions
-      ).toBeDefined();
+      expect(ViemBlockchainService['viemModule']).not.toBeNull();
+      expect(ViemBlockchainService['viemModule']?.publicActions).toBeDefined();
     });
 
     it('should cache viem module across multiple calls', async () => {
@@ -297,10 +294,10 @@ describe('ViemBlockchainService', () => {
       );
 
       await service.readContract(contractAddress, abiFunctionFragment, []);
-      const cachedModule1 = (ViemBlockchainService as any).viemModule;
+      const cachedModule1 = ViemBlockchainService['viemModule'];
 
       await service.readContract(contractAddress, abiFunctionFragment, []);
-      const cachedModule2 = (ViemBlockchainService as any).viemModule;
+      const cachedModule2 = ViemBlockchainService['viemModule'];
 
       // same reference = same cached module
       expect(cachedModule1).toBe(cachedModule2);
@@ -319,10 +316,10 @@ describe('ViemBlockchainService', () => {
       );
 
       await service1.readContract(contractAddress, abiFunctionFragment, []);
-      const moduleFromService1 = (ViemBlockchainService as any).viemModule;
+      const moduleFromService1 = ViemBlockchainService['viemModule'];
 
       await service2.readContract(contractAddress, abiFunctionFragment, []);
-      const moduleFromService2 = (ViemBlockchainService as any).viemModule;
+      const moduleFromService2 = ViemBlockchainService['viemModule'];
 
       // static cache shared between instances
       expect(moduleFromService1).toBe(moduleFromService2);
@@ -335,17 +332,17 @@ describe('ViemBlockchainService', () => {
         })
       );
 
-      expect((ViemBlockchainService as any).viemModule).toBeNull();
+      expect(ViemBlockchainService['viemModule']).toBeNull();
 
       const signature = await service.signTypedData(TEST_EIP712_TYPED_DATA);
 
       // signTypedData does not use getEthers
-      expect((ViemBlockchainService as any).viemModule).toBeNull();
+      expect(ViemBlockchainService['viemModule']).toBeNull();
 
       await service.verifyTypedData(TEST_EIP712_TYPED_DATA, signature);
 
       // verifyTypedData uses getEthers
-      expect((ViemBlockchainService as any).viemModule).not.toBeNull();
+      expect(ViemBlockchainService['viemModule']).not.toBeNull();
     });
   });
 

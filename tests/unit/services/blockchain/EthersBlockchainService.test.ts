@@ -1,8 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable unicorn/no-null */
-/* eslint-disable sonarjs/constructor-for-side-effects */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-
 import { Wallet, BrowserProvider, type JsonRpcProvider } from 'ethers';
 import {
   createMockEIP1193Provider,
@@ -250,14 +246,16 @@ describe('EthersBlockchainService', () => {
 
     beforeEach(() => {
       // reset static cache before each test
-      (EthersBlockchainService as any).ethersModule = null;
+      // eslint-disable-next-line unicorn/no-null
+      EthersBlockchainService['ethersModule'] = null;
       mockProvider.mocks.call.mockResolvedValue('0x' + '00'.repeat(32));
     });
 
     it('should not load ethers module at instantiation', () => {
-      expect((EthersBlockchainService as any).ethersModule).toBeNull();
+      expect(EthersBlockchainService['ethersModule']).toBeNull();
+      // eslint-disable-next-line sonarjs/constructor-for-side-effects
       new EthersBlockchainService(new Wallet(TEST_PRIVATE_KEY, mockProvider));
-      expect((EthersBlockchainService as any).ethersModule).toBeNull();
+      expect(EthersBlockchainService['ethersModule']).toBeNull();
     });
 
     it('should load ethers module on first readContract call', async () => {
@@ -265,14 +263,12 @@ describe('EthersBlockchainService', () => {
         new Wallet(TEST_PRIVATE_KEY, mockProvider)
       );
 
-      expect((EthersBlockchainService as any).ethersModule).toBeNull();
+      expect(EthersBlockchainService['ethersModule']).toBeNull();
 
       await service.readContract(contractAddress, abiFunctionFragment, []);
 
-      expect((EthersBlockchainService as any).ethersModule).not.toBeNull();
-      expect(
-        (EthersBlockchainService as any).ethersModule.Contract
-      ).toBeDefined();
+      expect(EthersBlockchainService['ethersModule']).not.toBeNull();
+      expect(EthersBlockchainService['ethersModule']?.Contract).toBeDefined();
     });
 
     it('should cache ethers module across multiple calls', async () => {
@@ -281,10 +277,10 @@ describe('EthersBlockchainService', () => {
       );
 
       await service.readContract(contractAddress, abiFunctionFragment, []);
-      const cachedModule1 = (EthersBlockchainService as any).ethersModule;
+      const cachedModule1 = EthersBlockchainService['ethersModule'];
 
       await service.readContract(contractAddress, abiFunctionFragment, []);
-      const cachedModule2 = (EthersBlockchainService as any).ethersModule;
+      const cachedModule2 = EthersBlockchainService['ethersModule'];
 
       // same reference = same cached module
       expect(cachedModule1).toBe(cachedModule2);
@@ -299,10 +295,10 @@ describe('EthersBlockchainService', () => {
       );
 
       await service1.readContract(contractAddress, abiFunctionFragment, []);
-      const moduleFromService1 = (EthersBlockchainService as any).ethersModule;
+      const moduleFromService1 = EthersBlockchainService['ethersModule'];
 
       await service2.readContract(contractAddress, abiFunctionFragment, []);
-      const moduleFromService2 = (EthersBlockchainService as any).ethersModule;
+      const moduleFromService2 = EthersBlockchainService['ethersModule'];
 
       // static cache shared between instances
       expect(moduleFromService1).toBe(moduleFromService2);
@@ -313,17 +309,17 @@ describe('EthersBlockchainService', () => {
         new Wallet(TEST_PRIVATE_KEY, mockProvider)
       );
 
-      expect((EthersBlockchainService as any).ethersModule).toBeNull();
+      expect(EthersBlockchainService['ethersModule']).toBeNull();
 
       const signature = await service.signTypedData(TEST_EIP712_TYPED_DATA);
 
       // signTypedData does not use importEthersModule
-      expect((EthersBlockchainService as any).ethersModule).toBeNull();
+      expect(EthersBlockchainService['ethersModule']).toBeNull();
 
       await service.verifyTypedData(TEST_EIP712_TYPED_DATA, signature);
 
       // verifyTypedData uses importEthersModule
-      expect((EthersBlockchainService as any).ethersModule).not.toBeNull();
+      expect(EthersBlockchainService['ethersModule']).not.toBeNull();
     });
   });
 
