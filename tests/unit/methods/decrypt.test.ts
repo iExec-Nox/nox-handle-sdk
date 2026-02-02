@@ -3,7 +3,6 @@ import { BrowserProvider } from 'ethers';
 import { decrypt } from '../../../src/methods/decrypt.js';
 import { buildHandle, createMockEIP1193Provider } from '../../helpers/mocks.js';
 import { EthersBlockchainService } from '../../../src/services/blockchain/EthersBlockchainService.js';
-import type { IApiService } from '../../../src/services/api/IApiService.js';
 import * as rsa from '../../../src/utils/rsa.js';
 import { hexToBytes } from '../../../src/utils/hex.js';
 import {
@@ -55,6 +54,17 @@ describe('decrypt', () => {
   const mockBlockchainService = new EthersBlockchainService(
     new BrowserProvider(mockProvider)
   );
+
+  const mockApiService = {
+    get: vi
+      .fn()
+      .mockImplementation(() => Promise.reject(new Error('Not implemented'))),
+    post: vi
+      .fn()
+      .mockImplementation(() => Promise.reject(new Error('Not implemented'))),
+  };
+
+  const signTypedDataSpy = vi.spyOn(mockBlockchainService, 'signTypedData');
 
   // by default, mock isViewer to return true
   mockProvider.mocks.call.mockResolvedValue('0x01'.padEnd(66, '0')); // true
@@ -115,19 +125,18 @@ describe('decrypt', () => {
         vi.spyOn(rsa, 'generateRsaKeyPair').mockImplementationOnce(
           generateRsaKeyPairMock
         );
-
+        mockApiService.get.mockResolvedValueOnce({
+          status: 200,
+          data: {
+            encryptedSharedSecret: encryptedData.encryptedSharedSecret,
+            iv: encryptedData.iv,
+            ciphertext: encryptedData.ciphertext,
+          },
+        });
         const result = await decrypt({
           handle: dummyTypedHandle,
           blockchainService: mockBlockchainService,
-          apiService: {
-            get: async () => {
-              const { encryptedSharedSecret, iv, ciphertext } = encryptedData;
-              return {
-                status: 200,
-                data: { encryptedSharedSecret, iv, ciphertext },
-              };
-            },
-          } as unknown as IApiService,
+          apiService: mockApiService,
           config: mockConfig,
         });
         expect(result).toStrictEqual({
@@ -140,23 +149,17 @@ describe('decrypt', () => {
 
   describe('when user is not authorized', () => {
     it('should throw', async () => {
-      // Reset mock to return false for isViewer
+      // Set mock to return false for isViewer
       mockProvider.mocks.call.mockResolvedValueOnce('0x00'.padEnd(66, '0')); // false
-
+      const signTypedDataSpy = vi.spyOn(
+        EthersBlockchainService.prototype,
+        'signTypedData'
+      );
       await expect(
         decrypt({
           handle: DUMMY_TYPED_HANDLES.bool,
           blockchainService: mockBlockchainService,
-          apiService: {
-            get: async () => {
-              const { iv, ciphertext, encryptedSharedSecret } =
-                TEST_ENCRYPTED_DATA.bool;
-              return {
-                status: 200,
-                data: { iv, encryptedSharedSecret, ciphertext },
-              };
-            },
-          } as unknown as IApiService,
+          apiService: mockApiService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -164,6 +167,8 @@ describe('decrypt', () => {
           `User (${TEST_ADDRESS}) is not authorized to decrypt the handle`
         )
       );
+      expect(signTypedDataSpy).not.toHaveBeenCalled();
+      expect(mockApiService.get).not.toHaveBeenCalled();
     });
   });
 
@@ -173,16 +178,7 @@ describe('decrypt', () => {
         decrypt({
           handle: buildHandle({ chainId: SUPPORTED_CHAIN_ID + 1, typeCode: 0 }),
           blockchainService: mockBlockchainService,
-          apiService: {
-            get: async () => {
-              const { iv, ciphertext, encryptedSharedSecret } =
-                TEST_ENCRYPTED_DATA.bool;
-              return {
-                status: 200,
-                data: { iv, encryptedSharedSecret, ciphertext },
-              };
-            },
-          } as unknown as IApiService,
+          apiService: mockApiService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -191,6 +187,8 @@ describe('decrypt', () => {
         )
       );
     });
+    expect(signTypedDataSpy).not.toHaveBeenCalled();
+    expect(mockApiService.get).not.toHaveBeenCalled();
   });
 
   describe('when RSA key generation fails', () => {
@@ -203,16 +201,7 @@ describe('decrypt', () => {
         decrypt({
           handle: DUMMY_TYPED_HANDLES.bool,
           blockchainService: mockBlockchainService,
-          apiService: {
-            get: async () => {
-              const { iv, ciphertext, encryptedSharedSecret } =
-                TEST_ENCRYPTED_DATA.bool;
-              return {
-                status: 200,
-                data: { iv, encryptedSharedSecret, ciphertext },
-              };
-            },
-          } as unknown as IApiService,
+          apiService: mockApiService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -233,16 +222,7 @@ describe('decrypt', () => {
         decrypt({
           handle: DUMMY_TYPED_HANDLES.bool,
           blockchainService: mockBlockchainService,
-          apiService: {
-            get: async () => {
-              const { iv, ciphertext, encryptedSharedSecret } =
-                TEST_ENCRYPTED_DATA.bool;
-              return {
-                status: 200,
-                data: { iv, encryptedSharedSecret, ciphertext },
-              };
-            },
-          } as unknown as IApiService,
+          apiService: mockApiService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -255,27 +235,14 @@ describe('decrypt', () => {
 
   describe('when data access signature fails', () => {
     it('should throw', async () => {
-      vi.spyOn(
-        EthersBlockchainService.prototype,
-        'signTypedData'
-      ).mockImplementationOnce(() =>
+      signTypedDataSpy.mockImplementationOnce(() =>
         Promise.reject(new Error('User rejected signing request'))
       );
-
       await expect(
         decrypt({
           handle: DUMMY_TYPED_HANDLES.bool,
           blockchainService: mockBlockchainService,
-          apiService: {
-            get: async () => {
-              const { iv, ciphertext, encryptedSharedSecret } =
-                TEST_ENCRYPTED_DATA.bool;
-              return {
-                status: 200,
-                data: { iv, encryptedSharedSecret, ciphertext },
-              };
-            },
-          } as unknown as IApiService,
+          apiService: mockApiService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -337,15 +304,12 @@ describe('decrypt', () => {
 
     for (const { name, apiResponse } of testCases) {
       it(`should throw when ${name}`, async () => {
+        mockApiService.get.mockResolvedValueOnce(apiResponse);
         await expect(
           decrypt({
             handle: DUMMY_TYPED_HANDLES.bool,
             blockchainService: mockBlockchainService,
-            apiService: {
-              get: async () => {
-                return apiResponse;
-              },
-            } as unknown as IApiService,
+            apiService: mockApiService,
             config: mockConfig,
           })
         ).rejects.toThrow(
@@ -359,25 +323,18 @@ describe('decrypt', () => {
 
   describe('when RSA decryption of shared secret fails', () => {
     it('should throw', async () => {
+      const { iv, ciphertext, encryptedSharedSecret } =
+        TEST_ENCRYPTED_DATA.bool;
+      mockApiService.get.mockResolvedValueOnce({
+        status: 200,
+        data: { iv, ciphertext, encryptedSharedSecret },
+      });
       // no mock to generate random RSA key pair that won't match the encrypted shared secret
       await expect(
         decrypt({
           handle: DUMMY_TYPED_HANDLES.bool,
           blockchainService: mockBlockchainService,
-          apiService: {
-            get: async () => {
-              const { iv, ciphertext, encryptedSharedSecret } =
-                TEST_ENCRYPTED_DATA.bool;
-              return {
-                status: 200,
-                data: {
-                  iv,
-                  encryptedSharedSecret,
-                  ciphertext,
-                },
-              };
-            },
-          } as unknown as IApiService,
+          apiService: mockApiService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -393,24 +350,21 @@ describe('decrypt', () => {
       vi.spyOn(rsa, 'generateRsaKeyPair').mockImplementationOnce(
         generateRsaKeyPairMock
       );
+      const { iv, ciphertext, encryptedSharedSecret } =
+        TEST_ENCRYPTED_DATA.bool;
+      mockApiService.get.mockResolvedValueOnce({
+        status: 200,
+        data: {
+          iv,
+          ciphertext: ciphertext.slice(0, -2) + '00', // Corrupt ciphertext to trigger decryption failure
+          encryptedSharedSecret,
+        },
+      });
       await expect(
         decrypt({
           handle: DUMMY_TYPED_HANDLES.bool,
           blockchainService: mockBlockchainService,
-          apiService: {
-            get: async () => {
-              const { iv, encryptedSharedSecret } = TEST_ENCRYPTED_DATA.bool;
-              return {
-                status: 200,
-                data: {
-                  iv,
-                  encryptedSharedSecret,
-                  ciphertext:
-                    TEST_ENCRYPTED_DATA.bool.ciphertext.slice(0, -2) + '00', // Corrupt ciphertext to trigger decryption failure
-                },
-              };
-            },
-          } as unknown as IApiService,
+          apiService: mockApiService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -440,20 +394,20 @@ describe('decrypt', () => {
         vi.spyOn(rsa, 'generateRsaKeyPair').mockImplementationOnce(
           generateRsaKeyPairMock
         );
+        mockApiService.get.mockResolvedValueOnce({
+          status: 200,
+          data: {
+            encryptedSharedSecret: encryptedData.encryptedSharedSecret,
+            iv: encryptedData.iv,
+            ciphertext: encryptedData.ciphertext,
+          },
+        });
 
         await expect(
           decrypt({
             handle,
             blockchainService: mockBlockchainService,
-            apiService: {
-              get: async () => {
-                const { iv, encryptedSharedSecret, ciphertext } = encryptedData;
-                return {
-                  status: 200,
-                  data: { iv, encryptedSharedSecret, ciphertext },
-                };
-              },
-            } as unknown as IApiService,
+            apiService: mockApiService,
             config: mockConfig,
           })
         ).rejects.toThrow(
