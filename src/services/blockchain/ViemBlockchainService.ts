@@ -108,7 +108,7 @@ export class ViemBlockchainService implements IBlockchainService {
     try {
       const address = await this.getAddress();
       const signature = await this.viemClient.signTypedData({
-        account: address as EthereumAddress,
+        account: address,
         domain: data.domain,
         types: data.types,
         primaryType: data.primaryType,
