@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "typedocOptions": {
+    "entryPoints": ["src/index.ts"],
+    "readme": "none",
+    "out": "doc",
+    "plugin": ["typedoc-plugin-markdown"],
+    "excludeExternals": true,
+    "disableSources": true
+  }
+}
