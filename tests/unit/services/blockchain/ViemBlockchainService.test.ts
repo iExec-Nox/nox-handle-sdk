@@ -59,26 +59,6 @@ describe('ViemBlockchainService', () => {
         });
       });
 
-      describe('verifyTypedData', () => {
-        it('should verify typed data and recover signer address', async () => {
-          const signature = await blockchainService.signTypedData(
-            TEST_EIP712_TYPED_DATA
-          );
-          const recoveredAddress = await blockchainService.verifyTypedData(
-            {
-              domain: TEST_EIP712_TYPED_DATA.domain,
-              types: TEST_EIP712_TYPED_DATA.types,
-              primaryType: TEST_EIP712_TYPED_DATA.primaryType,
-              message: TEST_EIP712_TYPED_DATA.message,
-            },
-            signature
-          );
-          expect(recoveredAddress.toLowerCase()).toBe(
-            TEST_ADDRESS.toLowerCase()
-          );
-        });
-      });
-
       describe('readContract', () => {
         it('should apply parameters correctly', async () => {
           // Mock a simple contract with a view function that takes parameters
@@ -324,26 +304,6 @@ describe('ViemBlockchainService', () => {
       // static cache shared between instances
       expect(moduleFromService1).toBe(moduleFromService2);
     });
-
-    it('should load viem module on first verifyTypedData call', async () => {
-      const service = new ViemBlockchainService(
-        createWalletClient({
-          transport: custom(mockProvider),
-        })
-      );
-
-      expect(ViemBlockchainService['viemModule']).toBeNull();
-
-      const signature = await service.signTypedData(TEST_EIP712_TYPED_DATA);
-
-      // signTypedData does not use getEthers
-      expect(ViemBlockchainService['viemModule']).toBeNull();
-
-      await service.verifyTypedData(TEST_EIP712_TYPED_DATA, signature);
-
-      // verifyTypedData uses getEthers
-      expect(ViemBlockchainService['viemModule']).not.toBeNull();
-    });
   });
 
   describe('error handling', () => {
@@ -431,28 +391,6 @@ describe('ViemBlockchainService', () => {
           const cause = (error as Error).cause as Error & { details?: string };
           expect(cause).toBeDefined();
           expect(cause.details).toBe('User rejected');
-        }
-      });
-    });
-
-    describe('verifyTypedData', () => {
-      it('should throw wrapped error when address recovery fails', async () => {
-        const client = createWalletClient({
-          transport: custom(
-            createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
-          ),
-        });
-        const service = new ViemBlockchainService(client);
-        try {
-          await service.verifyTypedData(
-            TEST_EIP712_TYPED_DATA,
-            '0xinvalidsignature'
-          );
-          expect.fail('Should have thrown');
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe('Failed to verify typed data');
-          expect((error as Error)?.cause).toBeInstanceOf(Error);
         }
       });
     });

@@ -58,24 +58,6 @@ describe('EthersBlockchainService', () => {
         });
       });
 
-      describe('verifyTypedData', () => {
-        it('should verify typed data correctly', async () => {
-          const signature = await blockchainService.signTypedData(
-            TEST_EIP712_TYPED_DATA
-          );
-          const recoveredAddress = await blockchainService.verifyTypedData(
-            {
-              domain: TEST_EIP712_TYPED_DATA.domain,
-              types: TEST_EIP712_TYPED_DATA.types,
-              primaryType: TEST_EIP712_TYPED_DATA.primaryType,
-              message: TEST_EIP712_TYPED_DATA.message,
-            },
-            signature
-          );
-          expect(recoveredAddress).toBe(TEST_ADDRESS);
-        });
-      });
-
       describe('readContract', () => {
         it('should apply parameters correctly', async () => {
           // Mock a simple contract with a view function that takes parameters
@@ -303,24 +285,6 @@ describe('EthersBlockchainService', () => {
       // static cache shared between instances
       expect(moduleFromService1).toBe(moduleFromService2);
     });
-
-    it('should load ethers module on first verifyTypedData call', async () => {
-      const service = new EthersBlockchainService(
-        new Wallet(TEST_PRIVATE_KEY, mockProvider)
-      );
-
-      expect(EthersBlockchainService['ethersModule']).toBeNull();
-
-      const signature = await service.signTypedData(TEST_EIP712_TYPED_DATA);
-
-      // signTypedData does not use importEthersModule
-      expect(EthersBlockchainService['ethersModule']).toBeNull();
-
-      await service.verifyTypedData(TEST_EIP712_TYPED_DATA, signature);
-
-      // verifyTypedData uses importEthersModule
-      expect(EthersBlockchainService['ethersModule']).not.toBeNull();
-    });
   });
 
   describe('error handling', () => {
@@ -402,27 +366,6 @@ describe('EthersBlockchainService', () => {
           };
           expect(cause).toBeDefined();
           expect(cause.error?.message).toBe('User rejected');
-        }
-      });
-    });
-
-    describe('verifyTypedData', () => {
-      it('should throw wrapped error when address recovery fails', async () => {
-        const browserProvider = new BrowserProvider(
-          createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
-        );
-        const service = new EthersBlockchainService(browserProvider);
-
-        try {
-          await service.verifyTypedData(
-            TEST_EIP712_TYPED_DATA,
-            '0xinvalidsignature'
-          );
-          expect.fail('Should have thrown');
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe('Failed to verify typed data');
-          expect((error as Error)?.cause).toBeInstanceOf(Error);
         }
       });
     });

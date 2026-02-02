@@ -108,7 +108,7 @@ export class ViemBlockchainService implements IBlockchainService {
     try {
       const address = await this.getAddress();
       const signature = await this.viemClient.signTypedData({
-        account: address as EthereumAddress,
+        account: address,
         domain: data.domain,
         types: data.types,
         primaryType: data.primaryType,
@@ -117,25 +117,6 @@ export class ViemBlockchainService implements IBlockchainService {
       return signature;
     } catch (error) {
       throw new Error('Failed to sign typed data', { cause: error });
-    }
-  }
-
-  async verifyTypedData(
-    data: EIP712TypedData,
-    signature: HexString
-  ): Promise<EthereumAddress> {
-    try {
-      const { recoverTypedDataAddress } =
-        await ViemBlockchainService.getViemModule();
-      return await recoverTypedDataAddress({
-        domain: data.domain,
-        types: data.types,
-        primaryType: data.primaryType,
-        message: data.message,
-        signature: signature,
-      });
-    } catch (error) {
-      throw new Error('Failed to verify typed data', { cause: error });
     }
   }
 }

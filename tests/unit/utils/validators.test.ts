@@ -153,7 +153,7 @@ describe('validateHandle', () => {
     });
 
     it('should accept handle with max uint32 chain ID (0xFFFFFFFF)', () => {
-      const maxChainId = 0xffffffff;
+      const maxChainId = 0xff_ff_ff_ff;
       const handle = buildHandle({
         chainId: maxChainId,
         typeCode: 0,

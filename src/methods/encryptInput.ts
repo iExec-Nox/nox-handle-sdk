@@ -133,7 +133,7 @@ export async function encryptInput<T extends SolidityType>({
       value: encodedValue,
       solidityType,
       applicationContract,
-      owner: owner as EthereumAddress,
+      owner,
     },
   });
 

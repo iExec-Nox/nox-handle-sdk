@@ -1,5 +1,5 @@
 import { it, describe, expect } from 'vitest';
-import { Wallet } from 'ethers';
+import { BrowserProvider, Wallet } from 'ethers';
 import { createEthersHandleClient } from '../../../src/factories/createEthersHandleClient.js';
 import {
   BrowserProviderAdapter,
@@ -11,7 +11,6 @@ import {
   createMockProvider,
   createMockEIP1193Provider,
 } from '../../helpers/mocks.js';
-import { BrowserProvider } from 'ethers';
 import {
   SUPPORTED_CHAIN_ID,
   TEST_PRIVATE_KEY,
