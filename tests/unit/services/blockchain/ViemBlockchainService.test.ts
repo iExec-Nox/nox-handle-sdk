@@ -1,4 +1,7 @@
-import { describe, expect, it, vi } from 'vitest';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unicorn/no-null */
+/* eslint-disable sonarjs/constructor-for-side-effects */
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createWalletClient, custom } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { createMockEIP1193Provider } from '../../../helpers/mocks.js';
@@ -237,6 +240,114 @@ describe('ViemBlockchainService', () => {
       });
     });
   }
+
+  describe('lazy viem loading (getViemModule)', () => {
+    const mockProvider = createMockEIP1193Provider(
+      SUPPORTED_CHAIN_ID,
+      TEST_PRIVATE_KEY
+    );
+
+    const contractAddress = '0x0000000000000000000000000000000000000001';
+    const abiFunctionFragment = {
+      name: 'getValue',
+      type: 'function',
+      stateMutability: 'view',
+      inputs: [],
+      outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    } as const;
+
+    beforeEach(() => {
+      // reset static cache before each test
+      (ViemBlockchainService as any).viemModule = null;
+      mockProvider.mocks.call.mockResolvedValue('0x' + '00'.repeat(32));
+    });
+
+    it('should not load viem module at instantiation', () => {
+      expect((ViemBlockchainService as any).viemModule).toBeNull();
+      new ViemBlockchainService(
+        createWalletClient({
+          transport: custom(mockProvider),
+        })
+      );
+      expect((ViemBlockchainService as any).viemModule).toBeNull();
+    });
+
+    it.only('should load viem module on first readContract call', async () => {
+      const service = new ViemBlockchainService(
+        createWalletClient({
+          transport: custom(mockProvider),
+        })
+      );
+
+      expect((ViemBlockchainService as any).viemModule).toBeNull();
+
+      await service.readContract(contractAddress, abiFunctionFragment, []);
+
+      expect((ViemBlockchainService as any).viemModule).not.toBeNull();
+      expect(
+        (ViemBlockchainService as any).viemModule.publicActions
+      ).toBeDefined();
+    });
+
+    it('should cache viem module across multiple calls', async () => {
+      const service = new ViemBlockchainService(
+        createWalletClient({
+          transport: custom(mockProvider),
+        })
+      );
+
+      await service.readContract(contractAddress, abiFunctionFragment, []);
+      const cachedModule1 = (ViemBlockchainService as any).viemModule;
+
+      await service.readContract(contractAddress, abiFunctionFragment, []);
+      const cachedModule2 = (ViemBlockchainService as any).viemModule;
+
+      // same reference = same cached module
+      expect(cachedModule1).toBe(cachedModule2);
+    });
+
+    it('should share cached module between instances', async () => {
+      const service1 = new ViemBlockchainService(
+        createWalletClient({
+          transport: custom(mockProvider),
+        })
+      );
+      const service2 = new ViemBlockchainService(
+        createWalletClient({
+          transport: custom(mockProvider),
+        })
+      );
+
+      await service1.readContract(contractAddress, abiFunctionFragment, []);
+      const moduleFromService1 = (ViemBlockchainService as any).viemModule;
+
+      await service2.readContract(contractAddress, abiFunctionFragment, []);
+      const moduleFromService2 = (ViemBlockchainService as any).viemModule;
+
+      // static cache shared between instances
+      expect(moduleFromService1).toBe(moduleFromService2);
+    });
+
+    it('should load viem module on first verifyTypedData call', async () => {
+      const service = new ViemBlockchainService(
+        createWalletClient({
+          transport: custom(mockProvider),
+        })
+      );
+
+      expect((ViemBlockchainService as any).viemModule).toBeNull();
+
+      const signature = await service.signTypedData(TEST_EIP712_TYPED_DATA);
+
+      // signTypedData does not use getEthers
+      expect((ViemBlockchainService as any).viemModule).toBeNull();
+
+      await service.verifyTypedData(TEST_EIP712_TYPED_DATA, signature);
+
+      // verifyTypedData uses getEthers
+      expect((ViemBlockchainService as any).viemModule).not.toBeNull();
+    });
+  });
 
   describe('error handling', () => {
     describe('getChainId', () => {

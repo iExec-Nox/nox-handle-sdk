@@ -111,6 +111,14 @@ export class BrowserProviderAdapter implements EthersAdapter {
  * Implements IBlockchainService using ethers library.
  */
 export class EthersBlockchainService implements IBlockchainService {
+  // eslint-disable-next-line unicorn/no-null
+  private static ethersModule: typeof import('ethers') | null = null;
+
+  private static async getEthersModule(): Promise<typeof import('ethers')> {
+    this.ethersModule ??= await import('ethers');
+    return this.ethersModule;
+  }
+
   private readonly adapter: EthersAdapter;
 
   /**
@@ -158,7 +166,7 @@ export class EthersBlockchainService implements IBlockchainService {
   ): Promise<AbiFragmentTypes<T, 'outputs'>> {
     try {
       const provider = await this.adapter.getProvider();
-      const { Contract } = await import('ethers');
+      const { Contract } = await EthersBlockchainService.getEthersModule();
       const contract = new Contract(
         contractAddress,
         [abiFunctionFragment],
@@ -196,7 +204,8 @@ export class EthersBlockchainService implements IBlockchainService {
     signature: HexString
   ): Promise<EthereumAddress> {
     try {
-      const { verifyTypedData } = await import('ethers');
+      const { verifyTypedData } =
+        await EthersBlockchainService.getEthersModule();
       return verifyTypedData(
         data.domain,
         data.types,

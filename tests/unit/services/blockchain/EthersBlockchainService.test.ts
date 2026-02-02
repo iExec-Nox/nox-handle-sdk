@@ -1,4 +1,7 @@
-import { describe, expect, it, vi } from 'vitest';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable unicorn/no-null */
+/* eslint-disable sonarjs/constructor-for-side-effects */
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Wallet, BrowserProvider, type JsonRpcProvider } from 'ethers';
 import {
@@ -232,6 +235,97 @@ describe('EthersBlockchainService', () => {
       });
     });
   }
+
+  describe('lazy ethers loading (getEthersModule)', () => {
+    const mockProvider = createMockProvider(SUPPORTED_CHAIN_ID);
+
+    const contractAddress = '0x0000000000000000000000000000000000000001';
+    const abiFunctionFragment = {
+      name: 'getValue',
+      type: 'function',
+      stateMutability: 'view',
+      inputs: [],
+      outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    } as const;
+
+    beforeEach(() => {
+      // reset static cache before each test
+      (EthersBlockchainService as any).ethersModule = null;
+      mockProvider.mocks.call.mockResolvedValue('0x' + '00'.repeat(32));
+    });
+
+    it('should not load ethers module at instantiation', () => {
+      expect((EthersBlockchainService as any).ethersModule).toBeNull();
+      new EthersBlockchainService(new Wallet(TEST_PRIVATE_KEY, mockProvider));
+      expect((EthersBlockchainService as any).ethersModule).toBeNull();
+    });
+
+    it('should load ethers module on first readContract call', async () => {
+      const service = new EthersBlockchainService(
+        new Wallet(TEST_PRIVATE_KEY, mockProvider)
+      );
+
+      expect((EthersBlockchainService as any).ethersModule).toBeNull();
+
+      await service.readContract(contractAddress, abiFunctionFragment, []);
+
+      expect((EthersBlockchainService as any).ethersModule).not.toBeNull();
+      expect(
+        (EthersBlockchainService as any).ethersModule.Contract
+      ).toBeDefined();
+    });
+
+    it('should cache ethers module across multiple calls', async () => {
+      const service = new EthersBlockchainService(
+        new Wallet(TEST_PRIVATE_KEY, mockProvider)
+      );
+
+      await service.readContract(contractAddress, abiFunctionFragment, []);
+      const cachedModule1 = (EthersBlockchainService as any).ethersModule;
+
+      await service.readContract(contractAddress, abiFunctionFragment, []);
+      const cachedModule2 = (EthersBlockchainService as any).ethersModule;
+
+      // same reference = same cached module
+      expect(cachedModule1).toBe(cachedModule2);
+    });
+
+    it('should share cached module between instances', async () => {
+      const service1 = new EthersBlockchainService(
+        new Wallet(TEST_PRIVATE_KEY, mockProvider)
+      );
+      const service2 = new EthersBlockchainService(
+        new Wallet(TEST_PRIVATE_KEY, mockProvider)
+      );
+
+      await service1.readContract(contractAddress, abiFunctionFragment, []);
+      const moduleFromService1 = (EthersBlockchainService as any).ethersModule;
+
+      await service2.readContract(contractAddress, abiFunctionFragment, []);
+      const moduleFromService2 = (EthersBlockchainService as any).ethersModule;
+
+      // static cache shared between instances
+      expect(moduleFromService1).toBe(moduleFromService2);
+    });
+
+    it('should load ethers module on first verifyTypedData call', async () => {
+      const service = new EthersBlockchainService(
+        new Wallet(TEST_PRIVATE_KEY, mockProvider)
+      );
+
+      expect((EthersBlockchainService as any).ethersModule).toBeNull();
+
+      const signature = await service.signTypedData(TEST_EIP712_TYPED_DATA);
+
+      // signTypedData does not use importEthersModule
+      expect((EthersBlockchainService as any).ethersModule).toBeNull();
+
+      await service.verifyTypedData(TEST_EIP712_TYPED_DATA, signature);
+
+      // verifyTypedData uses importEthersModule
+      expect((EthersBlockchainService as any).ethersModule).not.toBeNull();
+    });
+  });
 
   describe('error handling', () => {
     describe('getChainId', () => {
