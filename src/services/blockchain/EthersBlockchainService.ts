@@ -150,10 +150,10 @@ export class EthersBlockchainService implements IBlockchainService {
     }
   }
 
-  async getAddress(): Promise<string> {
+  async getAddress(): Promise<EthereumAddress> {
     try {
       const signer = await this.adapter.getSigner();
-      return await signer.getAddress();
+      return (await signer.getAddress()) as EthereumAddress;
     } catch (error) {
       throw new Error('Failed to get address', { cause: error });
     }
