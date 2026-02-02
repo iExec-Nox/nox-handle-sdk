@@ -57,6 +57,7 @@ describe('encryptInput', () => {
         apiService: mockApiService,
         value: true,
         solidityType: 'bool',
+        applicationContract: TEST_ADDRESS,
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
@@ -64,6 +65,7 @@ describe('encryptInput', () => {
           value: '0x01',
           solidityType: 'bool',
           owner: TEST_ADDRESS,
+          applicationContract: TEST_ADDRESS,
         },
       });
     });
@@ -74,6 +76,7 @@ describe('encryptInput', () => {
         apiService: mockApiService,
         value: false,
         solidityType: 'bool',
+        applicationContract: TEST_ADDRESS,
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
@@ -81,6 +84,7 @@ describe('encryptInput', () => {
           value: '0x00',
           solidityType: 'bool',
           owner: TEST_ADDRESS,
+          applicationContract: TEST_ADDRESS,
         },
       });
     });
@@ -91,6 +95,7 @@ describe('encryptInput', () => {
         apiService: mockApiService,
         value: 'hello world',
         solidityType: 'string',
+        applicationContract: TEST_ADDRESS,
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
@@ -98,6 +103,7 @@ describe('encryptInput', () => {
           value: '0x68656c6c6f20776f726c64',
           solidityType: 'string',
           owner: TEST_ADDRESS,
+          applicationContract: TEST_ADDRESS,
         },
       });
     });
@@ -109,6 +115,7 @@ describe('encryptInput', () => {
         apiService: mockApiService,
         value: address,
         solidityType: 'address',
+        applicationContract: TEST_ADDRESS,
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
@@ -116,6 +123,7 @@ describe('encryptInput', () => {
           value: address,
           solidityType: 'address',
           owner: TEST_ADDRESS,
+          applicationContract: TEST_ADDRESS,
         },
       });
     });
@@ -127,6 +135,7 @@ describe('encryptInput', () => {
         apiService: mockApiService,
         value: bytes,
         solidityType: 'bytes',
+        applicationContract: TEST_ADDRESS,
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
@@ -134,6 +143,7 @@ describe('encryptInput', () => {
           value: bytes,
           solidityType: 'bytes',
           owner: TEST_ADDRESS,
+          applicationContract: TEST_ADDRESS,
         },
       });
     });
@@ -144,6 +154,7 @@ describe('encryptInput', () => {
         apiService: mockApiService,
         value: 1_000_000n,
         solidityType: 'uint256',
+        applicationContract: TEST_ADDRESS,
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
@@ -152,6 +163,7 @@ describe('encryptInput', () => {
             '0x00000000000000000000000000000000000000000000000000000000000f4240',
           solidityType: 'uint256',
           owner: TEST_ADDRESS,
+          applicationContract: TEST_ADDRESS,
         },
       });
     });
@@ -162,6 +174,7 @@ describe('encryptInput', () => {
         apiService: mockApiService,
         value: -500n,
         solidityType: 'int128',
+        applicationContract: TEST_ADDRESS,
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
@@ -169,6 +182,7 @@ describe('encryptInput', () => {
           value: '0xfffffffffffffffffffffffffffffe0c',
           solidityType: 'int128',
           owner: TEST_ADDRESS,
+          applicationContract: TEST_ADDRESS,
         },
       });
     });
@@ -182,6 +196,7 @@ describe('encryptInput', () => {
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
           solidityType: 'bool',
+          applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Missing required parameters: value');
     });
@@ -193,8 +208,21 @@ describe('encryptInput', () => {
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
           value: true,
+          applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Missing required parameters: solidityType');
+    });
+
+    it('rejects missing applicationContract', async () => {
+      await expect(
+        // @ts-expect-error - Testing runtime validation of missing required params
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          value: false,
+          solidityType: 'bool',
+        })
+      ).rejects.toThrow('Missing required parameters: applicationContract');
     });
 
     it('rejects missing multiple required parameters', async () => {
@@ -204,7 +232,9 @@ describe('encryptInput', () => {
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
         })
-      ).rejects.toThrow('Missing required parameters: value, solidityType');
+      ).rejects.toThrow(
+        'Missing required parameters: value, solidityType, applicationContract'
+      );
     });
   });
   describe('solidity type validation', () => {
@@ -215,6 +245,7 @@ describe('encryptInput', () => {
           apiService: mockApiService,
           value: 'value',
           solidityType: 'invalidType' as never,
+          applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Invalid Solidity type: invalidType');
     });
@@ -226,6 +257,7 @@ describe('encryptInput', () => {
           apiService: mockApiService,
           value: 1n,
           solidityType: 'uint7' as never,
+          applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Invalid Solidity type: uint7');
     });
@@ -237,6 +269,7 @@ describe('encryptInput', () => {
           apiService: mockApiService,
           value: '0x',
           solidityType: 'bytes33' as never,
+          applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Invalid Solidity type: bytes33');
     });
@@ -250,6 +283,7 @@ describe('encryptInput', () => {
           apiService: mockApiService,
           value: 'true',
           solidityType: 'bool',
+          applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Invalid boolean value: expected boolean');
     });
@@ -261,6 +295,7 @@ describe('encryptInput', () => {
           apiService: mockApiService,
           value: true,
           solidityType: 'string',
+          applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Invalid value: expected string');
     });
@@ -272,6 +307,7 @@ describe('encryptInput', () => {
           apiService: mockApiService,
           value: '0x1234',
           solidityType: 'address',
+          applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Invalid value for address');
     });
@@ -283,6 +319,7 @@ describe('encryptInput', () => {
           apiService: mockApiService,
           value: 'not hex',
           solidityType: 'bytes',
+          applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Invalid value for bytes');
     });
@@ -294,6 +331,7 @@ describe('encryptInput', () => {
           apiService: mockApiService,
           value: '0x1234567890',
           solidityType: 'bytes4',
+          applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Invalid value for bytes4');
     });
@@ -305,6 +343,7 @@ describe('encryptInput', () => {
           apiService: mockApiService,
           value: '1000',
           solidityType: 'uint256',
+          applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Invalid value: expected bigint');
     });
@@ -316,6 +355,7 @@ describe('encryptInput', () => {
           apiService: mockApiService,
           value: -1n,
           solidityType: 'uint256',
+          applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Invalid uint256 value');
     });
@@ -327,6 +367,7 @@ describe('encryptInput', () => {
           apiService: mockApiService,
           value: 256n,
           solidityType: 'uint8',
+          applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Invalid uint8 value');
     });
@@ -338,8 +379,23 @@ describe('encryptInput', () => {
           apiService: mockApiService,
           value: 128n,
           solidityType: 'int8',
+          applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Invalid int8 value');
+    });
+  });
+
+  describe('app contract address validation', () => {
+    it('rejects invalid app contract address', async () => {
+      await expect(
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          value: true,
+          solidityType: 'bool',
+          applicationContract: '0x1234',
+        })
+      ).rejects.toThrow('Invalid value for address');
     });
   });
 
@@ -358,6 +414,7 @@ describe('encryptInput', () => {
           apiService: mockApiService,
           value: true,
           solidityType: 'bool',
+          applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Gateway API error: 400');
     });
@@ -376,6 +433,7 @@ describe('encryptInput', () => {
           apiService: mockApiService,
           value: true,
           solidityType: 'bool',
+          applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Invalid gateway response');
     });
@@ -390,6 +448,7 @@ describe('encryptInput', () => {
           apiService: mockApiService,
           value: true,
           solidityType: 'bool',
+          applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Network error');
     });
@@ -402,6 +461,7 @@ describe('encryptInput', () => {
         apiService: mockApiService,
         value: true,
         solidityType: 'bool',
+        applicationContract: TEST_ADDRESS,
       });
       expect(mockBlockchainService.getAddress).toHaveBeenCalledTimes(1);
       expect(mockBlockchainService.getChainId).toHaveBeenCalledTimes(1);
@@ -417,6 +477,7 @@ describe('encryptInput', () => {
         apiService: mockApiService,
         value: true,
         solidityType: 'bool',
+        applicationContract: TEST_ADDRESS,
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
@@ -424,6 +485,7 @@ describe('encryptInput', () => {
           value: '0x01',
           solidityType: 'bool',
           owner: customAddress,
+          applicationContract: TEST_ADDRESS,
         },
       });
     });
@@ -440,6 +502,7 @@ describe('encryptInput', () => {
           apiService: mockApiService,
           value: true,
           solidityType: 'bool',
+          applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Wallet not connected');
     });

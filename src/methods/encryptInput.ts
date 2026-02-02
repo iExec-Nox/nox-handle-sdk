@@ -30,6 +30,7 @@ interface EncryptInputParameters {
   apiService: IApiService;
   value: JsValue<SolidityType>;
   solidityType: SolidityType;
+  applicationContract: EthereumAddress;
 }
 
 function assertValidSolidityType(type: string): asserts type is SolidityType {
@@ -110,11 +111,17 @@ export async function encryptInput<T extends SolidityType>({
   apiService,
   value,
   solidityType,
+  applicationContract,
 }: EncryptInputParameters): Promise<{
   handle: Handle<T>;
   handleProof: HexString;
 }> {
-  assertRequiredParams({ value, solidityType }, ['value', 'solidityType']);
+  assertRequiredParams({ value, solidityType, applicationContract }, [
+    'value',
+    'solidityType',
+    'applicationContract',
+  ]);
+  assertValidAddress(applicationContract);
   const encodedValue = encodeValue(value, solidityType);
   const [owner, chainId] = await Promise.all([
     blockchainService.getAddress(),
@@ -125,6 +132,7 @@ export async function encryptInput<T extends SolidityType>({
     body: {
       value: encodedValue,
       solidityType,
+      applicationContract,
       owner: owner as EthereumAddress,
     },
   });
