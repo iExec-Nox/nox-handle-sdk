@@ -32,6 +32,14 @@ export function isViemWalletClient(object: unknown): object is ViemClient {
  * Implements IBlockchainService using viem library.
  */
 export class ViemBlockchainService implements IBlockchainService {
+  // eslint-disable-next-line unicorn/no-null
+  private static viemModule: typeof import('viem') | null = null;
+
+  private static async getViemModule(): Promise<typeof import('viem')> {
+    this.viemModule ??= await import('viem');
+    return this.viemModule;
+  }
+
   private readonly viemClient: WalletClient;
 
   /**
@@ -78,7 +86,7 @@ export class ViemBlockchainService implements IBlockchainService {
     parameters: AbiFragmentTypes<T, 'inputs'>
   ): Promise<AbiFragmentTypes<T, 'outputs'>> {
     try {
-      const { publicActions } = await import('viem');
+      const { publicActions } = await ViemBlockchainService.getViemModule();
       const publicClient = this.viemClient.extend(publicActions);
       return (await publicClient.readContract({
         address: contractAddress,
@@ -117,7 +125,8 @@ export class ViemBlockchainService implements IBlockchainService {
     signature: HexString
   ): Promise<EthereumAddress> {
     try {
-      const { recoverTypedDataAddress } = await import('viem');
+      const { recoverTypedDataAddress } =
+        await ViemBlockchainService.getViemModule();
       return await recoverTypedDataAddress({
         domain: data.domain,
         types: data.types,
