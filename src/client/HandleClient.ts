@@ -54,7 +54,7 @@ export class HandleClient {
    * @returns Handle and handleProof for smart contract usage
    *
    * @example
-   * ```typescript
+   * ```ts
    * // Encrypt a uint256
    * const { handle, handleProof } = await client.encryptInput(1000000n, 'uint256', '0x123...abc');
    *
@@ -93,7 +93,7 @@ export class HandleClient {
    * To request decryption, the connected wallet must be allowed to view the data and provide an EIP712 DataAccessAuthorization signature.
    *
    * @example
-   * ```typescript
+   * ```ts
    * const { value, solidityType } = await client.decrypt(handle);
    * ```
    */

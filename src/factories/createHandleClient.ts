@@ -29,7 +29,7 @@ export type BlockchainClient = EthersClient | ViemClient;
  * or `createViemHandleClient` for smaller bundle size.
  *
  * @example
- * ```
+ * ```ts
  * // Ethers BrowserProvider
  * import { BrowserProvider } from 'ethers';
  * import { createHandleClient } from '@iexec-nox/handle';
@@ -40,7 +40,7 @@ export type BlockchainClient = EthersClient | ViemClient;
  * ```
  *
  * @example
- * ```
+ * ```ts
  * // Viem JSON-RPC Account
  * import { createWalletClient, custom } from 'viem'
  * import { createHandleClient } from '@iexec-nox/handle';

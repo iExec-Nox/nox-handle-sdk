@@ -15,7 +15,7 @@ import type { HandleClientConfig } from '../client/HandleClient.js';
  * @throws {Error} if the viemClient fails to detect the connected chain or if the chain is not supported and no complete config is provided
  *
  * @example
- * ```
+ * ```ts
  * // JSON-RPC Account
  * import { createWalletClient, custom } from 'viem'
  *
@@ -27,7 +27,7 @@ import type { HandleClientConfig } from '../client/HandleClient.js';
  * ```
  *
  * @example
- * ```
+ * ```ts
  * // Local Account
  * import { createWalletClient, http } from "viem";
  * import { privateKeyToAccount } from "viem/accounts";

@@ -17,7 +17,7 @@ import type { HandleClientConfig } from '../client/HandleClient.js';
  * @throws {Error} if the ethersClient fails to detect the connected chain or if the chain is not supported and no complete config is provided
  *
  * @example
- * ```
+ * ```ts
  * // BrowserProvider
  * import { BrowserProvider } from 'ethers';
  * import { createEthersHandleClient } from '@iexec-nox/handle';
@@ -28,7 +28,7 @@ import type { HandleClientConfig } from '../client/HandleClient.js';
  * ```
  *
  * @example
- * ```
+ * ```ts
  * // Ethers Wallet
  * import { JsonRpcProvider, Wallet } from 'ethers';
  * import { createEthersHandleClient } from '@iexec-nox/handle';
