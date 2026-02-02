@@ -25,7 +25,7 @@ const handleClient = await createEthersHandleClient(signer);
 const { handle, handleProof } = await handleClient.encryptInput(
   42n,
   'uint256',
-  '0x123...abc' // target smart contract consuming this handle
+  '0x123...abc'
 );
 
 // Use handle and handleProof in your smart contract call
@@ -62,7 +62,7 @@ const handleClient = await createViemHandleClient(walletClient);
 const { handle, handleProof } = await handleClient.encryptInput(
   42n,
   'uint256',
-  '0x123...abc' // target smart contract consuming this handle
+  '0x123...abc'
 );
 
 // Use handle and handleProof in your smart contract call
@@ -110,7 +110,7 @@ const { handle, handleProof } = await handleClient.encryptInput(
 | --------------------- | ----------------------------- | --------------------------------------------------------------- |
 | `value`               | `boolean \| string \| bigint` | The value to encrypt                                            |
 | `solidityType`        | `SolidityType`                | Target Solidity type (e.g., `"uint256"`, `"bool"`, `"address"`) |
-| `applicationContract` | `string`                      | The address of the contract that will use this handle on-chain  |
+| `applicationContract` | `string`                      | The address of the contract allowed to use the encrypted value  |
 
 **Returns:** `{ handle: string, handleProof: string }`
 
@@ -126,28 +126,28 @@ const { handle, handleProof } = await handleClient.encryptInput(
 const { handle, handleProof } = await handleClient.encryptInput(
   1000n,
   'uint256',
-  '0x123...abc' // target smart contract consuming this handle
+  '0x123...abc'
 );
 
 // Encrypt a boolean
 const { handle, handleProof } = await handleClient.encryptInput(
   true,
   'bool',
-  '0x123...abc' // target smart contract consuming this handle
+  '0x123...abc'
 );
 
 // Encrypt an address
 const { handle, handleProof } = await handleClient.encryptInput(
   '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb2',
   'address',
-  '0x123...abc' // target smart contract consuming this handle
+  '0x123...abc'
 );
 
 // Encrypt fixed-size bytes
 const { handle, handleProof } = await handleClient.encryptInput(
   '0xdeadbeef',
   'bytes4',
-  '0x123...abc' // target smart contract consuming this handle
+  '0x123...abc'
 );
 ```
 

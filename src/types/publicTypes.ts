@@ -8,3 +8,4 @@ export type { ViemClient } from '../services/blockchain/ViemBlockchainService.js
 export type { BlockchainClient } from '../factories/createHandleClient.js';
 
 export type { Handle, JsValue, SolidityType } from '../utils/types.js';
+export type { EthereumAddress } from '../types/internalTypes.js';

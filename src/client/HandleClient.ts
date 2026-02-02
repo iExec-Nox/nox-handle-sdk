@@ -50,19 +50,19 @@ export class HandleClient {
    *
    * @param value - The value to encrypt (boolean, string, or bigint)
    * @param solidityType - The Solidity type of the value
-   * @param applicationContract - The address of the contract that will use this handle
+   * @param applicationContract - The address of the contract allowed to use the input
    * @returns Handle and handleProof for smart contract usage
    *
    * @example
    * ```typescript
    * // Encrypt a uint256
-   * const { handle, handleProof } = await client.encryptInput(1000000n, 'uint256', '0x123');
+   * const { handle, handleProof } = await client.encryptInput(1000000n, 'uint256', '0x123...abc');
    *
    * // Encrypt a boolean
    * const { handle, handleProof } = await client.encryptInput(
    *   true,
    *   'bool',
-   *   '0x123...abc' // target smart contract consuming this handle
+   *   '0x123...abc'
    * );
    * ```
    */
