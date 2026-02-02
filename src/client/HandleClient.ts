@@ -58,7 +58,11 @@ export class HandleClient {
    * @example
    * ```ts
    * // Encrypt a uint256
-   * const { handle, handleProof } = await client.encryptInput(1000000n, 'uint256', '0x123...abc');
+   * const { handle, handleProof } = await client.encryptInput(
+   *   1000000n,
+   *   'uint256',
+   *   '0x123...abc'
+   * );
    *
    * // Encrypt a boolean
    * const { handle, handleProof } = await client.encryptInput(
