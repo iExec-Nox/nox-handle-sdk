@@ -29,11 +29,13 @@ export class HandleClient {
   private readonly config: HandleClientConfig;
 
   /**
-   * Creates an instance of HandleClient.
-   * @param dependencies - The client dependencies
-   * @param dependencies.blockchainService - Service to interact with the blockchain
-   * @param dependencies.apiService - Service to call the gateway API
-   * @param dependencies.config - Configuration with gateway URL and contract address
+   * @ignore
+   * Creates an instance of {@link HandleClient}.
+   *
+   * @param dependencies The client dependencies
+   * @param dependencies.blockchainService Service to interact with the blockchain
+   * @param dependencies.apiService Service to call the gateway API
+   * @param dependencies.config Configuration with gateway URL and contract address
    */
   constructor({
     blockchainService,
@@ -48,10 +50,10 @@ export class HandleClient {
   /**
    * Encrypts a value and returns a handle for use in smart contracts.
    *
-   * @param value - The value to encrypt (boolean, string, or bigint)
-   * @param solidityType - The Solidity type of the value
-   * @param applicationContract - The address of the contract allowed to use the input
-   * @returns Handle and handleProof for smart contract usage
+   * @param value The value to encrypt (boolean, string, or bigint)
+   * @param solidityType The {@link SolidityType} of the value
+   * @param applicationContract The address of the contract allowed to use the input
+   * @returns {@link Handle} and handleProof for smart contract usage
    *
    * @example
    * ```ts
@@ -86,9 +88,10 @@ export class HandleClient {
   /**
    * Request the original value associated with a handle.
    *
-   * @param handle - The handle representing the encrypted value
-   * @returns The decrypted value and its Solidity type
+   * @param handle The handle representing the encrypted value
+   * @returns The decrypted value and its {@link SolidityType}
    *
+   * @remarks
    * The decryption key is shared with the connected wallet address via public key encryption.
    * To request decryption, the connected wallet must be allowed to view the data and provide an EIP712 DataAccessAuthorization signature.
    *

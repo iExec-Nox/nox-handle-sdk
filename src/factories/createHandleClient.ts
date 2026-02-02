@@ -17,16 +17,17 @@ import type { HandleClientConfig } from '../client/HandleClient.js';
 export type BlockchainClient = EthersClient | ViemClient;
 
 /**
- * Creates a HandleClient from a client of either ethers or viem
+ * Creates a {@link HandleClient} from a client of either ethers or viem
  *
- * @param blockchainClient - An ethers client with a Signer and a Provider or a viem WalletClient connected to an account
- * @param config - Optional partial config to override network defaults
- * @returns A Promise of HandleClient instance
+ * @param blockchainClient An ethers client with a Signer and a Provider or a viem WalletClient connected to an account
+ * @param config Optional partial {@link HandleClientConfig} to override network defaults
+ * @returns A Promise of {@link HandleClient} instance
  * @throws {TypeError} if the provided blockchainClient is invalid
  * @throws {Error} if the blockchainClient fails to detect the connected chain or if the chain is not supported and no complete config is provided
- * @warning
- * This function is provided for convenience, you should use `createEthersHandleClient`
- * or `createViemHandleClient` for smaller bundle size.
+ *
+ * @remarks
+ * This function is provided for convenience, you should use {@link createEthersHandleClient}
+ * or {@link createViemHandleClient} for smaller bundle size.
  *
  * @example
  * ```ts
