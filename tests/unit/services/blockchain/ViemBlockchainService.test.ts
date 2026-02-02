@@ -272,7 +272,7 @@ describe('ViemBlockchainService', () => {
       expect((ViemBlockchainService as any).viemModule).toBeNull();
     });
 
-    it.only('should load viem module on first readContract call', async () => {
+    it('should load viem module on first readContract call', async () => {
       const service = new ViemBlockchainService(
         createWalletClient({
           transport: custom(mockProvider),
