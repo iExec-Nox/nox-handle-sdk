@@ -92,6 +92,8 @@ The SDK provides a unified `HandleClient` that abstracts blockchain interactions
 
 ## Core API
 
+[Full API Documentation](doc/README.md).
+
 ### encryptInput
 
 Encrypts a value and returns a handle for use in smart contracts.

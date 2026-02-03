@@ -8,16 +8,16 @@ import {
 import type { HandleClientConfig } from '../client/HandleClient.js';
 
 /**
- * Creates a HandleClient from an ethers signer provider
+ * Creates a {@link HandleClient} from an ethers signer provider
  *
- * @param ethersClient - An ethers AbstractSigner instance connected to a Provider or a BrowserProvider instance
- * @param config - Optional partial config to override network defaults
- * @returns A Promise of HandleClient instance
+ * @param ethersClient An ethers AbstractSigner instance connected to a Provider or a BrowserProvider instance
+ * @param config Optional partial {@link HandleClientConfig} to override network defaults
+ * @returns A Promise of {@link HandleClient} instance
  * @throws {TypeError} if the provided signer is invalid
  * @throws {Error} if the ethersClient fails to detect the connected chain or if the chain is not supported and no complete config is provided
  *
  * @example
- * ```
+ * ```ts
  * // BrowserProvider
  * import { BrowserProvider } from 'ethers';
  * import { createEthersHandleClient } from '@iexec-nox/handle';
@@ -28,7 +28,7 @@ import type { HandleClientConfig } from '../client/HandleClient.js';
  * ```
  *
  * @example
- * ```
+ * ```ts
  * // Ethers Wallet
  * import { JsonRpcProvider, Wallet } from 'ethers';
  * import { createEthersHandleClient } from '@iexec-nox/handle';

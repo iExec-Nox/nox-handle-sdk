@@ -17,9 +17,10 @@
     "dist"
   ],
   "scripts": {
-    "build": "npm run clean && npm run build:cjs && npm run build:esm && node scripts/postbuild.js",
+    "build": "npm run clean && npm run build:cjs && npm run build:esm && node scripts/postbuild.js && npm run build:doc",
     "build:cjs": "tsc --project tsconfig.cjs.json",
     "build:esm": "tsc --project tsconfig.esm.json",
+    "build:doc": "rm -rf doc/ && typedoc --tsconfig tsconfig.doc.json",
     "build:watch": "npm run build:cjs:watch & npm run build:esm:watch",
     "build:cjs:watch": "tsc --project tsconfig.cjs.json --watch",
     "build:esm:watch": "tsc --project tsconfig.esm.json --watch",
@@ -69,6 +70,8 @@
     "eslint-plugin-unicorn": "^62.0.0",
     "ethers": "^6.16.0",
     "prettier": "^3.7.4",
+    "typedoc": "^0.28.16",
+    "typedoc-plugin-markdown": "^4.9.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.52.0",
     "viem": "^2.43.5",
