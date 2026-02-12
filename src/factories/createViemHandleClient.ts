@@ -4,6 +4,7 @@ import { resolveNetworkConfig } from '../config/networks.js';
 import { ApiService } from '../services/api/ApiService.js';
 import { ViemBlockchainService } from '../services/blockchain/ViemBlockchainService.js';
 import type { HandleClientConfig } from '../client/HandleClient.js';
+import type { SmartAccount } from 'viem/account-abstraction';
 
 /**
  * Creates a {@link HandleClient} from a viem WalletClient
@@ -45,7 +46,7 @@ import type { HandleClientConfig } from '../client/HandleClient.js';
  * ```
  */
 export const createViemHandleClient = async (
-  viemClient: WalletClient,
+  viemClient: WalletClient | SmartAccount,
   config?: Partial<HandleClientConfig>
 ): Promise<HandleClient> => {
   const viemBlockchainService = new ViemBlockchainService(viemClient);

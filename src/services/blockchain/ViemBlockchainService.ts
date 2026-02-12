@@ -9,9 +9,10 @@ import type {
   AbiReadFunctionJsonFragment,
 } from './abi.types.js';
 import { safeJsonStringify } from '../../utils/format.js';
+import type { SmartAccount } from 'viem/account-abstraction';
 
 export type ViemClient = WalletClient;
-
+export type ViemSmartAccount = SmartAccount;
 /**
  * Type guard to check if a client is a viem WalletClient connected to an account
  *
@@ -29,6 +30,23 @@ export function isViemWalletClient(object: unknown): object is ViemClient {
 }
 
 /**
+ * Type guard to check if a client is a viem SmartAccount (ERC-4337)
+ */
+export function isSmartAccount(object: unknown): object is SmartAccount {
+  return (
+    !!object &&
+    typeof object === 'object' &&
+    'type' in object &&
+    object.type === 'smart' &&
+    'getAddress' in object &&
+    typeof object.getAddress === 'function' &&
+    'signTypedData' in object &&
+    typeof object.signTypedData === 'function' &&
+    'client' in object &&
+    !!object.client
+  );
+}
+/**
  * Implements IBlockchainService using viem library.
  */
 export class ViemBlockchainService implements IBlockchainService {
@@ -41,16 +59,20 @@ export class ViemBlockchainService implements IBlockchainService {
   }
 
   private readonly viemClient: WalletClient;
-
+  private readonly smartAccount: SmartAccount | undefined = undefined;
   /**
    * Creates an instance of ViemBlockchainService.
    * @param client - A viem WalletClient instance connected to an account
    * @returns A ViemBlockchainService instance
    * @throws {TypeError} if the provided client is invalid
    */
-  constructor(client: ViemClient) {
-    if (isViemWalletClient(client)) {
+  constructor(client: ViemClient | SmartAccount) {
+    if (isSmartAccount(client)) {
+      this.smartAccount = client;
+      this.viemClient = client.client as WalletClient;
+    } else if (isViemWalletClient(client)) {
       this.viemClient = client;
+      this.smartAccount = undefined;
     } else {
       throw new TypeError(
         'Unsupported client. Expected a viem WalletClient instance connected to an account.'
@@ -60,6 +82,9 @@ export class ViemBlockchainService implements IBlockchainService {
 
   async getChainId(): Promise<number> {
     try {
+      if (this.smartAccount?.client?.chain?.id) {
+        return this.smartAccount.client.chain.id;
+      }
       const chainId = await this.viemClient.getChainId();
       return chainId;
     } catch (error) {
@@ -69,6 +94,9 @@ export class ViemBlockchainService implements IBlockchainService {
 
   async getAddress(): Promise<EthereumAddress> {
     try {
+      if (this.smartAccount) {
+        return await this.smartAccount.getAddress();
+      }
       const addresses = await this.viemClient.getAddresses();
       const address = addresses[0];
       if (!address) {
@@ -87,7 +115,12 @@ export class ViemBlockchainService implements IBlockchainService {
   ): Promise<AbiFragmentTypes<T, 'outputs'>> {
     try {
       const { publicActions } = await ViemBlockchainService.getViemModule();
-      const publicClient = this.viemClient.extend(publicActions);
+
+      // Use the underlying client for SmartAccount
+      const clientToExtend = this.smartAccount?.client ?? this.viemClient;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const publicClient = (clientToExtend as any).extend(publicActions);
+
       return (await publicClient.readContract({
         address: contractAddress,
         abi: [abiFunctionFragment],
@@ -106,6 +139,18 @@ export class ViemBlockchainService implements IBlockchainService {
 
   async signTypedData(data: EIP712TypedData): Promise<HexString> {
     try {
+      // SmartAccount has its own signTypedData
+      if (this.smartAccount) {
+        const signature = await this.smartAccount.signTypedData({
+          domain: data.domain,
+          types: data.types,
+          primaryType: data.primaryType,
+          message: data.message,
+        });
+        return signature as HexString;
+      }
+
+      // WalletClient needs account address
       const address = await this.getAddress();
       const signature = await this.viemClient.signTypedData({
         account: address,
