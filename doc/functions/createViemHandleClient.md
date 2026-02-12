@@ -16,6 +16,8 @@ Creates a [HandleClient](../interfaces/HandleClient.md) from a viem WalletClient
 
 A viem WalletClient instance connected to an account
 
+`SmartAccount` | \{ \}
+
 ### config?
 
 `Partial`\<[`HandleClientConfig`](../interfaces/HandleClientConfig.md)\>

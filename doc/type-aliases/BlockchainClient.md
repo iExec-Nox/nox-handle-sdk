@@ -6,4 +6,4 @@
 
 # Type Alias: BlockchainClient
 
-> **BlockchainClient** = [`EthersClient`](EthersClient.md) \| [`ViemClient`](ViemClient.md)
+> **BlockchainClient** = [`EthersClient`](EthersClient.md) \| [`ViemClient`](ViemClient.md) \| `SmartAccount`

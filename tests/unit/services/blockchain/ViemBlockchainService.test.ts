@@ -52,7 +52,10 @@ describe('isSmartAccount', () => {
   });
 
   it('should return false for WalletClient', () => {
-    const mockProvider = createMockEIP1193Provider(421614, '0x' + 'ab'.repeat(32));
+    const mockProvider = createMockEIP1193Provider(
+      421614,
+      '0x' + 'ab'.repeat(32)
+    );
     const walletClient = createWalletClient({
       transport: custom(mockProvider),
     });
