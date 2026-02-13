@@ -8,6 +8,12 @@ export interface AbiReadFunctionJsonFragment extends AbiFunctionJsonFragment {
 }
 
 /**
+ * A write-only function fragment in a JSON ABI format (nonpayable or payable)
+ */
+export interface AbiWriteFunctionJsonFragment extends AbiFunctionJsonFragment {
+  readonly stateMutability: 'nonpayable' | 'payable';
+}
+/**
  *  A fragment for a method in a JSON ABI format
  */
 interface AbiFunctionJsonFragment {

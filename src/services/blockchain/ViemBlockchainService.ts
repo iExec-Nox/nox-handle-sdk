@@ -1,4 +1,4 @@
-import type { WalletClient } from 'viem';
+import type { WalletClient, WriteContractReturnType } from 'viem';
 import type {
   EIP712TypedData,
   IBlockchainService,
@@ -7,6 +7,7 @@ import type { EthereumAddress, HexString } from '../../types/internalTypes.js';
 import type {
   AbiFragmentTypes,
   AbiReadFunctionJsonFragment,
+  AbiWriteFunctionJsonFragment,
 } from './abi.types.js';
 import { safeJsonStringify } from '../../utils/format.js';
 
@@ -100,6 +101,30 @@ export class ViemBlockchainService implements IBlockchainService {
         {
           cause: error,
         }
+      );
+    }
+  }
+
+  async writeContract<T extends AbiWriteFunctionJsonFragment>(
+    contractAddress: EthereumAddress,
+    abiFunctionFragment: T,
+    parameters: AbiFragmentTypes<T, 'inputs'>
+  ): Promise<WriteContractReturnType> {
+    try {
+      const { publicActions } = await ViemBlockchainService.getViemModule();
+      const publicClient = this.viemClient.extend(publicActions);
+      const { request } = await publicClient.simulateContract({
+        account: this.viemClient.account,
+        address: contractAddress,
+        abi: [abiFunctionFragment],
+        functionName: abiFunctionFragment.name,
+        args: parameters,
+      });
+      return await publicClient.writeContract(request);
+    } catch (error) {
+      throw new Error(
+        `Failed to write contract at ${contractAddress} (method: ${abiFunctionFragment.name}, parameters: ${safeJsonStringify(parameters)})`,
+        { cause: error }
       );
     }
   }

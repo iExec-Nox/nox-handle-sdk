@@ -6,8 +6,10 @@ import { ViemBlockchainService } from '../../../../src/services/blockchain/ViemB
 import {
   SUPPORTED_CHAIN_ID,
   TEST_ADDRESS,
+  TEST_CONTRACT_ADDRESS,
   TEST_EIP712_TYPED_DATA,
   TEST_PRIVATE_KEY,
+  TEST_TX_HASH,
 } from '../../../helpers/testData.js';
 
 describe('ViemBlockchainService', () => {
@@ -213,6 +215,205 @@ describe('ViemBlockchainService', () => {
           expect(typeof result).toBe('object');
           expect(typeof result.value1).toBe('bigint');
           expect(typeof result.value2).toBe('bigint');
+        });
+      });
+
+      describe('writeContract', () => {
+        const WRITE_ABI = {
+          singleParam: {
+            name: 'setValue',
+            type: 'function',
+            stateMutability: 'nonpayable',
+            inputs: [
+              { name: 'value', type: 'uint256', internalType: 'uint256' },
+            ],
+            outputs: [],
+          } as const,
+          multiParams: {
+            name: 'setValues',
+            type: 'function',
+            stateMutability: 'nonpayable',
+            inputs: [
+              { name: 'id', type: 'uint256', internalType: 'uint256' },
+              { name: 'name', type: 'string', internalType: 'string' },
+              { name: 'owner', type: 'address', internalType: 'address' },
+            ],
+            outputs: [],
+          } as const,
+          noParams: {
+            name: 'reset',
+            type: 'function',
+            stateMutability: 'nonpayable',
+            inputs: [],
+            outputs: [],
+          } as const,
+          payable: {
+            name: 'deposit',
+            type: 'function',
+            stateMutability: 'payable',
+            inputs: [],
+            outputs: [],
+          } as const,
+        };
+
+        /** Helper to create a Viem service with mock provider */
+        function createViemTestService(options?: {
+          txHash?: string;
+          simulateError?: Error;
+          sendTxError?: Error;
+        }) {
+          const mockProvider = createMockEIP1193Provider(
+            SUPPORTED_CHAIN_ID,
+            TEST_PRIVATE_KEY,
+            options
+          );
+          const client = createWalletClient({
+            account: privateKeyToAccount(TEST_PRIVATE_KEY),
+            transport: custom(mockProvider),
+          });
+          return {
+            service: new ViemBlockchainService(client),
+            mockProvider,
+          };
+        }
+
+        describe('successful write operations', () => {
+          it('should return transaction hash on successful write', async () => {
+            const { service } = createViemTestService({ txHash: TEST_TX_HASH });
+
+            const result = await service.writeContract(
+              TEST_CONTRACT_ADDRESS,
+              WRITE_ABI.singleParam,
+              [1000n]
+            );
+
+            expect(result).toBe(TEST_TX_HASH);
+          });
+
+          it('should handle multiple parameters correctly', async () => {
+            const { service } = createViemTestService({ txHash: TEST_TX_HASH });
+
+            const result = await service.writeContract(
+              TEST_CONTRACT_ADDRESS,
+              WRITE_ABI.multiParams,
+              [123n, 'test-name', TEST_CONTRACT_ADDRESS]
+            );
+
+            expect(result).toBe(TEST_TX_HASH);
+          });
+
+          it('should call eth_call for simulation before sending transaction', async () => {
+            const { service, mockProvider } = createViemTestService();
+
+            await service.writeContract(
+              TEST_CONTRACT_ADDRESS,
+              WRITE_ABI.singleParam,
+              [1000n]
+            );
+
+            expect(mockProvider.mocks.call).toHaveBeenCalledWith(
+              expect.objectContaining({
+                data: '0x5524107700000000000000000000000000000000000000000000000000000000000003e8',
+                from: TEST_ADDRESS,
+                to: TEST_CONTRACT_ADDRESS,
+              })
+            );
+          });
+
+          it('should handle empty parameters array', async () => {
+            const { service } = createViemTestService({ txHash: TEST_TX_HASH });
+
+            const result = await service.writeContract(
+              TEST_CONTRACT_ADDRESS,
+              WRITE_ABI.noParams,
+              []
+            );
+
+            expect(result).toBe(TEST_TX_HASH);
+          });
+
+          it('should handle payable function', async () => {
+            const { service } = createViemTestService({ txHash: TEST_TX_HASH });
+
+            const result = await service.writeContract(
+              TEST_CONTRACT_ADDRESS,
+              WRITE_ABI.payable,
+              []
+            );
+
+            expect(result).toBe(TEST_TX_HASH);
+          });
+        });
+
+        describe('error handling', () => {
+          it('should throw wrapped error when simulation fails', async () => {
+            const { service } = createViemTestService({
+              simulateError: new Error('Execution reverted'),
+            });
+
+            await expect(
+              service.writeContract(
+                TEST_CONTRACT_ADDRESS,
+                WRITE_ABI.singleParam,
+                [1000n]
+              )
+            ).rejects.toThrow(
+              `Failed to write contract at ${TEST_CONTRACT_ADDRESS} (method: setValue, parameters: ["1000"])`
+            );
+          });
+
+          it('should throw wrapped error when transaction send fails', async () => {
+            const { service } = createViemTestService({
+              sendTxError: new Error('User rejected transaction'),
+            });
+
+            await expect(
+              service.writeContract(
+                TEST_CONTRACT_ADDRESS,
+                WRITE_ABI.singleParam,
+                [1000n]
+              )
+            ).rejects.toThrow('Failed to write contract');
+          });
+
+          it('should include contract address and method name in error message', async () => {
+            const { service } = createViemTestService({
+              simulateError: new Error('Contract error'),
+            });
+
+            try {
+              await service.writeContract(
+                TEST_CONTRACT_ADDRESS,
+                WRITE_ABI.singleParam,
+                [42n]
+              );
+              expect.fail('Should have thrown');
+            } catch (error) {
+              expect(error).toBeInstanceOf(Error);
+              const errorMessage = (error as Error).message;
+              expect(errorMessage).toContain(TEST_CONTRACT_ADDRESS);
+              expect(errorMessage).toContain('setValue');
+              expect(errorMessage).toContain('42');
+            }
+          });
+
+          it('should preserve original error as cause', async () => {
+            const { service } = createViemTestService({
+              simulateError: new Error('Original blockchain error'),
+            });
+
+            try {
+              await service.writeContract(
+                TEST_CONTRACT_ADDRESS,
+                WRITE_ABI.singleParam,
+                [1000n]
+              );
+              expect.fail('Should have thrown');
+            } catch (error) {
+              expect(error).toBeInstanceOf(Error);
+              expect((error as Error).cause).toBeDefined();
+            }
+          });
         });
       });
     });

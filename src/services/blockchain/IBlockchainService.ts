@@ -2,6 +2,7 @@ import type { EthereumAddress, HexString } from '../../types/internalTypes.js';
 import type {
   AbiFragmentTypes,
   AbiReadFunctionJsonFragment,
+  AbiWriteFunctionJsonFragment,
 } from './abi.types.js';
 
 /**
@@ -23,6 +24,11 @@ export interface IBlockchainService {
     parameters: AbiFragmentTypes<T, 'inputs'>
   ): Promise<AbiFragmentTypes<T, 'outputs'>>;
   signTypedData(data: EIP712TypedData): Promise<HexString>;
+  writeContract<T extends AbiWriteFunctionJsonFragment>(
+    contractAddress: EthereumAddress,
+    abiFunctionFragment: T,
+    parameters: AbiFragmentTypes<T, 'inputs'>
+  ): Promise<`0x${string}`>;
 }
 
 /**

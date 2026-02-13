@@ -8,8 +8,10 @@ import { EthersBlockchainService } from '../../../../src/services/blockchain/Eth
 import {
   SUPPORTED_CHAIN_ID,
   TEST_ADDRESS,
+  TEST_CONTRACT_ADDRESS,
   TEST_EIP712_TYPED_DATA,
   TEST_PRIVATE_KEY,
+  TEST_TX_HASH,
 } from '../../../helpers/testData.js';
 
 describe('EthersBlockchainService', () => {
@@ -213,6 +215,111 @@ describe('EthersBlockchainService', () => {
       });
     });
   }
+
+  describe('writeContract', () => {
+    const WRITE_ABI = {
+      singleParam: {
+        name: 'setValue',
+        type: 'function',
+        stateMutability: 'nonpayable',
+        inputs: [{ name: 'value', type: 'uint256', internalType: 'uint256' }],
+        outputs: [],
+      } as const,
+      multiParams: {
+        name: 'setValues',
+        type: 'function',
+        stateMutability: 'nonpayable',
+        inputs: [
+          { name: 'id', type: 'uint256', internalType: 'uint256' },
+          { name: 'name', type: 'string', internalType: 'string' },
+          { name: 'owner', type: 'address', internalType: 'address' },
+        ],
+        outputs: [],
+      } as const,
+      noParams: {
+        name: 'reset',
+        type: 'function',
+        stateMutability: 'nonpayable',
+        inputs: [],
+        outputs: [],
+      } as const,
+      payable: {
+        name: 'deposit',
+        type: 'function',
+        stateMutability: 'payable',
+        inputs: [],
+        outputs: [],
+      } as const,
+    };
+
+    describe('error handling', () => {
+      it('should throw wrapped error when transaction fails', async () => {
+        const mockEIP1193 = createMockEIP1193Provider(
+          SUPPORTED_CHAIN_ID,
+          TEST_PRIVATE_KEY,
+          { sendTxError: new Error('User rejected transaction') }
+        );
+        const service = new EthersBlockchainService(
+          new BrowserProvider(mockEIP1193)
+        );
+
+        await expect(
+          service.writeContract(TEST_CONTRACT_ADDRESS, WRITE_ABI.singleParam, [
+            1000n,
+          ])
+        ).rejects.toThrow('Failed to write contract');
+      });
+
+      it('should include contract address and method name in error message', async () => {
+        const mockEIP1193 = createMockEIP1193Provider(
+          SUPPORTED_CHAIN_ID,
+          TEST_PRIVATE_KEY,
+          { sendTxError: new Error('Contract error') }
+        );
+        const service = new EthersBlockchainService(
+          new BrowserProvider(mockEIP1193)
+        );
+
+        try {
+          await service.writeContract(
+            TEST_CONTRACT_ADDRESS,
+            WRITE_ABI.singleParam,
+            [42n]
+          );
+          expect.fail('Should have thrown');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          const errorMessage = (error as Error).message;
+          expect(errorMessage).toContain(TEST_CONTRACT_ADDRESS);
+          expect(errorMessage).toContain('setValue');
+          expect(errorMessage).toContain('42');
+        }
+      });
+
+      it('should preserve original error as cause', async () => {
+        const mockEIP1193 = createMockEIP1193Provider(
+          SUPPORTED_CHAIN_ID,
+          TEST_PRIVATE_KEY,
+          { sendTxError: new Error('Original error') }
+        );
+        const service = new EthersBlockchainService(
+          new BrowserProvider(mockEIP1193)
+        );
+
+        try {
+          await service.writeContract(
+            TEST_CONTRACT_ADDRESS,
+            WRITE_ABI.singleParam,
+            [1000n]
+          );
+          expect.fail('Should have thrown');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).cause).toBeDefined();
+        }
+      });
+    });
+  });
 
   describe('lazy ethers loading (getEthersModule)', () => {
     const mockProvider = createMockProvider(SUPPORTED_CHAIN_ID);

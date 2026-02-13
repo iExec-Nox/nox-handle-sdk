@@ -233,3 +233,15 @@ export const TEST_EIP712_TYPED_DATA: EIP712TypedData = {
     wallet: '0x1234567890123456789012345678901234567890',
   },
 };
+
+/**
+ * Test contract address for testing purposes
+ */
+export const TEST_CONTRACT_ADDRESS =
+  '0x1234567890123456789012345678901234567890';
+
+/**
+ * Test transaction hash for testing purposes
+ */
+export const TEST_TX_HASH =
+  '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';

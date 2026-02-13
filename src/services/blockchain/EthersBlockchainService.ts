@@ -6,6 +6,7 @@ import type {
 import type {
   AbiFragmentTypes,
   AbiReadFunctionJsonFragment,
+  AbiWriteFunctionJsonFragment,
 } from './abi.types.js';
 import type { EthereumAddress, HexString } from '../../types/internalTypes.js';
 import { safeJsonStringify } from '../../utils/format.js';
@@ -180,6 +181,30 @@ export class EthersBlockchainService implements IBlockchainService {
         {
           cause: error,
         }
+      );
+    }
+  }
+
+  async writeContract<T extends AbiWriteFunctionJsonFragment>(
+    contractAddress: EthereumAddress,
+    abiFunctionFragment: T,
+    parameters: AbiFragmentTypes<T, 'inputs'>
+  ): Promise<`0x${string}`> {
+    try {
+      const signer = await this.adapter.getSigner();
+      const { Contract } = await EthersBlockchainService.getEthersModule();
+      const contract = new Contract(
+        contractAddress,
+        [abiFunctionFragment],
+        signer
+      );
+      const method = contract[abiFunctionFragment.name];
+      const tx = await method!(...parameters);
+      return tx.hash as `0x${string}`;
+    } catch (error) {
+      throw new Error(
+        `Failed to write contract at ${contractAddress} (method: ${abiFunctionFragment.name}, parameters: ${safeJsonStringify(parameters)})`,
+        { cause: error }
       );
     }
   }

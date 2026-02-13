@@ -39,7 +39,13 @@ type EIP1193Provider = EthersEip1193Provider & ViemEIP1193Provider;
  */
 export function createMockEIP1193Provider(
   chainId: number,
-  privateKey: string
+  privateKey: string,
+  options?: {
+    simulateResult?: string;
+    txHash?: string;
+    simulateError?: Error;
+    sendTxError?: Error;
+  }
 ): EIP1193Provider & MockProvider {
   const wallet = new Wallet(privateKey);
   const callMock = vi.fn().mockResolvedValue('0x');
@@ -62,7 +68,41 @@ export function createMockEIP1193Provider(
         );
       }
       if (method === 'eth_call') {
-        return await callMock(params![0]);
+        if (options?.simulateError) {
+          throw new Error('Simulation error');
+        }
+        return callMock(params![0]);
+      }
+      if (method === 'eth_estimateGas') {
+        return '0x5208'; // 21000 in hex
+      }
+      if (method === 'eth_getTransactionCount') {
+        return '0x0';
+      }
+      if (method === 'eth_gasPrice') {
+        return '0x3b9aca00'; // 1 gwei
+      }
+      if (method === 'eth_maxPriorityFeePerGas') {
+        return '0x3b9aca00'; // 1 gwei
+      }
+      if (method === 'eth_getBlockByNumber') {
+        return {
+          baseFeePerGas: '0x3b9aca00',
+          number: '0x1',
+          timestamp: '0x60000000',
+        };
+      }
+      if (
+        method === 'eth_sendTransaction' ||
+        method === 'eth_sendRawTransaction'
+      ) {
+        if (options?.sendTxError) {
+          throw new Error('Transaction send error');
+        }
+        return (
+          options?.txHash ??
+          '0x0000000000000000000000000000000000000000000000000000000000000000'
+        );
       }
       throw new Error(
         `Unsupported method: ${method} called with params: ${JSON.stringify(params)}`
