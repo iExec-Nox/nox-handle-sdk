@@ -11,7 +11,6 @@ import {
   TEST_CONTRACT_ADDRESS,
   TEST_EIP712_TYPED_DATA,
   TEST_PRIVATE_KEY,
-  TEST_TX_HASH,
 } from '../../../helpers/testData.js';
 
 describe('EthersBlockchainService', () => {

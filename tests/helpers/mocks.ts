@@ -41,7 +41,6 @@ export function createMockEIP1193Provider(
   chainId: number,
   privateKey: string,
   options?: {
-    simulateResult?: string;
     txHash?: string;
     simulateError?: Error;
     sendTxError?: Error;
@@ -61,15 +60,11 @@ export function createMockEIP1193Provider(
         const typedData = JSON.parse(params![1] as string) as EIP712TypedData;
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { EIP712Domain, ...types } = typedData.types; // Exclude EIP712Domain not needed for ethers
-        return await wallet.signTypedData(
-          typedData.domain,
-          types,
-          typedData.message
-        );
+        return wallet.signTypedData(typedData.domain, types, typedData.message);
       }
       if (method === 'eth_call') {
         if (options?.simulateError) {
-          throw new Error('Simulation error');
+          throw options.simulateError;
         }
         return callMock(params![0]);
       }
@@ -97,7 +92,7 @@ export function createMockEIP1193Provider(
         method === 'eth_sendRawTransaction'
       ) {
         if (options?.sendTxError) {
-          throw new Error('Transaction send error');
+          throw options.sendTxError;
         }
         return (
           options?.txHash ??
