@@ -60,7 +60,7 @@ export async function decrypt<T extends SolidityType>({
   );
   if (!isViewer) {
     throw new Error(
-      `User (${userAddress}) is not authorized to decrypt the handle`
+      `Handle (${handle}) does not exist or user (${userAddress}) is not authorized to decrypt it`
     );
   }
 
