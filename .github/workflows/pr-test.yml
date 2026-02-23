@@ -49,3 +49,8 @@ jobs:
 
       - name: Run tests
         run: npm run test:run
+
+  npm-dry-run:
+    uses: ./.github/workflows/reusable-npm.yml
+    with:
+      dry-run: true
