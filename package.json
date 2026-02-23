@@ -14,7 +14,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "scripts": {
     "build": "npm run clean && npm run build:cjs && npm run build:esm && node scripts/postbuild.js && npm run build:doc",
