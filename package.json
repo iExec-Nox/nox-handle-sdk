@@ -42,7 +42,7 @@
     "url": "git+https://github.com/iExecBlockchainComputing/iExec-Nox/nox-handle-sdk.git"
   },
   "author": "iExec",
-  "license": "",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/iExecBlockchainComputing/iExec-Nox/nox-handle-sdk/issues"
   },
