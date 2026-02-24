@@ -1,1 +1,7 @@
+# generated files
+
+# typedoc
 doc
+# release-please
+CHANGELOG.md
+.release-please-manifest.json
