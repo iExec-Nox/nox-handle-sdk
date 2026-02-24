@@ -164,7 +164,7 @@ describe('decrypt', () => {
         })
       ).rejects.toThrow(
         new Error(
-          `User (${TEST_ADDRESS}) is not authorized to decrypt the handle`
+          `Handle (${DUMMY_TYPED_HANDLES.bool}) does not exist or user (${TEST_ADDRESS}) is not authorized to decrypt it`
         )
       );
       expect(signTypedDataSpy).not.toHaveBeenCalled();
