@@ -8,8 +8,8 @@ import {
   type EthersClient,
 } from '../services/blockchain/EthersBlockchainService.js';
 import {
-  isSmartAccount,
   isViemWalletClient,
+  isViemSmartAccount,
   ViemBlockchainService,
   type ViemClient,
 } from '../services/blockchain/ViemBlockchainService.js';
@@ -78,7 +78,7 @@ export const createHandleClient = async (
 
   if (
     isViemWalletClient(blockchainClient) ||
-    isSmartAccount(blockchainClient)
+    isViemSmartAccount(blockchainClient)
   ) {
     const viemBlockchainService = new ViemBlockchainService(blockchainClient);
     const chainId = await viemBlockchainService.getChainId();

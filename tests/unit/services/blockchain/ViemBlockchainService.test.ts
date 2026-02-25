@@ -4,7 +4,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { createMockEIP1193Provider } from '../../../helpers/mocks.js';
 import {
   ViemBlockchainService,
-  isSmartAccount,
+  isViemSmartAccount,
 } from '../../../../src/services/blockchain/ViemBlockchainService.js';
 import {
   SUPPORTED_CHAIN_ID,
@@ -13,7 +13,7 @@ import {
   TEST_PRIVATE_KEY,
 } from '../../../helpers/testData.js';
 
-describe('isSmartAccount', () => {
+describe('isViemSmartAccount', () => {
   it('should return true for valid SmartAccount', () => {
     const mockSmartAccount = {
       type: 'smart',
@@ -21,15 +21,15 @@ describe('isSmartAccount', () => {
       signTypedData: vi.fn(),
       client: {},
     };
-    expect(isSmartAccount(mockSmartAccount)).toBe(true);
+    expect(isViemSmartAccount(mockSmartAccount)).toBe(true);
   });
 
   it('should return false for null', () => {
-    expect(isSmartAccount(null)).toBe(false);
+    expect(isViemSmartAccount(null)).toBe(false);
   });
 
   it('should return false for undefined', () => {
-    expect(isSmartAccount(undefined)).toBe(false);
+    expect(isViemSmartAccount(undefined)).toBe(false);
   });
 
   it('should return false for object without type: "smart"', () => {
@@ -39,7 +39,7 @@ describe('isSmartAccount', () => {
       signTypedData: vi.fn(),
       client: {},
     };
-    expect(isSmartAccount(account)).toBe(false);
+    expect(isViemSmartAccount(account)).toBe(false);
   });
 
   it('should return false for object without client', () => {
@@ -48,7 +48,7 @@ describe('isSmartAccount', () => {
       getAddress: vi.fn(),
       signTypedData: vi.fn(),
     };
-    expect(isSmartAccount(account)).toBe(false);
+    expect(isViemSmartAccount(account)).toBe(false);
   });
 
   it('should return false for WalletClient', () => {
@@ -59,7 +59,7 @@ describe('isSmartAccount', () => {
     const walletClient = createWalletClient({
       transport: custom(mockProvider),
     });
-    expect(isSmartAccount(walletClient)).toBe(false);
+    expect(isViemSmartAccount(walletClient)).toBe(false);
   });
 });
 

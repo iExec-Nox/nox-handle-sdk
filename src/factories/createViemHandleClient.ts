@@ -9,7 +9,7 @@ import type { SmartAccount } from 'viem/account-abstraction';
 /**
  * Creates a {@link HandleClient} from a viem WalletClient
  *
- * @param viemClient A viem WalletClient instance connected to an account
+ * @param viemClient A viem WalletClient instance connected to an account  or a viem SmartAccount instance
  * @param config Optional partial {@link HandleClientConfig} to override network defaults
  * @returns A Promise of {@link HandleClient} instance
  * @throws {TypeError} if the provided viemClient is invalid

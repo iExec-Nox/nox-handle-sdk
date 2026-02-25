@@ -1,4 +1,4 @@
-import type { WalletClient } from 'viem';
+import type { Client, WalletClient } from 'viem';
 import type {
   EIP712TypedData,
   IBlockchainService,
@@ -11,28 +11,79 @@ import type {
 import { safeJsonStringify } from '../../utils/format.js';
 import type { SmartAccount } from 'viem/account-abstraction';
 
-export type ViemClient = WalletClient;
-export type ViemSmartAccount = SmartAccount;
+export type ViemClient = WalletClient | SmartAccount;
+
+/**
+ * Internal adapter interface for viem clients
+ */
+interface ViemAdapter {
+  getClient(): Promise<Client>;
+  getChainId(): Promise<number>;
+  getAddress(): Promise<EthereumAddress>;
+  signTypedData(data: EIP712TypedData): Promise<HexString>;
+}
+
 /**
  * Type guard to check if a client is a viem WalletClient connected to an account
  *
- * @dev ⚠️ Update this function to match ViemBlockchainService requirements changes
+ * @dev ⚠️ Update this function to match WalletClientAdapter requirements changes
  */
-export function isViemWalletClient(object: unknown): object is ViemClient {
+export function isViemWalletClient(object: unknown): object is WalletClient {
   return (
     !!object &&
     typeof object === 'object' &&
     'getChainId' in object &&
     typeof object.getChainId === 'function' &&
     'getAddresses' in object &&
-    typeof object.getAddresses === 'function'
+    typeof object.getAddresses === 'function' &&
+    'signTypedData' in object &&
+    typeof object.signTypedData === 'function'
   );
 }
 
 /**
- * Type guard to check if a client is a viem SmartAccount (ERC-4337)
+ * Adapter for viem WalletClient
+ *
+ * @dev ⚠️ Update isViemWalletClient function if this class is modified requiring more duck type checks
  */
-export function isSmartAccount(object: unknown): object is SmartAccount {
+class WalletClientAdapter implements ViemAdapter {
+  private readonly walletClient: WalletClient;
+
+  constructor(walletClient: WalletClient) {
+    this.walletClient = walletClient;
+  }
+
+  async getClient(): Promise<Client> {
+    return this.walletClient;
+  }
+
+  async getChainId(): Promise<number> {
+    return this.walletClient.getChainId();
+  }
+
+  async getAddress(): Promise<EthereumAddress> {
+    const addresses = await this.walletClient.getAddresses();
+    const address = addresses[0];
+    if (!address) {
+      throw new Error('No connected account');
+    }
+    return address;
+  }
+
+  async signTypedData(data: EIP712TypedData): Promise<HexString> {
+    return this.walletClient.signTypedData({
+      ...data,
+      account: await this.getAddress(),
+    });
+  }
+}
+
+/**
+ * Type guard to check if a client is a viem SmartAccount (ERC-4337)
+ *
+ * @dev ⚠️ Update this function to match SmartAccountAdapter requirements changes
+ */
+export function isViemSmartAccount(object: unknown): object is SmartAccount {
   return (
     !!object &&
     typeof object === 'object' &&
@@ -46,6 +97,40 @@ export function isSmartAccount(object: unknown): object is SmartAccount {
     !!object.client
   );
 }
+
+/**
+ * Adapter for viem SmartAccount
+ *
+ * @dev ⚠️ Update isSmartAccount function if this class is modified requiring more duck type checks
+ */
+class SmartAccountAdapter implements ViemAdapter {
+  private readonly smartAccount: SmartAccount;
+
+  constructor(smartAccount: SmartAccount) {
+    this.smartAccount = smartAccount;
+  }
+
+  async getClient(): Promise<Client> {
+    return this.smartAccount.client;
+  }
+
+  async getChainId(): Promise<number> {
+    const chainId = this.smartAccount.client.chain?.id;
+    if (chainId === undefined) {
+      throw new Error('SmartAccount client is not connected to a chain');
+    }
+    return chainId;
+  }
+
+  async getAddress(): Promise<EthereumAddress> {
+    return this.smartAccount.getAddress();
+  }
+
+  async signTypedData(data: EIP712TypedData): Promise<HexString> {
+    return this.smartAccount.signTypedData(data);
+  }
+}
+
 /**
  * Implements IBlockchainService using viem library.
  */
@@ -58,21 +143,19 @@ export class ViemBlockchainService implements IBlockchainService {
     return this.viemModule;
   }
 
-  private readonly viemClient: WalletClient;
-  private readonly smartAccount: SmartAccount | undefined = undefined;
+  private readonly adapter: ViemAdapter;
+
   /**
    * Creates an instance of ViemBlockchainService.
-   * @param client - A viem WalletClient instance connected to an account
+   * @param client - A viem WalletClient instance connected to an account or a viem SmartAccount instance
    * @returns A ViemBlockchainService instance
    * @throws {TypeError} if the provided client is invalid
    */
-  constructor(client: ViemClient | SmartAccount) {
-    if (isSmartAccount(client)) {
-      this.smartAccount = client;
-      this.viemClient = client.client as WalletClient;
+  constructor(client: ViemClient) {
+    if (isViemSmartAccount(client)) {
+      this.adapter = new SmartAccountAdapter(client);
     } else if (isViemWalletClient(client)) {
-      this.viemClient = client;
-      this.smartAccount = undefined;
+      this.adapter = new WalletClientAdapter(client);
     } else {
       throw new TypeError(
         'Unsupported client. Expected a viem WalletClient instance connected to an account.'
@@ -82,10 +165,7 @@ export class ViemBlockchainService implements IBlockchainService {
 
   async getChainId(): Promise<number> {
     try {
-      if (this.smartAccount?.client?.chain?.id) {
-        return this.smartAccount.client.chain.id;
-      }
-      const chainId = await this.viemClient.getChainId();
+      const chainId = await this.adapter.getChainId();
       return chainId;
     } catch (error) {
       throw new Error('Failed to get chain ID', { cause: error });
@@ -94,15 +174,7 @@ export class ViemBlockchainService implements IBlockchainService {
 
   async getAddress(): Promise<EthereumAddress> {
     try {
-      if (this.smartAccount) {
-        return await this.smartAccount.getAddress();
-      }
-      const addresses = await this.viemClient.getAddresses();
-      const address = addresses[0];
-      if (!address) {
-        throw new Error('No connected account');
-      }
-      return address;
+      return await this.adapter.getAddress();
     } catch (error) {
       throw new Error('Failed to get address', { cause: error });
     }
@@ -117,7 +189,7 @@ export class ViemBlockchainService implements IBlockchainService {
       const { publicActions } = await ViemBlockchainService.getViemModule();
 
       // Use the underlying client for SmartAccount
-      const clientToExtend = this.smartAccount?.client ?? this.viemClient;
+      const clientToExtend = await this.adapter.getClient();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const publicClient = (clientToExtend as any).extend(publicActions);
 
@@ -139,21 +211,7 @@ export class ViemBlockchainService implements IBlockchainService {
 
   async signTypedData(data: EIP712TypedData): Promise<HexString> {
     try {
-      // SmartAccount has its own signTypedData
-      if (this.smartAccount) {
-        const signature = await this.smartAccount.signTypedData({
-          domain: data.domain,
-          types: data.types,
-          primaryType: data.primaryType,
-          message: data.message,
-        });
-        return signature as HexString;
-      }
-
-      // WalletClient needs account address
-      const address = await this.getAddress();
-      const signature = await this.viemClient.signTypedData({
-        account: address,
+      const signature = await this.adapter.signTypedData({
         domain: data.domain,
         types: data.types,
         primaryType: data.primaryType,
