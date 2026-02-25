@@ -14,7 +14,7 @@ Creates a [HandleClient](../interfaces/HandleClient.md) from a viem WalletClient
 
 ### viemClient
 
-A viem WalletClient instance connected to an account
+A viem WalletClient instance connected to an account  or a viem SmartAccount instance
 
 `SmartAccount` | \{ \}
 
