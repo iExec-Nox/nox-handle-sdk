@@ -8,15 +8,13 @@
 
 > **createViemHandleClient**(`viemClient`, `config?`): `Promise`\<[`HandleClient`](../interfaces/HandleClient.md)\>
 
-Creates a [HandleClient](../interfaces/HandleClient.md) from a viem WalletClient
+Creates a [HandleClient](../interfaces/HandleClient.md) from a viem WalletClient or SmartAccount
 
 ## Parameters
 
 ### viemClient
 
-A viem WalletClient instance connected to an account  or a viem SmartAccount instance
-
-`SmartAccount` | \{ \}
+A viem WalletClient instance connected to an account or a viem SmartAccount instance
 
 ### config?
 

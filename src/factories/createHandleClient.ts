@@ -14,14 +14,13 @@ import {
   type ViemClient,
 } from '../services/blockchain/ViemBlockchainService.js';
 import type { HandleClientConfig } from '../client/HandleClient.js';
-import type { SmartAccount } from 'viem/account-abstraction';
 
-export type BlockchainClient = EthersClient | ViemClient | SmartAccount;
+export type BlockchainClient = EthersClient | ViemClient;
 
 /**
  * Creates a {@link HandleClient} from a client of either ethers or viem
  *
- * @param blockchainClient An ethers client with a Signer and a Provider or a viem WalletClient connected to an account
+ * @param blockchainClient An ethers or viem client
  * @param config Optional partial {@link HandleClientConfig} to override network defaults
  * @returns A Promise of {@link HandleClient} instance
  * @throws {TypeError} if the provided blockchainClient is invalid
