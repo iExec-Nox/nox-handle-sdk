@@ -6,9 +6,9 @@ import { ViemBlockchainService } from '../services/blockchain/ViemBlockchainServ
 import type { HandleClientConfig } from '../client/HandleClient.js';
 
 /**
- * Creates a {@link HandleClient} from a viem WalletClient
+ * Creates a {@link HandleClient} from a viem WalletClient or SmartAccount
  *
- * @param viemClient A viem WalletClient instance connected to an account
+ * @param viemClient A viem WalletClient instance connected to an account or a viem SmartAccount instance
  * @param config Optional partial {@link HandleClientConfig} to override network defaults
  * @returns A Promise of {@link HandleClient} instance
  * @throws {TypeError} if the provided viemClient is invalid

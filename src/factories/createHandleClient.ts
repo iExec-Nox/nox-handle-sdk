@@ -9,6 +9,7 @@ import {
 } from '../services/blockchain/EthersBlockchainService.js';
 import {
   isViemWalletClient,
+  isViemSmartAccount,
   ViemBlockchainService,
   type ViemClient,
 } from '../services/blockchain/ViemBlockchainService.js';
@@ -19,7 +20,7 @@ export type BlockchainClient = EthersClient | ViemClient;
 /**
  * Creates a {@link HandleClient} from a client of either ethers or viem
  *
- * @param blockchainClient An ethers client with a Signer and a Provider or a viem WalletClient connected to an account
+ * @param blockchainClient An ethers or viem client
  * @param config Optional partial {@link HandleClientConfig} to override network defaults
  * @returns A Promise of {@link HandleClient} instance
  * @throws {TypeError} if the provided blockchainClient is invalid
@@ -74,7 +75,10 @@ export const createHandleClient = async (
     });
   }
 
-  if (isViemWalletClient(blockchainClient)) {
+  if (
+    isViemWalletClient(blockchainClient) ||
+    isViemSmartAccount(blockchainClient)
+  ) {
     const viemBlockchainService = new ViemBlockchainService(blockchainClient);
     const chainId = await viemBlockchainService.getChainId();
     const resolvedConfig = resolveNetworkConfig(chainId, config);
