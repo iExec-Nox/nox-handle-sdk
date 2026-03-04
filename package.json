@@ -1,6 +1,6 @@
 {
   "name": "@iexec-nox/handle",
-  "version": "0.0.1",
+  "version": "0.1.0-beta",
   "description": "TypeScript SDK for NOX Handle",
   "type": "module",
   "main": "./dist/cjs/index.js",
