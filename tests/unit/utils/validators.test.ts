@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   isBaseURL,
   isEthereumAddress,
+  isSubgraphURL,
   validateHandle,
   validateHandleProof,
 } from '../../../src/utils/validators.js';
@@ -38,6 +39,41 @@ describe('isBaseURL', () => {
   for (const url of invalidUrls) {
     it(`should return false for invalid URL: ${String(url)}`, () => {
       expect(isBaseURL(url)).toBe(false);
+    });
+  }
+});
+
+describe('isSubgraphURL', () => {
+  const validUrls = [
+    'http://example.com',
+    'https://example.com',
+    'https://api.example.com',
+    'http://localhost',
+    'https://gateway.testnet.nox.com',
+    'https://example.com/',
+    'https://gateway.thegraph.com/api/subgraphs/id/abc123',
+    'https://example.com/subgraphs/id/xyz',
+    'https://example.com/path/to/subgraph',
+    'https://example.com/path?query=1',
+  ];
+
+  for (const url of validUrls) {
+    it(`should return true for valid URL: ${url}`, () => {
+      expect(isSubgraphURL(url)).toBe(true);
+    });
+  }
+
+  const invalidUrls = [
+    'not-a-url',
+    'ftp://example.com',
+    '',
+    123,
+    undefined,
+  ];
+
+  for (const url of invalidUrls) {
+    it(`should return false for invalid URL: ${String(url)}`, () => {
+      expect(isSubgraphURL(url)).toBe(false);
     });
   }
 });

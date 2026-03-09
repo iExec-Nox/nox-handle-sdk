@@ -74,7 +74,7 @@ describe('createViemHandleClient', () => {
       it('should throw if chainId not supported and no config provided', async () => {
         await expect(createViemHandleClient(viemClient)).rejects.toThrow(
           new Error(
-            'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
+            'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.'
           )
         );
       });
@@ -83,6 +83,7 @@ describe('createViemHandleClient', () => {
         const handleClient = await createViemHandleClient(viemClient, {
           gatewayUrl: 'https://my-custom-gateway.com',
           smartContractAddress: '0x1234567890123456789012345678901234567890',
+          subgraphUrl: 'https://my-custom-subgraph.com',
         });
 
         expect(handleClient['config'].gatewayUrl).toBe(
@@ -90,6 +91,9 @@ describe('createViemHandleClient', () => {
         );
         expect(handleClient['config'].smartContractAddress).toBe(
           '0x1234567890123456789012345678901234567890'
+        );
+        expect(handleClient['config'].subgraphUrl).toBe(
+          'https://my-custom-subgraph.com'
         );
       });
 
@@ -100,7 +104,7 @@ describe('createViemHandleClient', () => {
           })
         ).rejects.toThrow(
           new Error(
-            'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
+            'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.'
           )
         );
       });

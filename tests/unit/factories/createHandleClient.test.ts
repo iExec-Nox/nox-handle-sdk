@@ -79,7 +79,7 @@ describe('createHandleClient', () => {
 
       await expect(createHandleClient(viemClient)).rejects.toThrow(
         new Error(
-          `Chain ${UNSUPPORTED_CHAIN_ID} is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.`
+          `Chain ${UNSUPPORTED_CHAIN_ID} is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.`
         )
       );
     });
