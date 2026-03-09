@@ -14,6 +14,7 @@ import {
   type ViemClient,
 } from '../services/blockchain/ViemBlockchainService.js';
 import type { HandleClientConfig } from '../client/HandleClient.js';
+import SubgraphService from '../services/subgraph/SubgraphService.js';
 
 export type BlockchainClient = EthersClient | ViemClient;
 
@@ -68,8 +69,10 @@ export const createHandleClient = async (
     const chainId = await ethersBlockchainService.getChainId();
     const resolvedConfig = resolveNetworkConfig(chainId, config);
     const apiService = new ApiService(resolvedConfig.gatewayUrl);
+    const subgraphService = new SubgraphService(resolvedConfig.subgraphUrl);
     return new HandleClient({
       blockchainService: ethersBlockchainService,
+      subgraphService,
       apiService,
       config: resolvedConfig,
     });
@@ -83,8 +86,10 @@ export const createHandleClient = async (
     const chainId = await viemBlockchainService.getChainId();
     const resolvedConfig = resolveNetworkConfig(chainId, config);
     const apiService = new ApiService(resolvedConfig.gatewayUrl);
+    const subgraphService = new SubgraphService(resolvedConfig.subgraphUrl);
     return new HandleClient({
       blockchainService: viemBlockchainService,
+      subgraphService,
       apiService,
       config: resolvedConfig,
     });
