@@ -126,7 +126,7 @@ describe('createEthersHandleClient', () => {
 
       await expect(createEthersHandleClient(ethersClient)).rejects.toThrow(
         new Error(
-          'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
+          'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.'
         )
       );
     });
@@ -140,6 +140,7 @@ describe('createEthersHandleClient', () => {
       const handleClient = await createEthersHandleClient(ethersClient, {
         gatewayUrl: 'https://my-custom-gateway.com',
         smartContractAddress: '0x1234567890123456789012345678901234567890',
+        subgraphUrl: 'https://my-custom-subgraph.com',
       });
 
       expect(handleClient['config'].gatewayUrl).toBe(
@@ -147,6 +148,9 @@ describe('createEthersHandleClient', () => {
       );
       expect(handleClient['config'].smartContractAddress).toBe(
         '0x1234567890123456789012345678901234567890'
+      );
+      expect(handleClient['config'].subgraphUrl).toBe(
+        'https://my-custom-subgraph.com'
       );
     });
 
@@ -162,7 +166,7 @@ describe('createEthersHandleClient', () => {
         })
       ).rejects.toThrow(
         new Error(
-          'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
+          'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.'
         )
       );
     });

@@ -1,7 +1,12 @@
 import { decrypt } from '../methods/decrypt.js';
 import { encryptInput } from '../methods/encryptInput.js';
+import { viewACL } from '../methods/viewACL.js';
 import type { IApiService } from '../services/api/IApiService.js';
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
+import type {
+  ACL,
+  ISubgraphService,
+} from '../services/subgraph/SubgraphService.js';
 import type {
   BaseUrl,
   EthereumAddress,
@@ -12,10 +17,12 @@ import type { Handle, JsValue, SolidityType } from '../utils/types.js';
 export interface HandleClientConfig {
   gatewayUrl: BaseUrl;
   smartContractAddress: EthereumAddress;
+  subgraphUrl: BaseUrl;
 }
 
 export interface HandleClientDependencies {
   blockchainService: IBlockchainService;
+  subgraphService: ISubgraphService;
   apiService: IApiService;
   config: HandleClientConfig;
 }
@@ -27,6 +34,7 @@ export class HandleClient {
   private readonly blockchainService: IBlockchainService;
   private readonly apiService: IApiService;
   private readonly config: HandleClientConfig;
+  private readonly subgraphService: ISubgraphService;
 
   /**
    * @ignore
@@ -34,15 +42,18 @@ export class HandleClient {
    *
    * @param dependencies The client dependencies
    * @param dependencies.blockchainService Service to interact with the blockchain
+   * @param dependencies.subgraphService Service to interact with the subgraph
    * @param dependencies.apiService Service to call the gateway API
    * @param dependencies.config Configuration with gateway URL and contract address
    */
   constructor({
     blockchainService,
+    subgraphService,
     apiService,
     config,
   }: HandleClientDependencies) {
     this.blockchainService = blockchainService;
+    this.subgraphService = subgraphService;
     this.apiService = apiService;
     this.config = config;
   }
@@ -116,5 +127,9 @@ export class HandleClient {
       blockchainService: this.blockchainService,
       config: this.config,
     });
+  }
+
+  async viewACL(handle: Handle<SolidityType>): Promise<ACL> {
+    return viewACL(handle, this.subgraphService);
   }
 }
