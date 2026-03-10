@@ -48,6 +48,9 @@
     "url": "https://github.com/iExecBlockchainComputing/iExec-Nox/nox-handle-sdk/issues"
   },
   "homepage": "https://github.com/iExecBlockchainComputing/iExec-Nox/nox-handle-sdk#readme",
+  "engines": {
+    "npm": ">=11.10.0"
+  },
   "peerDependencies": {
     "ethers": "^6.0.0",
     "viem": "^2.0.0"
