@@ -63,13 +63,7 @@ describe('isSubgraphURL', () => {
     });
   }
 
-  const invalidUrls = [
-    'not-a-url',
-    'ftp://example.com',
-    '',
-    123,
-    undefined,
-  ];
+  const invalidUrls = ['not-a-url', 'ftp://example.com', '', 123, undefined];
 
   for (const url of invalidUrls) {
     it(`should return false for invalid URL: ${String(url)}`, () => {

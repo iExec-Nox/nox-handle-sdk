@@ -16,8 +16,7 @@ export function isBaseURL(url: unknown): url is BaseUrl {
 
 export function isSubgraphURL(url: unknown): url is BaseUrl {
   return (
-    typeof url === 'string' &&
-    /^https?:\/\/[^/?]+(\/[^?]*)?(\?.*)?$/.test(url)
+    typeof url === 'string' && /^https?:\/\/[^/?]+(\/[^?]*)?(\?.*)?$/.test(url)
   );
 }
 
