@@ -187,9 +187,9 @@ describe('decrypt', () => {
           `Handle chainId (${SUPPORTED_CHAIN_ID + 1}) does not match connected chainId (${SUPPORTED_CHAIN_ID})`
         )
       );
+      expect(signTypedDataSpy).not.toHaveBeenCalled();
+      expect(mockApiService.get).not.toHaveBeenCalled();
     });
-    expect(signTypedDataSpy).not.toHaveBeenCalled();
-    expect(mockApiService.get).not.toHaveBeenCalled();
   });
 
   describe('when RSA key generation fails', () => {
