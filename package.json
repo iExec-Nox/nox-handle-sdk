@@ -1,6 +1,6 @@
 {
   "name": "@iexec-nox/handle",
-  "version": "0.0.1",
+  "version": "0.1.0-beta",
   "description": "TypeScript SDK for NOX Handle",
   "type": "module",
   "main": "./dist/cjs/index.js",
@@ -40,17 +40,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/iExecBlockchainComputing/iExec-Nox/nox-handle-sdk.git"
+    "url": "git+https://github.com/iExec-Nox/nox-handle-sdk.git"
   },
   "author": "iExec",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/iExecBlockchainComputing/iExec-Nox/nox-handle-sdk/issues"
+    "url": "https://github.com/iExec-Nox/nox-handle-sdk/issues"
   },
-  "homepage": "https://github.com/iExecBlockchainComputing/iExec-Nox/nox-handle-sdk#readme",
-  "engines": {
-    "npm": ">=11.10.0"
-  },
+  "homepage": "https://github.com/iExec-Nox/nox-handle-sdk#readme",
   "peerDependencies": {
     "ethers": "^6.0.0",
     "viem": "^2.0.0"
