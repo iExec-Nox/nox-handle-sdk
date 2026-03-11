@@ -1,5 +1,6 @@
 import { decrypt } from '../methods/decrypt.js';
 import { encryptInput } from '../methods/encryptInput.js';
+import { viewACL } from '../methods/viewACL.js';
 import type { IApiService } from '../services/api/IApiService.js';
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
 import type {
@@ -33,8 +34,7 @@ export class HandleClient {
   private readonly blockchainService: IBlockchainService;
   private readonly apiService: IApiService;
   private readonly config: HandleClientConfig;
-  // TODO: enable subgraphService when it is implemented
-  // private readonly subgraphService: ISubgraphService;
+  private readonly subgraphService: ISubgraphService;
 
   /**
    * @ignore
@@ -48,14 +48,12 @@ export class HandleClient {
    */
   constructor({
     blockchainService,
-    // TODO: enable subgraphService when it is implemented
-    // subgraphService,
+    subgraphService,
     apiService,
     config,
   }: HandleClientDependencies) {
     this.blockchainService = blockchainService;
-    // TODO: enable subgraphService when it is implemented
-    // this.subgraphService = subgraphService;
+    this.subgraphService = subgraphService;
     this.apiService = apiService;
     this.config = config;
   }
@@ -132,12 +130,6 @@ export class HandleClient {
   }
 
   async viewACL(handle: Handle<SolidityType>): Promise<ACL> {
-    // TODO: implement viewACL
-    console.log('viewACL', handle); // eslint-disable-line no-console
-    return {
-      isPublic: false,
-      adminAccounts: [],
-      viewerAccounts: [],
-    };
+    return viewACL(handle, this.subgraphService);
   }
 }
