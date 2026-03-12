@@ -70,14 +70,14 @@ export async function publicDecrypt<T extends SolidityType>({
       `Unexpected response from Handle Gateway (status: ${status}, data: ${JSON.stringify(data)})`
     );
   }
-  const { decryptionProof, handle: decryptedHandle } = data as {
+  const { decryptionProof, handle: returnedHandle } = data as {
     handle: HexString;
     decryptionProof: HexString;
   };
 
-  if (decryptedHandle.toLowerCase() !== handle.toLowerCase()) {
+  if (returnedHandle.toLowerCase() !== handle.toLowerCase()) {
     throw new Error(
-      `Decryption proof handle (${decryptedHandle}) does not match requested handle (${handle})`
+      `Decryption proof handle (${returnedHandle}) does not match requested handle (${handle})`
     );
   }
 
