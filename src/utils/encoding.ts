@@ -68,7 +68,11 @@ function assertValueLength(value: string, byteSize: number) {
 export function unpack(hex: HexString, solidityType: SolidityType): HexString {
   // For dynamic types (bytes, string) first 32 bytes represents the value size, next bytes are the value right-padded to a multiple of 32 bytes.
   if (solidityType === 'string' || solidityType === 'bytes') {
-    if (!isHexString(hex) || (hex.length - 2) % 64 !== 0) {
+    if (
+      !isHexString(hex) ||
+      hex.length < 2 + 32 * 2 || // must contain at least 32 bytes encoded size
+      (hex.length - 2) % (32 * 2) !== 0 // total length must be a multiple of 32 bytes
+    ) {
       throw new TypeError('Invalid hex string format');
     }
     const byteSize = Number.parseInt(hex.slice(0, 2 + 32 * 2), 16);
