@@ -47,8 +47,8 @@ export function decodeValue<T extends SolidityType>(
   return value;
 }
 
-const zeroPaddingRegExp = new RegExp(/^(00)*$/);
-const fPaddingRegExp = new RegExp(/^((ff)*|(FF)*)$/);
+const zeroPaddingRegExp = new RegExp(/^(?:00)*$/);
+const fPaddingRegExp = new RegExp(/^(?:[fF]{2})*$/);
 
 function assertPadding(padding: string, paddingRegExp: RegExp) {
   if (paddingRegExp.exec(padding) === null) {
