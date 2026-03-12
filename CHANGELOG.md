@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.0-beta.1](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta...v0.1.0-beta.1) (2026-03-12)
+
+
+### ✍️ Changed
+
+* improve tree-shaking for bundlers ([#56](https://github.com/iExec-Nox/nox-handle-sdk/issues/56)) ([d9afa3a](https://github.com/iExec-Nox/nox-handle-sdk/commit/d9afa3a026b55e51a5e0e8e2104f31969f2dea08))
+
+
+### 📋 Misc
+
+* enhance npm security settings ([#52](https://github.com/iExec-Nox/nox-handle-sdk/issues/52)) ([42eee59](https://github.com/iExec-Nox/nox-handle-sdk/commit/42eee59b1085c65391bc08168c09dbd4eb586ebf))
+
 ## [0.1.0-beta](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.0.1...v0.1.0-beta) (2026-03-04)
 
 
