@@ -56,24 +56,10 @@ export async function publicDecrypt<T extends SolidityType>({
     endpoint: `/v0/public/${handle}`,
   });
 
-  // Validate response
-  if (
-    status !== 200 ||
-    typeof data !== 'object' ||
-    data === null ||
-    !isHexString((data as { handle?: unknown })?.handle, 32) ||
-    !isHexString((data as { decryptionProof?: unknown })?.decryptionProof) ||
-    (data as { decryptionProof: string }).decryptionProof.length <
-      2 + (65 + 32) * 2 // decryption proof must contain at least 65 bytes of signature + 32 bytes of plaintext (may be more for dynamic types)
-  ) {
-    throw new Error(
-      `Unexpected response from Handle Gateway (status: ${status}, data: ${JSON.stringify(data)})`
-    );
-  }
-  const { decryptionProof, handle: returnedHandle } = data as {
-    handle: HexString;
-    decryptionProof: HexString;
-  };
+  const { decryptionProof, handle: returnedHandle } = validateApiResponse({
+    status,
+    data,
+  });
 
   if (returnedHandle.toLowerCase() !== handle.toLowerCase()) {
     throw new Error(
@@ -94,4 +80,34 @@ export async function publicDecrypt<T extends SolidityType>({
     );
   }
   return { value, solidityType, decryptionProof };
+}
+
+/**
+ * validates that the response from the Handle Gateway contains a properly formatted decryption proof and handle, and returns them as hex strings
+ */
+function validateApiResponse({
+  status,
+  data,
+}: {
+  status: number;
+  data: unknown;
+}): { decryptionProof: HexString; handle: HexString } {
+  if (
+    status !== 200 ||
+    typeof data !== 'object' ||
+    data === null ||
+    !isHexString((data as { handle?: unknown })?.handle, 32) ||
+    !isHexString((data as { decryptionProof?: unknown })?.decryptionProof) ||
+    (data as { decryptionProof: string }).decryptionProof.length <
+      2 + (65 + 32) * 2 // decryption proof must contain at least 65 bytes of signature + 32 bytes of plaintext (may be more for dynamic types)
+  ) {
+    throw new Error(
+      `Unexpected response from Handle Gateway (status: ${status}, data: ${JSON.stringify(data)})`
+    );
+  }
+  const { decryptionProof, handle } = data as {
+    handle: HexString;
+    decryptionProof: HexString;
+  };
+  return { decryptionProof, handle };
 }
