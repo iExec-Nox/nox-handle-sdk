@@ -10,7 +10,7 @@ export const NETWORK_CONFIGS: Record<number, HandleClientConfig> = {
     gatewayUrl: 'https://nox-gateway.arbitrum-sepolia-testnet.iex.ec',
     smartContractAddress: '0x5633472D35E18464CA24Ab974954fB3b1B122eA6',
     subgraphUrl:
-      'https://gateway.thegraph.com/api/subgraphs/id/BjQAX2HpmsSAzURJimKDhjZZnkSJtaczA8RPumggrStb',
+      'https://thegraph.arbitrum-sepolia-testnet.noxprotocol.io/api/subgraphs/id/BjQAX2HpmsSAzURJimKDhjZZnkSJtaczA8RPumggrStb',
   },
 };
 
