@@ -1,6 +1,7 @@
-import { decrypt } from '../methods/decrypt.js';
 import { encryptInput } from '../methods/encryptInput.js';
 import { viewACL, type ACL } from '../methods/viewACL.js';
+import { decrypt } from '../methods/decrypt.js';
+import { publicDecrypt } from '../methods/publicDecrypt.js';
 import type { IApiService } from '../services/api/IApiService.js';
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
 import type { ISubgraphService } from '../services/subgraph/SubgraphService.js';
@@ -147,6 +148,36 @@ export class HandleClient {
     return viewACL({
       subgraphService: this.subgraphService,
       handle,
+    });
+  }
+
+  /**
+   * Request the original value and a decryption proof associated with a publicly decryptable handle.
+   *
+   * @param handle The publicly decryptable handle representing the encrypted value
+   * @returns The decrypted value, its {@link SolidityType} and the decryptionProof
+   *
+   * @remarks
+   * To request public decryption, the handle must be publicly decryptable.
+   * The decryption proof can be verified in a smart contract and used to produce a plaintext value onchain.
+   *
+   * @example
+   * ```ts
+   * const { value, solidityType, decryptionProof } = await client.publicDecrypt(handle);
+   * ```
+   */
+  async publicDecrypt<T extends SolidityType>(
+    handle: Handle<T>
+  ): Promise<{
+    value: JsValue<T>;
+    solidityType: T;
+    decryptionProof: HexString;
+  }> {
+    return publicDecrypt({
+      handle,
+      apiService: this.apiService,
+      blockchainService: this.blockchainService,
+      config: this.config,
     });
   }
 }

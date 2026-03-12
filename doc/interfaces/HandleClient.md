@@ -107,6 +107,45 @@ const { handle, handleProof } = await client.encryptInput(
 
 ***
 
+### publicDecrypt()
+
+> **publicDecrypt**\<`T`\>(`handle`): `Promise`\<\{ `decryptionProof`: `` `0x${string}` ``; `solidityType`: `T`; `value`: [`JsValue`](../type-aliases/JsValue.md)\<`T`\>; \}\>
+
+Request the original value and a decryption proof associated with a publicly decryptable handle.
+
+#### Type Parameters
+
+##### T
+
+`T` *extends* [`SolidityType`](../type-aliases/SolidityType.md)
+
+#### Parameters
+
+##### handle
+
+[`Handle`](../type-aliases/Handle.md)\<`T`\>
+
+The publicly decryptable handle representing the encrypted value
+
+#### Returns
+
+`Promise`\<\{ `decryptionProof`: `` `0x${string}` ``; `solidityType`: `T`; `value`: [`JsValue`](../type-aliases/JsValue.md)\<`T`\>; \}\>
+
+The decrypted value, its [SolidityType](../type-aliases/SolidityType.md) and the decryptionProof
+
+#### Remarks
+
+To request public decryption, the handle must be publicly decryptable.
+The decryption proof can be verified in a smart contract and used to produce a plaintext value onchain.
+
+#### Example
+
+```ts
+const { value, solidityType, decryptionProof } = await client.publicDecrypt(handle);
+```
+
+***
+
 ### viewACL()
 
 > **viewACL**(`handle`): `Promise`\<[`ACL`](../type-aliases/ACL.md)\>

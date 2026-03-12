@@ -141,6 +141,8 @@ export const DUMMY_TYPED_HANDLES: Record<SolidityType, HexString> = {
   bytes32: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa00066eee63aa',
 };
 
+export const DUMMY_DECRYPTION_PROOF_SIGNATURE = `0x${'deadbeef'.padStart(65 * 2, '0')}`;
+
 /***
  * Encrypted data of different solidity types for testing purposes
  *
@@ -155,6 +157,8 @@ export const TEST_ENCRYPTED_DATA = {
       '0x01764bc2ad93e7fa69228415c0ab2090036f868a9b19d07cfa089d2cbb98dfc765822b191911b5de93372c84f06c4280f4d0f0',
     plaintext:
       '0x546869732061206e65772073656e74656e636520746f20626520656e63727970746564',
+    packedPlaintext:
+      '0000000000000000000000000000000000000000000000000000000000000023546869732061206e65772073656e74656e636520746f20626520656e637279707465640000000000000000000000000000000000000000000000000000000000',
     value: 'This a new sentence to be encrypted',
   },
   bytes: {
@@ -163,6 +167,8 @@ export const TEST_ENCRYPTED_DATA = {
     iv: '0x31325f627974657321212121',
     ciphertext: '0x28bb555ee038af05622f06ed4a406ddfae1c0786155e89303c7d05',
     plaintext: '0x666f6f206261722062617a',
+    packedPlaintext:
+      '000000000000000000000000000000000000000000000000000000000000000b666f6f206261722062617a000000000000000000000000000000000000000000',
     value: '0x666f6f206261722062617a',
   },
   bool: {
@@ -171,6 +177,8 @@ export const TEST_ENCRYPTED_DATA = {
     iv: '0x31325f627974657321212121',
     ciphertext: '0x4ead139190d6e22d30d488be8a9155d41d',
     plaintext: '0x01',
+    packedPlaintext:
+      '0000000000000000000000000000000000000000000000000000000000000001',
     value: true,
   },
   int64: {
@@ -179,6 +187,8 @@ export const TEST_ENCRYPTED_DATA = {
     iv: '0x31325f627974657321212121',
     ciphertext: '0x7ec87aa61a7e479fe205ba779887f32e5af9232bf569de5c',
     plaintext: '0xffffffffffffffff',
+    packedPlaintext:
+      'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
     value: -1n,
   },
   uint256: {
@@ -189,6 +199,8 @@ export const TEST_ENCRYPTED_DATA = {
       '0xff2be310a18f954c859c854d96fea9176704888c76a936a799b6fd80f7ddf2147330213855a820335f1126ff3d61ed83',
     plaintext:
       '0x2636a8beb2c41b8ccafa9a55a5a5e333892a83b491df3a67d2768946a9f9c6dc',
+    packedPlaintext:
+      '2636a8beb2c41b8ccafa9a55a5a5e333892a83b491df3a67d2768946a9f9c6dc',
     value:
       17_284_462_622_264_544_996_732_051_027_471_161_485_894_692_198_059_332_613_183_480_558_325_149_058_780n,
   },
@@ -198,6 +210,8 @@ export const TEST_ENCRYPTED_DATA = {
     iv: '0x31325f627974657321212121',
     ciphertext: '0x7ec87aa61a7e479fe205ba779887f32e5af9232bf569de5c',
     plaintext: '0xffffffffffffffff',
+    packedPlaintext:
+      'ffffffffffffffff000000000000000000000000000000000000000000000000',
     value: '0xffffffffffffffff',
   },
   address: {
@@ -207,6 +221,8 @@ export const TEST_ENCRYPTED_DATA = {
     ciphertext:
       '0x58d3cdeedbd62a5779bb083b8700305af72022822a691dc6a474d08d41adc2bc06cdf043',
     plaintext: '0xf048ef3d7e3b33a465e0599e641bb29421f7df92',
+    packedPlaintext:
+      '000000000000000000000000f048ef3d7e3b33a465e0599e641bb29421f7df92',
     value: '0xf048ef3d7e3b33a465e0599e641bb29421f7df92',
   },
 };
