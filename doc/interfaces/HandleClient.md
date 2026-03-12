@@ -104,3 +104,19 @@ const { handle, handleProof } = await client.encryptInput(
   '0x123...abc'
 );
 ```
+
+***
+
+### viewACL()
+
+> **viewACL**(`handle`): `Promise`\<`ACL`\>
+
+#### Parameters
+
+##### handle
+
+[`Handle`](../type-aliases/Handle.md)\<[`SolidityType`](../type-aliases/SolidityType.md)\>
+
+#### Returns
+
+`Promise`\<`ACL`\>

@@ -17,3 +17,9 @@
 ### smartContractAddress
 
 > **smartContractAddress**: `` `0x${string}` ``
+
+***
+
+### subgraphUrl
+
+> **subgraphUrl**: `` `http://${string}` `` \| `` `https://${string}` ``
