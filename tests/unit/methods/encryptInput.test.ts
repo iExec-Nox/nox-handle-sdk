@@ -88,7 +88,8 @@ describe('encryptInput', () => {
       });
     });
 
-    it('encodes string as hex', async () => {
+    // NOX: 'string' is not supported
+    it.skip('encodes string as hex', async () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
@@ -107,7 +108,8 @@ describe('encryptInput', () => {
       });
     });
 
-    it('passes address as-is', async () => {
+    // NOX: 'address' is not supported
+    it.skip('passes address as-is', async () => {
       const address = '0x1234567890123456789012345678901234567890';
       await encryptInput({
         blockchainService: mockBlockchainService,
@@ -127,7 +129,8 @@ describe('encryptInput', () => {
       });
     });
 
-    it('passes bytes as-is', async () => {
+    // NOX: 'bytes' is not supported
+    it.skip('passes bytes as-is', async () => {
       const bytes = '0xdeadbeef';
       await encryptInput({
         blockchainService: mockBlockchainService,
@@ -167,7 +170,8 @@ describe('encryptInput', () => {
       });
     });
 
-    it('encodes negative int128 as twos complement hex', async () => {
+    // NOX: 'int128' is not supported
+    it.skip('encodes negative int128 as twos complement hex', async () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
@@ -237,6 +241,20 @@ describe('encryptInput', () => {
     });
   });
   describe('solidity type validation', () => {
+    it('rejects unsupported types with complete error message', async () => {
+      await expect(
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          value: 'hello',
+          solidityType: 'string' as never,
+          applicationContract: TEST_ADDRESS,
+        })
+      ).rejects.toThrow(
+        'Unsupported Solidity type for encryption: string. Nox protocol only supports: bool, uint16, uint256, int16, int256'
+      );
+    });
+
     it('rejects invalid solidity type', async () => {
       await expect(
         encryptInput({
@@ -246,7 +264,9 @@ describe('encryptInput', () => {
           solidityType: 'invalidType' as never,
           applicationContract: TEST_ADDRESS,
         })
-      ).rejects.toThrow('Invalid Solidity type: invalidType');
+      ).rejects.toThrow(
+        'Unsupported Solidity type for encryption: invalidType'
+      );
     });
 
     it('rejects uint7 (not multiple of 8)', async () => {
@@ -258,7 +278,7 @@ describe('encryptInput', () => {
           solidityType: 'uint7' as never,
           applicationContract: TEST_ADDRESS,
         })
-      ).rejects.toThrow('Invalid Solidity type: uint7');
+      ).rejects.toThrow('Unsupported Solidity type for encryption: uint7');
     });
 
     it('rejects bytes33 (exceeds max)', async () => {
@@ -270,7 +290,7 @@ describe('encryptInput', () => {
           solidityType: 'bytes33' as never,
           applicationContract: TEST_ADDRESS,
         })
-      ).rejects.toThrow('Invalid Solidity type: bytes33');
+      ).rejects.toThrow('Unsupported Solidity type for encryption: bytes33');
     });
   });
 
@@ -287,7 +307,8 @@ describe('encryptInput', () => {
       ).rejects.toThrow('Invalid boolean value: expected boolean');
     });
 
-    it('rejects non-string for string', async () => {
+    // NOX: 'string' is not supported
+    it.skip('rejects non-string for string', async () => {
       await expect(
         encryptInput({
           blockchainService: mockBlockchainService,
@@ -299,7 +320,8 @@ describe('encryptInput', () => {
       ).rejects.toThrow('Invalid value: expected string');
     });
 
-    it('rejects invalid address format', async () => {
+    // NOX: 'address' is not supported
+    it.skip('rejects invalid address format', async () => {
       await expect(
         encryptInput({
           blockchainService: mockBlockchainService,
@@ -311,7 +333,8 @@ describe('encryptInput', () => {
       ).rejects.toThrow('Invalid value for address');
     });
 
-    it('rejects invalid bytes format', async () => {
+    // NOX: 'bytes' is not supported
+    it.skip('rejects invalid bytes format', async () => {
       await expect(
         encryptInput({
           blockchainService: mockBlockchainService,
@@ -323,7 +346,8 @@ describe('encryptInput', () => {
       ).rejects.toThrow('Invalid value for bytes');
     });
 
-    it('rejects bytesN exceeding max length', async () => {
+    // NOX: 'bytes4' is not supported
+    it.skip('rejects bytesN exceeding max length', async () => {
       await expect(
         encryptInput({
           blockchainService: mockBlockchainService,
@@ -359,7 +383,8 @@ describe('encryptInput', () => {
       ).rejects.toThrow('Invalid uint256 value');
     });
 
-    it('rejects uint exceeding max', async () => {
+    // NOX: 'uint8' is not supported
+    it.skip('rejects uint exceeding max', async () => {
       await expect(
         encryptInput({
           blockchainService: mockBlockchainService,
@@ -371,7 +396,8 @@ describe('encryptInput', () => {
       ).rejects.toThrow('Invalid uint8 value');
     });
 
-    it('rejects int out of range', async () => {
+    // NOX: 'int8' is not supported
+    it.skip('rejects int out of range', async () => {
       await expect(
         encryptInput({
           blockchainService: mockBlockchainService,
