@@ -111,12 +111,31 @@ const { handle, handleProof } = await client.encryptInput(
 
 > **viewACL**(`handle`): `Promise`\<[`ACL`](../type-aliases/ACL.md)\>
 
+View the Access Control List (ACL) for a handle.
+
 #### Parameters
 
 ##### handle
 
 [`Handle`](../type-aliases/Handle.md)\<[`SolidityType`](../type-aliases/SolidityType.md)\>
 
+The handle representing the encrypted value
+
 #### Returns
 
 `Promise`\<[`ACL`](../type-aliases/ACL.md)\>
+
+The [ACL](../type-aliases/ACL.md) details of the handle, including public access, admins, and viewers
+
+#### Remarks
+
+The ACL contains the following properties:
+- `isPublic`: Indicates if the Handle is publicly decryptable (if `true`, anyone can decrypt it).
+- `admins`: List of addresses that have admin permissions on the Handle.
+- `viewers`: List of addresses that have viewer permissions on the Handle.
+
+#### Example
+
+```ts
+const { isPublic, admins, viewers } = await client.viewACL(handle);
+```
