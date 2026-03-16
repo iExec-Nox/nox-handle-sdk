@@ -26,7 +26,7 @@ import {
 } from '../utils/types.js';
 import type { HexString } from '../types/internalTypes.js';
 import { assertRequiredParams } from '../utils/validators.js';
-import { IS_VIEWER_ABI } from '../abis/isViewer.abi.js';
+import { IS_VIEWER_ABI } from '../services/blockchain/abis/isViewer.abi.js';
 
 export async function decrypt<T extends SolidityType>({
   handle,
