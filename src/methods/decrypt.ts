@@ -201,7 +201,6 @@ export async function decrypt<T extends SolidityType>({
   return { value, solidityType };
 }
 
-// eslint-disable-next-line sonarjs/function-return-type
 function decodeValue<T extends SolidityType>(
   plaintext: HexString,
   solidityType: T
