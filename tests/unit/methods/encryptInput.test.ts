@@ -264,9 +264,7 @@ describe('encryptInput', () => {
           solidityType: 'invalidType' as never,
           applicationContract: TEST_ADDRESS,
         })
-      ).rejects.toThrow(
-        'Unsupported Solidity type for encryption: invalidType'
-      );
+      ).rejects.toThrow('Invalid Solidity type: invalidType');
     });
 
     it('rejects uint7 (not multiple of 8)', async () => {
@@ -278,7 +276,7 @@ describe('encryptInput', () => {
           solidityType: 'uint7' as never,
           applicationContract: TEST_ADDRESS,
         })
-      ).rejects.toThrow('Unsupported Solidity type for encryption: uint7');
+      ).rejects.toThrow('Invalid Solidity type: uint7');
     });
 
     it('rejects bytes33 (exceeds max)', async () => {
@@ -290,7 +288,7 @@ describe('encryptInput', () => {
           solidityType: 'bytes33' as never,
           applicationContract: TEST_ADDRESS,
         })
-      ).rejects.toThrow('Unsupported Solidity type for encryption: bytes33');
+      ).rejects.toThrow('Invalid Solidity type: bytes33');
     });
   });
 
