@@ -51,7 +51,7 @@ describe('handleToSolidityType', () => {
     for (const solidityType of SOLIDITY_TYPES_SET.values()) {
       const handle =
         DUMMY_TYPED_HANDLES[solidityType as keyof typeof DUMMY_TYPED_HANDLES];
-      it(`extracts type ${solidityType} from hex code [${handle.slice(62, 64)}]`, () => {
+      it(`extracts type ${solidityType} from hex code [${handle.slice(2 + 5 * 2, 2 + 6 * 2)}]`, () => {
         expect(handleToSolidityType(handle)).toBe(solidityType);
       });
     }
@@ -152,7 +152,7 @@ describe('handleToVersion', () => {
 describe('handle structure integrity', () => {
   it('correctly isolates each field without overlap', () => {
     const handle = buildHandle({
-      prehandle: 'ff'.repeat(26),
+      prehandle: 'ff'.repeat(25),
       chainId: 0x12_34_56_78,
       typeCode: 0x23,
       version: 0x01,
@@ -165,13 +165,13 @@ describe('handle structure integrity', () => {
 
   it('different prehandles do not affect metadata extraction', () => {
     const handle1 = buildHandle({
-      prehandle: '00'.repeat(26),
+      prehandle: '00'.repeat(25),
       chainId: 1,
       typeCode: 0,
       version: 0,
     });
     const handle2 = buildHandle({
-      prehandle: 'ff'.repeat(26),
+      prehandle: 'ff'.repeat(25),
       chainId: 1,
       typeCode: 0,
       version: 0,

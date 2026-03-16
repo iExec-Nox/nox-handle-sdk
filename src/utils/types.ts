@@ -280,7 +280,7 @@ export function handleToSolidityType(handle: HexString): SolidityType {
   if (!isHexString(handle, 32)) {
     throw new Error(`Invalid handle: ${handle}`);
   }
-  const typeCodeHex = handle.slice(2 + 30 * 2, 2 + 31 * 2); // byte 30
+  const typeCodeHex = handle.slice(2 + 5 * 2, 2 + 6 * 2); // byte 5
   const typeCode = Number.parseInt(typeCodeHex, 16);
 
   const solidityType = CODE_TO_SOLIDITY_TYPE.get(typeCode);
@@ -294,7 +294,7 @@ export function handleToChainId(handle: HexString): number {
   if (!isHexString(handle, 32)) {
     throw new Error(`Invalid handle: ${handle}`);
   }
-  const chainIdHex = handle.slice(2 + 26 * 2, 2 + 30 * 2); // byte 26-29
+  const chainIdHex = handle.slice(2 + 1 * 2, 2 + 5 * 2); // byte 1-4
   return Number.parseInt(chainIdHex, 16);
 }
 
@@ -302,6 +302,14 @@ export function handleToVersion(handle: HexString): number {
   if (!isHexString(handle, 32)) {
     throw new Error(`Invalid handle: ${handle}`);
   }
-  const versionHex = handle.slice(2 + 31 * 2, 2 + 32 * 2); // byte 31
+  const versionHex = handle.slice(2, 2 + 1 * 2); // byte 0
   return Number.parseInt(versionHex, 16);
+}
+
+export function handleToAttribute(handle: HexString): number {
+  if (!isHexString(handle, 32)) {
+    throw new Error(`Invalid handle: ${handle}`);
+  }
+  const attributeHex = handle.slice(2 + 6 * 2, 2 + 7 * 2); // byte 6
+  return Number.parseInt(attributeHex, 16); // Currently reserved for future use, should be 0 or 1
 }

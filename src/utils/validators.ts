@@ -4,6 +4,7 @@ import {
   type HexString,
 } from '../types/internalTypes.js';
 import {
+  handleToAttribute,
   handleToChainId,
   handleToSolidityType,
   handleToVersion,
@@ -29,6 +30,7 @@ export function isEthereumAddress(
 const HANDLE_PATTERN = /^0x[0-9a-fA-F]{64}$/;
 const INPUT_PROOF_PATTERN = /^0x[0-9a-fA-F]{274}$/;
 const SUPPORTED_VERSIONS = [0];
+const SUPPORTED_ATTRIBUTES = [0, 1];
 
 export function validateHandle({
   handle,
@@ -44,6 +46,14 @@ export function validateHandle({
       `Invalid handle format: expected 0x + 64 hex chars (32 bytes), got ${handle}`
     );
   }
+
+  const attribute = handleToAttribute(handle as HexString);
+  if (!SUPPORTED_ATTRIBUTES.includes(attribute)) {
+    throw new Error(
+      `Unsupported handle attribute: expected one of [${SUPPORTED_ATTRIBUTES.join(',')}], got ${attribute}`
+    );
+  }
+
   const chainId = handleToChainId(handle as HexString);
   if (chainId !== expectedChainId) {
     throw new Error(
