@@ -109,7 +109,7 @@ const { handle, handleProof } = await client.encryptInput(
 
 ### viewACL()
 
-> **viewACL**(`handle`): `Promise`\<`ACL`\>
+> **viewACL**(`handle`): `Promise`\<[`ACL`](../type-aliases/ACL.md)\>
 
 #### Parameters
 
@@ -119,4 +119,4 @@ const { handle, handleProof } = await client.encryptInput(
 
 #### Returns
 
-`Promise`\<`ACL`\>
+`Promise`\<[`ACL`](../type-aliases/ACL.md)\>

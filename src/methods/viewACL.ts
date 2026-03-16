@@ -6,6 +6,14 @@ import type { ISubgraphService } from '../services/subgraph/SubgraphService.js';
 import type { Handle, SolidityType } from '../types/publicTypes.js';
 import { assertRequiredParams } from '../utils/validators.js';
 
+/**
+ * Access Control List (ACL) for a Handle, including public access, admins, and viewers.
+ *
+ * The ACL contains the following properties:
+ * - `isPublic`: Indicates if the Handle is publicly decryptable (if `true`, anyone can decrypt it).
+ * - `admins`: List of addresses that have admin permissions on the Handle.
+ * - `viewers`: List of addresses that have viewer permissions on the Handle.
+ */
 export type ACL = {
   isPublic: boolean;
   admins: string[];
