@@ -10,6 +10,7 @@ describe('resolveNetworkConfig', () => {
   const OVERRIDE_CONTRACT_ADDRESS =
     '0x1234567890123456789012345678901234567890';
   const OVERRIDE_GATEWAY_URL = 'https://custom.com';
+  const OVERRIDE_SUBGRAPH_URL = 'https://subgraph.custom.com';
 
   describe('with supported chain', () => {
     it('should return network config for supported chain', () => {
@@ -49,7 +50,7 @@ describe('resolveNetworkConfig', () => {
   describe('with unsupported chain', () => {
     it('should throw if no config provided', () => {
       expect(() => resolveNetworkConfig(UNSUPPORTED_CHAIN_ID)).toThrow(
-        'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
+        'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.'
       );
     });
 
@@ -59,7 +60,7 @@ describe('resolveNetworkConfig', () => {
           gatewayUrl: OVERRIDE_GATEWAY_URL,
         })
       ).toThrow(
-        'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
+        'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.'
       );
     });
 
@@ -69,7 +70,7 @@ describe('resolveNetworkConfig', () => {
           smartContractAddress: OVERRIDE_CONTRACT_ADDRESS,
         })
       ).toThrow(
-        'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl and smartContractAddress.'
+        'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.'
       );
     });
 
@@ -77,10 +78,12 @@ describe('resolveNetworkConfig', () => {
       const config = resolveNetworkConfig(UNSUPPORTED_CHAIN_ID, {
         gatewayUrl: OVERRIDE_GATEWAY_URL,
         smartContractAddress: OVERRIDE_CONTRACT_ADDRESS,
+        subgraphUrl: OVERRIDE_SUBGRAPH_URL,
       });
 
       expect(config.gatewayUrl).toBe(OVERRIDE_GATEWAY_URL);
       expect(config.smartContractAddress).toBe(OVERRIDE_CONTRACT_ADDRESS);
+      expect(config.subgraphUrl).toBe(OVERRIDE_SUBGRAPH_URL);
     });
   });
 
@@ -89,6 +92,7 @@ describe('resolveNetworkConfig', () => {
       const config = resolveNetworkConfig(UNSUPPORTED_CHAIN_ID, {
         gatewayUrl: 'http://localhost:3000',
         smartContractAddress: OVERRIDE_CONTRACT_ADDRESS,
+        subgraphUrl: OVERRIDE_SUBGRAPH_URL,
       });
 
       expect(config.gatewayUrl).toBe('http://localhost:3000');
@@ -100,6 +104,7 @@ describe('resolveNetworkConfig', () => {
         resolveNetworkConfig(UNSUPPORTED_CHAIN_ID, {
           gatewayUrl: invalidUrl as `https://${string}`,
           smartContractAddress: OVERRIDE_CONTRACT_ADDRESS,
+          subgraphUrl: OVERRIDE_SUBGRAPH_URL,
         })
       ).toThrow(
         `Invalid gatewayUrl: expected base URL without path or query parameters, got ${invalidUrl}`
@@ -112,6 +117,7 @@ describe('resolveNetworkConfig', () => {
         resolveNetworkConfig(UNSUPPORTED_CHAIN_ID, {
           gatewayUrl: invalidUrl as `https://${string}`,
           smartContractAddress: OVERRIDE_CONTRACT_ADDRESS,
+          subgraphUrl: OVERRIDE_SUBGRAPH_URL,
         })
       ).toThrow(
         `Invalid gatewayUrl: expected base URL without path or query parameters, got ${invalidUrl}`
@@ -124,6 +130,7 @@ describe('resolveNetworkConfig', () => {
         resolveNetworkConfig(UNSUPPORTED_CHAIN_ID, {
           gatewayUrl: invalidUrl as `https://${string}`,
           smartContractAddress: OVERRIDE_CONTRACT_ADDRESS,
+          subgraphUrl: OVERRIDE_SUBGRAPH_URL,
         })
       ).toThrow(
         `Invalid gatewayUrl: expected base URL without path or query parameters, got ${invalidUrl}`
@@ -136,6 +143,7 @@ describe('resolveNetworkConfig', () => {
       const config = resolveNetworkConfig(UNSUPPORTED_CHAIN_ID, {
         gatewayUrl: OVERRIDE_GATEWAY_URL,
         smartContractAddress: '0xAbCdEf1234567890123456789012345678901234',
+        subgraphUrl: OVERRIDE_SUBGRAPH_URL,
       });
 
       expect(config.smartContractAddress).toBe(
@@ -149,6 +157,7 @@ describe('resolveNetworkConfig', () => {
         resolveNetworkConfig(UNSUPPORTED_CHAIN_ID, {
           gatewayUrl: OVERRIDE_GATEWAY_URL,
           smartContractAddress: invalidAddress as `0x${string}`,
+          subgraphUrl: OVERRIDE_SUBGRAPH_URL,
         })
       ).toThrow(
         `Invalid smartContractAddress: expected ethereum address, got ${invalidAddress}`
@@ -161,6 +170,7 @@ describe('resolveNetworkConfig', () => {
         resolveNetworkConfig(UNSUPPORTED_CHAIN_ID, {
           gatewayUrl: OVERRIDE_GATEWAY_URL,
           smartContractAddress: invalidAddress,
+          subgraphUrl: OVERRIDE_SUBGRAPH_URL,
         })
       ).toThrow(
         `Invalid smartContractAddress: expected ethereum address, got ${invalidAddress}`
@@ -173,6 +183,7 @@ describe('resolveNetworkConfig', () => {
         resolveNetworkConfig(UNSUPPORTED_CHAIN_ID, {
           gatewayUrl: OVERRIDE_GATEWAY_URL,
           smartContractAddress: invalidAddress,
+          subgraphUrl: OVERRIDE_SUBGRAPH_URL,
         })
       ).toThrow(
         `Invalid smartContractAddress: expected ethereum address, got ${invalidAddress}`
@@ -185,6 +196,7 @@ describe('resolveNetworkConfig', () => {
         resolveNetworkConfig(UNSUPPORTED_CHAIN_ID, {
           gatewayUrl: OVERRIDE_GATEWAY_URL,
           smartContractAddress: invalidAddress,
+          subgraphUrl: OVERRIDE_SUBGRAPH_URL,
         })
       ).toThrow(
         `Invalid smartContractAddress: expected ethereum address, got ${invalidAddress}`
@@ -197,6 +209,7 @@ describe('resolveNetworkConfig', () => {
         resolveNetworkConfig(UNSUPPORTED_CHAIN_ID, {
           gatewayUrl: OVERRIDE_GATEWAY_URL,
           smartContractAddress: invalidAddress,
+          subgraphUrl: OVERRIDE_SUBGRAPH_URL,
         })
       ).toThrow(
         `Invalid smartContractAddress: expected ethereum address, got ${invalidAddress}`

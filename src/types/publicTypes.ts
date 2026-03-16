@@ -9,3 +9,4 @@ export type { BlockchainClient } from '../factories/createHandleClient.js';
 
 export type { Handle, JsValue, SolidityType } from '../utils/types.js';
 export type { EthereumAddress } from '../types/internalTypes.js';
+export type { ACL } from '../methods/viewACL.js';

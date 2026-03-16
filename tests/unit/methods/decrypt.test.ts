@@ -49,6 +49,7 @@ describe('decrypt', () => {
   const mockConfig: HandleClientConfig = {
     gatewayUrl: 'https://example.com',
     smartContractAddress: '0x0000000000000000000000000000000000000000',
+    subgraphUrl: 'https://subgraph.example.com',
   };
 
   const mockBlockchainService = new EthersBlockchainService(

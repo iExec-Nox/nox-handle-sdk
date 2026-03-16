@@ -14,6 +14,12 @@ export function isBaseURL(url: unknown): url is BaseUrl {
   return typeof url === 'string' && /^https?:\/\/[^/?]+\/?$/.test(url);
 }
 
+export function isSubgraphURL(url: unknown): url is BaseUrl {
+  return (
+    typeof url === 'string' && /^https?:\/\/[^/?]+(\/[^?]*)?(\?.*)?$/.test(url)
+  );
+}
+
 export function isEthereumAddress(
   address: unknown
 ): address is EthereumAddress {
