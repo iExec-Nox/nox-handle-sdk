@@ -136,6 +136,7 @@ export async function encryptInput<T extends SolidityType>({
     'solidityType',
     'applicationContract',
   ]);
+  assertValidSolidityType(solidityType);
   // Restrict encryption to Nox-supported types only
   assertNoxSupportedType(solidityType);
   assertValidAddress(applicationContract);
