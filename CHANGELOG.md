@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-beta.2](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.1...v0.1.0-beta.2) (2026-03-16)
+
+
+### 🚀 Added
+
+* add viewACL ([#51](https://github.com/iExec-Nox/nox-handle-sdk/issues/51)) ([a1750f4](https://github.com/iExec-Nox/nox-handle-sdk/commit/a1750f4c6a023b87164b6f5ab26c24fe0cb378cc))
+
 ## [0.1.0-beta.1](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta...v0.1.0-beta.1) (2026-03-12)
 
 
