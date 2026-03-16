@@ -20,10 +20,13 @@ export type ACL = {
   viewers: string[];
 };
 
-export async function viewACL(
-  handle: Handle<SolidityType>,
-  subgraphService: ISubgraphService
-): Promise<ACL> {
+export async function viewACL({
+  subgraphService,
+  handle,
+}: {
+  subgraphService: ISubgraphService;
+  handle: Handle<SolidityType>;
+}): Promise<ACL> {
   assertRequiredParams({ handle }, ['handle']);
 
   const response = (await subgraphService.request(VIEW_ACL_QUERY, {

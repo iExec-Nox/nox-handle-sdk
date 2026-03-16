@@ -33,7 +33,10 @@ describe('viewACL', () => {
       request: vi.fn().mockResolvedValue(graphqlResponse),
     });
 
-    const acl = await viewACL(DUMMY_TYPED_HANDLES.bool, mockSubgraphService);
+    const acl = await viewACL({
+      handle: DUMMY_TYPED_HANDLES.bool,
+      subgraphService: mockSubgraphService,
+    });
 
     expect(acl).toEqual({
       isPublic: false,
@@ -49,7 +52,10 @@ describe('viewACL', () => {
     const mockSubgraphService = createMockSubgraphService();
 
     await expect(
-      viewACL(undefined as never, mockSubgraphService)
+      viewACL({
+        handle: undefined as never,
+        subgraphService: mockSubgraphService,
+      })
     ).rejects.toThrow(/Missing required parameters/);
   });
 
@@ -59,7 +65,10 @@ describe('viewACL', () => {
     });
 
     await expect(
-      viewACL(DUMMY_TYPED_HANDLES.bool, mockSubgraphService)
+      viewACL({
+        handle: DUMMY_TYPED_HANDLES.bool,
+        subgraphService: mockSubgraphService,
+      })
     ).rejects.toThrow(/Handle not found/);
   });
 
@@ -75,7 +84,10 @@ describe('viewACL', () => {
       request: vi.fn().mockResolvedValue(graphqlResponse),
     });
 
-    const acl = await viewACL(DUMMY_TYPED_HANDLES.bool, mockSubgraphService);
+    const acl = await viewACL({
+      handle: DUMMY_TYPED_HANDLES.bool,
+      subgraphService: mockSubgraphService,
+    });
 
     expect(acl).toEqual({
       isPublic: true,
@@ -91,7 +103,10 @@ describe('viewACL', () => {
     });
 
     await expect(
-      viewACL(DUMMY_TYPED_HANDLES.bool, mockSubgraphService)
+      viewACL({
+        handle: DUMMY_TYPED_HANDLES.bool,
+        subgraphService: mockSubgraphService,
+      })
     ).rejects.toThrow('Subgraph error');
   });
 });

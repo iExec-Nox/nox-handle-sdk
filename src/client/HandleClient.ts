@@ -127,6 +127,9 @@ export class HandleClient {
   }
 
   async viewACL(handle: Handle<SolidityType>): Promise<ACL> {
-    return viewACL(handle, this.subgraphService);
+    return viewACL({
+      subgraphService: this.subgraphService,
+      handle,
+    });
   }
 }
