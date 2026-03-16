@@ -1,12 +1,6 @@
 import { GraphQLClient } from 'graphql-request';
 import type { BaseUrl } from '../../types/internalTypes.js';
 
-export interface ACL {
-  isPublic: boolean;
-  admins: string[];
-  viewers: string[];
-}
-
 export interface ISubgraphService {
   subgraphUrl: BaseUrl;
   request(query: string, variables: Record<string, unknown>): Promise<unknown>;
