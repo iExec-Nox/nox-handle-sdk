@@ -16,6 +16,7 @@
 - [EthereumAddress](type-aliases/EthereumAddress.md)
 - [EthersClient](type-aliases/EthersClient.md)
 - [Handle](type-aliases/Handle.md)
+- [HexString](type-aliases/HexString.md)
 - [JsValue](type-aliases/JsValue.md)
 - [SolidityType](type-aliases/SolidityType.md)
 - [ViemClient](type-aliases/ViemClient.md)
