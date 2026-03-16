@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.0-beta.3](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.2...v0.1.0-beta.3) (2026-03-16)
+
+
+### 🚀 Added
+
+* add publicDecrypt ([#55](https://github.com/iExec-Nox/nox-handle-sdk/issues/55)) ([89ae705](https://github.com/iExec-Nox/nox-handle-sdk/commit/89ae7054af71f455f4d016cf9b5f6c62f51e7609))
+
+
+### 📋 Misc
+
+* **deps:** upgrade eslint to v10 ([#60](https://github.com/iExec-Nox/nox-handle-sdk/issues/60)) ([dea85c2](https://github.com/iExec-Nox/nox-handle-sdk/commit/dea85c2572778d81503d46898c9224f7928a1918))
+
 ## [0.1.0-beta.2](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.1...v0.1.0-beta.2) (2026-03-16)
 
 
