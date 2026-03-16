@@ -86,8 +86,6 @@ function encodeValue(
   value: JsValue<SolidityType>,
   solidityType: SolidityType
 ): HexString {
-  assertValidSolidityType(solidityType);
-
   switch (solidityType) {
     case 'bool': {
       return boolToHex(value as boolean);
