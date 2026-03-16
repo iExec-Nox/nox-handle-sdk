@@ -1,10 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Wallet, BrowserProvider, type JsonRpcProvider } from 'ethers';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { EthersBlockchainService } from '../../../../src/services/blockchain/EthersBlockchainService.js';
 import {
   createMockEIP1193Provider,
   createMockProvider,
 } from '../../../helpers/mocks.js';
-import { EthersBlockchainService } from '../../../../src/services/blockchain/EthersBlockchainService.js';
 import {
   SUPPORTED_CHAIN_ID,
   TEST_ADDRESS,

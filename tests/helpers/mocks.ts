@@ -1,10 +1,10 @@
-import { vi, type Mock } from 'vitest';
 import {
   type JsonRpcProvider,
   type Eip1193Provider as EthersEip1193Provider,
   Wallet,
 } from 'ethers';
 import type { EIP1193Provider as ViemEIP1193Provider } from 'viem';
+import { vi, type Mock } from 'vitest';
 import type { EIP712TypedData } from '../../src/services/blockchain/IBlockchainService.js';
 import type { HexString } from '../../src/types/internalTypes.js';
 

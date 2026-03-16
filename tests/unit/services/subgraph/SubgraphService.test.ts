@@ -1,5 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { GraphQLClient } from 'graphql-request';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import SubgraphService from '../../../../src/services/subgraph/SubgraphService.js';
 
 vi.mock('graphql-request', () => ({

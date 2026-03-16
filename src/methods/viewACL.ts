@@ -1,8 +1,8 @@
+import type { ISubgraphService } from '../services/subgraph/SubgraphService.js';
 import {
   VIEW_ACL_QUERY,
   type ViewACLResponse,
 } from '../services/subgraph/queries/viewACL.js';
-import type { ISubgraphService } from '../services/subgraph/SubgraphService.js';
 import type { Handle, SolidityType } from '../types/publicTypes.js';
 import { assertRequiredParams } from '../utils/validators.js';
 

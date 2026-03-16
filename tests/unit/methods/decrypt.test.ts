@@ -1,10 +1,11 @@
-import { describe, expect, it, vi } from 'vitest';
 import { BrowserProvider } from 'ethers';
+import { describe, expect, it, vi } from 'vitest';
+import type { HandleClientConfig } from '../../../src/index.js';
 import { decrypt } from '../../../src/methods/decrypt.js';
-import { buildHandle, createMockEIP1193Provider } from '../../helpers/mocks.js';
 import { EthersBlockchainService } from '../../../src/services/blockchain/EthersBlockchainService.js';
-import * as rsa from '../../../src/utils/rsa.js';
 import { hexToBytes } from '../../../src/utils/hex.js';
+import * as rsa from '../../../src/utils/rsa.js';
+import { buildHandle, createMockEIP1193Provider } from '../../helpers/mocks.js';
 import {
   DUMMY_TYPED_HANDLES,
   SUPPORTED_CHAIN_ID,
@@ -14,7 +15,6 @@ import {
   TEST_RSA_PKCS8_PRIV_KEY,
   TEST_RSA_SPKI_PUB_KEY,
 } from '../../helpers/testData.js';
-import type { HandleClientConfig } from '../../../src/index.js';
 
 async function generateRsaKeyPairMock() {
   const privateKey = await crypto.subtle.importKey(

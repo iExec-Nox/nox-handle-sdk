@@ -1,8 +1,9 @@
-import { describe, expect, it, vi } from 'vitest';
 import { BrowserProvider } from 'ethers';
+import { describe, expect, it, vi } from 'vitest';
+import type { HandleClientConfig } from '../../../src/index.js';
 import { publicDecrypt } from '../../../src/methods/publicDecrypt.js';
-import { buildHandle, createMockEIP1193Provider } from '../../helpers/mocks.js';
 import { EthersBlockchainService } from '../../../src/services/blockchain/EthersBlockchainService.js';
+import { buildHandle, createMockEIP1193Provider } from '../../helpers/mocks.js';
 import {
   DUMMY_DECRYPTION_PROOF_SIGNATURE,
   DUMMY_TYPED_HANDLES,
@@ -10,7 +11,6 @@ import {
   TEST_ENCRYPTED_DATA,
   TEST_PRIVATE_KEY,
 } from '../../helpers/testData.js';
-import type { HandleClientConfig } from '../../../src/index.js';
 
 describe('publicDecrypt', () => {
   const mockProvider = createMockEIP1193Provider(

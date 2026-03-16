@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { SOLIDITY_TYPE_TO_CODE } from '../../../src/utils/types.js';
 import {
   isBaseURL,
   isEthereumAddress,
@@ -6,7 +7,6 @@ import {
   validateHandle,
   validateHandleProof,
 } from '../../../src/utils/validators.js';
-import { SOLIDITY_TYPE_TO_CODE } from '../../../src/utils/types.js';
 import { buildHandle } from '../../helpers/mocks.js';
 
 describe('isBaseURL', () => {

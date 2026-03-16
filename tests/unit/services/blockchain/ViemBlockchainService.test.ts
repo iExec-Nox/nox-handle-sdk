@@ -1,11 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createWalletClient, custom } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { createMockEIP1193Provider } from '../../../helpers/mocks.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   ViemBlockchainService,
   isViemSmartAccount,
 } from '../../../../src/services/blockchain/ViemBlockchainService.js';
+import { createMockEIP1193Provider } from '../../../helpers/mocks.js';
 import {
   SUPPORTED_CHAIN_ID,
   TEST_ADDRESS,

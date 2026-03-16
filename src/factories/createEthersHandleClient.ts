@@ -1,11 +1,11 @@
 import { HandleClient } from '../client/HandleClient.js';
+import type { HandleClientConfig } from '../client/HandleClient.js';
 import { resolveNetworkConfig } from '../config/networks.js';
 import { ApiService } from '../services/api/ApiService.js';
 import {
   EthersBlockchainService,
   type EthersClient,
 } from '../services/blockchain/EthersBlockchainService.js';
-import type { HandleClientConfig } from '../client/HandleClient.js';
 import SubgraphService from '../services/subgraph/SubgraphService.js';
 
 /**
