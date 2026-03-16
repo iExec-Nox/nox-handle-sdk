@@ -11,3 +11,11 @@ export const VIEW_ACL_QUERY = `
     }  
   }  
 `;
+
+export type ViewACLResponse = {
+  handle: {
+    isPubliclyDecryptable: boolean;
+    admins: Array<{ account: string }>;
+    viewers: Array<{ account: string }>;
+  } | null;
+};

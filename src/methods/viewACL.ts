@@ -1,18 +1,13 @@
-import { VIEW_ACL_QUERY } from '../services/subgraph/queries/viewACL.js';
+import {
+  VIEW_ACL_QUERY,
+  type ViewACLResponse,
+} from '../services/subgraph/queries/viewACL.js';
 import type {
   ACL,
   ISubgraphService,
 } from '../services/subgraph/SubgraphService.js';
 import type { Handle, SolidityType } from '../types/publicTypes.js';
 import { assertRequiredParams } from '../utils/validators.js';
-
-interface ViewACLResponse {
-  handle: {
-    isPubliclyDecryptable: boolean;
-    admins: Array<{ account: string }>;
-    viewers: Array<{ account: string }>;
-  } | null;
-}
 
 export async function viewACL(
   handle: Handle<SolidityType>,
