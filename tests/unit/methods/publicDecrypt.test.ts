@@ -96,7 +96,6 @@ describe('publicDecrypt', () => {
         mockApiService.get.mockResolvedValueOnce({
           status: 200,
           data: {
-            handle: dummyTypedHandle,
             decryptionProof:
               DUMMY_DECRYPTION_PROOF_SIGNATURE + encryptedData.packedPlaintext,
           },
@@ -157,10 +156,6 @@ describe('publicDecrypt', () => {
   });
 
   describe('when handle gateway returns unexpected data', () => {
-    const decryptionProof =
-      DUMMY_DECRYPTION_PROOF_SIGNATURE +
-      TEST_ENCRYPTED_DATA.bool.packedPlaintext;
-    const handle = DUMMY_TYPED_HANDLES.bool;
     const testCases = [
       {
         name: 'response has non-200 status',
@@ -171,35 +166,24 @@ describe('publicDecrypt', () => {
         apiResponse: { status: 200 },
       },
       {
-        name: 'response has missing data.handle',
-        apiResponse: { status: 200, data: { decryptionProof } },
-      },
-      {
-        name: 'response has invalid data.handle',
-        apiResponse: {
-          status: 200,
-          data: { decryptionProof, handle: 'foo' },
-        },
-      },
-      {
         name: 'response has missing data.decryptionProof',
         apiResponse: {
           status: 200,
-          data: { handle },
+          data: {},
         },
       },
       {
         name: 'response has invalid data.decryptionProof (non-hex)',
         apiResponse: {
           status: 200,
-          data: { handle, decryptionProof: 'foo' },
+          data: { decryptionProof: 'foo' },
         },
       },
       {
         name: 'response has invalid data.decryptionProof length',
         apiResponse: {
           status: 200,
-          data: { handle, decryptionProof: '0xabcd' },
+          data: { decryptionProof: '0xabcd' },
         },
       },
     ];
@@ -222,30 +206,6 @@ describe('publicDecrypt', () => {
       });
     }
 
-    it('should throw when decrypted handle mismatches required handle', async () => {
-      mockApiService.get.mockResolvedValueOnce({
-        status: 200,
-        data: {
-          decryptionProof:
-            DUMMY_DECRYPTION_PROOF_SIGNATURE +
-            TEST_ENCRYPTED_DATA.string.packedPlaintext,
-          handle: DUMMY_TYPED_HANDLES.string, // different from requested bool handle
-        },
-      });
-      await expect(
-        publicDecrypt({
-          handle: DUMMY_TYPED_HANDLES.bool,
-          blockchainService: mockBlockchainService,
-          apiService: mockApiService,
-          config: mockConfig,
-        })
-      ).rejects.toThrow(
-        new Error(
-          `Decryption proof handle (${DUMMY_TYPED_HANDLES.string}) does not match requested handle (${DUMMY_TYPED_HANDLES.bool})`
-        )
-      );
-    });
-
     it('should throw when decrypted plaintext is invalid', async () => {
       const boolHandle = DUMMY_TYPED_HANDLES.bool;
       mockApiService.get.mockResolvedValueOnce({
@@ -254,7 +214,6 @@ describe('publicDecrypt', () => {
           decryptionProof:
             DUMMY_DECRYPTION_PROOF_SIGNATURE +
             '0000000000000000000000000000000000000000000000000000000000000002', // invalid bool plaintext (0x02 instead of 0x00 or 0x01)
-          handle: boolHandle,
         },
       });
       await expect(

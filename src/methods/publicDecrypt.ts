@@ -56,16 +56,10 @@ export async function publicDecrypt<T extends SolidityType>({
     endpoint: `/v0/public/${handle}`,
   });
 
-  const { decryptionProof, handle: returnedHandle } = validateApiResponse({
+  const { decryptionProof } = validateApiResponse({
     status,
     data,
   });
-
-  if (returnedHandle.toLowerCase() !== handle.toLowerCase()) {
-    throw new Error(
-      `Decryption proof handle (${returnedHandle}) does not match requested handle (${handle})`
-    );
-  }
 
   const solidityPlaintext: HexString = `0x${decryptionProof.slice(2 + 65 * 2)}`; // strip leading 65 bytes (proof signature) to get the packed hex-encoded plaintext
 
@@ -91,12 +85,11 @@ function validateApiResponse({
 }: {
   status: number;
   data: unknown;
-}): { decryptionProof: HexString; handle: HexString } {
+}): { decryptionProof: HexString } {
   if (
     status !== 200 ||
     typeof data !== 'object' ||
     data === null ||
-    !isHexString((data as { handle?: unknown })?.handle, 32) ||
     !isHexString((data as { decryptionProof?: unknown })?.decryptionProof) ||
     (data as { decryptionProof: string }).decryptionProof.length <
       2 + (65 + 32) * 2 // decryption proof must contain at least 65 bytes of signature + 32 bytes of plaintext (may be more for dynamic types)
@@ -105,9 +98,8 @@ function validateApiResponse({
       `Unexpected response from Handle Gateway (status: ${status}, data: ${JSON.stringify(data)})`
     );
   }
-  const { decryptionProof, handle } = data as {
-    handle: HexString;
+  const { decryptionProof } = data as {
     decryptionProof: HexString;
   };
-  return { decryptionProof, handle };
+  return { decryptionProof };
 }
