@@ -150,7 +150,7 @@ export async function decrypt<T extends SolidityType>({
   };
 
   if (isFreshDecryptionMaterial) {
-    storeDecryptionMaterial({
+    await storeDecryptionMaterial({
       storageKey,
       authorization,
       rsaPrivateKey,
