@@ -7,8 +7,8 @@ import {
 
 export const NETWORK_CONFIGS: Record<number, HandleClientConfig> = {
   421_614: {
-    gatewayUrl: 'https://nox-gateway.arbitrum-sepolia-testnet.iex.ec',
-    smartContractAddress: '0x5633472D35E18464CA24Ab974954fB3b1B122eA6',
+    gatewayUrl: 'https://nox-handle-gateway.ovh-tdx-dev.noxprotocol.dev',
+    smartContractAddress: '0xE4622fbFCd0bDd482775bBf5b3e72382C0D99208',
     subgraphUrl:
       'https://thegraph.arbitrum-sepolia-testnet.noxprotocol.io/api/subgraphs/id/BjQAX2HpmsSAzURJimKDhjZZnkSJtaczA8RPumggrStb',
   },
