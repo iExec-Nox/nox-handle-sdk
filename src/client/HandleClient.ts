@@ -4,6 +4,8 @@ import { publicDecrypt } from '../methods/publicDecrypt.js';
 import { viewACL, type ACL } from '../methods/viewACL.js';
 import type { IApiService } from '../services/api/IApiService.js';
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
+import type { IStorageService } from '../services/storage/IStorageService.js';
+import { InMemoryStorageService } from '../services/storage/InMemoryStorageService.js';
 import type { ISubgraphService } from '../services/subgraph/SubgraphService.js';
 import type {
   BaseUrl,
@@ -22,6 +24,7 @@ export interface HandleClientDependencies {
   blockchainService: IBlockchainService;
   subgraphService: ISubgraphService;
   apiService: IApiService;
+  storageService?: IStorageService;
   config: HandleClientConfig;
 }
 
@@ -33,6 +36,7 @@ export class HandleClient {
   private readonly apiService: IApiService;
   private readonly config: HandleClientConfig;
   private readonly subgraphService: ISubgraphService;
+  private readonly storageService: IStorageService;
 
   /**
    * @ignore
@@ -42,16 +46,19 @@ export class HandleClient {
    * @param dependencies.blockchainService Service to interact with the blockchain
    * @param dependencies.subgraphService Service to interact with the subgraph
    * @param dependencies.apiService Service to call the gateway API
+   * @param dependencies.storageService Optional storage service for caching decryption materials (default: {@link InMemoryStorageService})
    * @param dependencies.config Configuration with gateway URL and contract address
    */
   constructor({
     blockchainService,
     subgraphService,
     apiService,
+    storageService = new InMemoryStorageService(),
     config,
   }: HandleClientDependencies) {
     this.blockchainService = blockchainService;
     this.subgraphService = subgraphService;
+    this.storageService = storageService;
     this.apiService = apiService;
     this.config = config;
   }
@@ -121,6 +128,7 @@ export class HandleClient {
   }> {
     return decrypt({
       handle,
+      storageService: this.storageService,
       apiService: this.apiService,
       blockchainService: this.blockchainService,
       config: this.config,
