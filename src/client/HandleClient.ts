@@ -46,6 +46,7 @@ export class HandleClient {
    * @param dependencies.blockchainService Service to interact with the blockchain
    * @param dependencies.subgraphService Service to interact with the subgraph
    * @param dependencies.apiService Service to call the gateway API
+   * @param dependencies.storageService Optional storage service for caching decryption materials (default: {@link InMemoryStorageService})
    * @param dependencies.config Configuration with gateway URL and contract address
    */
   constructor({
