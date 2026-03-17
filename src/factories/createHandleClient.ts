@@ -1,4 +1,5 @@
 import { HandleClient } from '../client/HandleClient.js';
+import type { HandleClientConfig } from '../client/HandleClient.js';
 import { resolveNetworkConfig } from '../config/networks.js';
 import { ApiService } from '../services/api/ApiService.js';
 import {
@@ -13,7 +14,6 @@ import {
   ViemBlockchainService,
   type ViemClient,
 } from '../services/blockchain/ViemBlockchainService.js';
-import type { HandleClientConfig } from '../client/HandleClient.js';
 import SubgraphService from '../services/subgraph/SubgraphService.js';
 
 export type BlockchainClient = EthersClient | ViemClient;

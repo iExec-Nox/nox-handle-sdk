@@ -1,15 +1,15 @@
 import type { Client, WalletClient } from 'viem';
+import type { SmartAccount } from 'viem/account-abstraction';
+import type { EthereumAddress, HexString } from '../../types/internalTypes.js';
+import { safeJsonStringify } from '../../utils/format.js';
 import type {
   EIP712TypedData,
   IBlockchainService,
 } from './IBlockchainService.js';
-import type { EthereumAddress, HexString } from '../../types/internalTypes.js';
 import type {
   AbiFragmentTypes,
   AbiReadFunctionJsonFragment,
 } from './abi.types.js';
-import { safeJsonStringify } from '../../utils/format.js';
-import type { SmartAccount } from 'viem/account-abstraction';
 
 export type ViemClient = WalletClient | SmartAccount;
 

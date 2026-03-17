@@ -1,14 +1,14 @@
-import { it, describe, expect } from 'vitest';
 import { Wallet } from 'ethers';
-import { EthersBlockchainService } from '../../../src/services/blockchain/EthersBlockchainService.js';
-import { createHandleClient } from '../../../src/factories/createHandleClient.js';
-import { ViemBlockchainService } from '../../../src/services/blockchain/ViemBlockchainService.js';
+import { createWalletClient, custom } from 'viem';
+import { it, describe, expect } from 'vitest';
 import { NETWORK_CONFIGS } from '../../../src/config/networks.js';
+import { createHandleClient } from '../../../src/factories/createHandleClient.js';
+import { EthersBlockchainService } from '../../../src/services/blockchain/EthersBlockchainService.js';
+import { ViemBlockchainService } from '../../../src/services/blockchain/ViemBlockchainService.js';
 import {
   createMockProvider,
   createMockEIP1193Provider,
 } from '../../helpers/mocks.js';
-import { createWalletClient, custom } from 'viem';
 import {
   SUPPORTED_CHAIN_ID,
   TEST_PRIVATE_KEY,

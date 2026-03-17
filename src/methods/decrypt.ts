@@ -1,16 +1,19 @@
+import type { HandleClientConfig } from '../client/HandleClient.js';
+import type { IApiService } from '../services/api/IApiService.js';
 import type {
   IBlockchainService,
   EIP712TypedData,
 } from '../services/blockchain/IBlockchainService.js';
-import type { IApiService } from '../services/api/IApiService.js';
-import type { HandleClientConfig } from '../client/HandleClient.js';
+import { IS_VIEWER_ABI } from '../services/blockchain/abis/isViewer.abi.js';
+import type { HexString } from '../types/internalTypes.js';
+import { eciesDecrypt } from '../utils/ecies.js';
+import { decodeValue } from '../utils/encoding.js';
+import { isHexString } from '../utils/hex.js';
 import {
   generateRsaKeyPair,
   exportRsaPublicKey,
   rsaDecrypt,
 } from '../utils/rsa.js';
-import { eciesDecrypt } from '../utils/ecies.js';
-import { isHexString } from '../utils/hex.js';
 import {
   handleToChainId,
   handleToSolidityType,
@@ -18,10 +21,7 @@ import {
   type JsValue,
   type SolidityType,
 } from '../utils/types.js';
-import type { HexString } from '../types/internalTypes.js';
 import { assertRequiredParams } from '../utils/validators.js';
-import { IS_VIEWER_ABI } from '../services/blockchain/abis/isViewer.abi.js';
-import { decodeValue } from '../utils/encoding.js';
 
 export async function decrypt<T extends SolidityType>({
   handle,

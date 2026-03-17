@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { viewACL } from '../../../src/methods/viewACL.js';
-import { DUMMY_TYPED_HANDLES } from '../../helpers/testData.js';
 import type { ISubgraphService } from '../../../src/services/subgraph/SubgraphService.js';
 import { VIEW_ACL_QUERY } from '../../../src/services/subgraph/queries/viewACL.js';
+import { DUMMY_TYPED_HANDLES } from '../../helpers/testData.js';
 
 function createMockSubgraphService(
   overrides: Partial<ISubgraphService> = {}

@@ -1,12 +1,12 @@
-import { it, describe, expect } from 'vitest';
 import { BrowserProvider, Wallet } from 'ethers';
+import { it, describe, expect } from 'vitest';
+import { NETWORK_CONFIGS } from '../../../src/config/networks.js';
 import { createEthersHandleClient } from '../../../src/factories/createEthersHandleClient.js';
 import {
   BrowserProviderAdapter,
   EthersBlockchainService,
   SignerAdapter,
 } from '../../../src/services/blockchain/EthersBlockchainService.js';
-import { NETWORK_CONFIGS } from '../../../src/config/networks.js';
 import {
   createMockProvider,
   createMockEIP1193Provider,

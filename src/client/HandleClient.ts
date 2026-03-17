@@ -1,7 +1,7 @@
-import { encryptInput } from '../methods/encryptInput.js';
-import { viewACL, type ACL } from '../methods/viewACL.js';
 import { decrypt } from '../methods/decrypt.js';
+import { encryptInput } from '../methods/encryptInput.js';
 import { publicDecrypt } from '../methods/publicDecrypt.js';
+import { viewACL, type ACL } from '../methods/viewACL.js';
 import type { IApiService } from '../services/api/IApiService.js';
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
 import type { ISubgraphService } from '../services/subgraph/SubgraphService.js';

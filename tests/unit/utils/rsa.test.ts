@@ -1,11 +1,10 @@
+import { describe, it, expect } from 'vitest';
 import { hexToBytes } from '../../../src/utils/hex.js';
 import {
   generateRsaKeyPair,
   exportRsaPublicKey,
   rsaDecrypt,
 } from '../../../src/utils/rsa.js';
-
-import { describe, it, expect } from 'vitest';
 
 describe('rsa', () => {
   describe('generateRsaKeyPair', () => {

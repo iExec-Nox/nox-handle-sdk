@@ -2,6 +2,13 @@ import type { IApiService } from '../services/api/IApiService.js';
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
 import type { EthereumAddress, HexString } from '../types/internalTypes.js';
 import {
+  boolToHex,
+  intXToHex,
+  isHexString,
+  stringToHex,
+  uintXToHex,
+} from '../utils/hex.js';
+import {
   SOLIDITY_TYPES_SET,
   type Handle,
   type JsValue,
@@ -12,13 +19,6 @@ import {
   validateHandle,
   validateHandleProof,
 } from '../utils/validators.js';
-import {
-  boolToHex,
-  intXToHex,
-  isHexString,
-  stringToHex,
-  uintXToHex,
-} from '../utils/hex.js';
 
 interface GatewaySecretResponse {
   handle: string;
