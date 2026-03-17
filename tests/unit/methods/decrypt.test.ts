@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 import type { HandleClientConfig } from '../../../src/index.js';
 import { decrypt } from '../../../src/methods/decrypt.js';
 import { EthersBlockchainService } from '../../../src/services/blockchain/EthersBlockchainService.js';
+import type { IStorageService } from '../../../src/services/storage/IStorageService.js';
+import { InMemoryStorageService } from '../../../src/services/storage/InMemoryStorageService.js';
 import { hexToBytes } from '../../../src/utils/hex.js';
 import * as rsa from '../../../src/utils/rsa.js';
 import { buildHandle, createMockEIP1193Provider } from '../../helpers/mocks.js';
@@ -50,6 +52,13 @@ describe('decrypt', () => {
     gatewayUrl: 'https://example.com',
     smartContractAddress: '0x0000000000000000000000000000000000000000',
     subgraphUrl: 'https://subgraph.example.com',
+  };
+
+  const mockStorageService: IStorageService = {
+    // eslint-disable-next-line unicorn/no-null
+    getItem: vi.fn().mockImplementation(() => null),
+    setItem: vi.fn().mockImplementation(() => {}),
+    removeItem: vi.fn().mockImplementation(() => {}),
   };
 
   const mockBlockchainService = new EthersBlockchainService(
@@ -138,6 +147,7 @@ describe('decrypt', () => {
           handle: dummyTypedHandle,
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          storageService: mockStorageService,
           config: mockConfig,
         });
         expect(result).toStrictEqual({
@@ -161,6 +171,7 @@ describe('decrypt', () => {
           handle: DUMMY_TYPED_HANDLES.bool,
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          storageService: mockStorageService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -180,6 +191,7 @@ describe('decrypt', () => {
           handle: buildHandle({ chainId: SUPPORTED_CHAIN_ID + 1, typeCode: 0 }),
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          storageService: mockStorageService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -203,6 +215,7 @@ describe('decrypt', () => {
           handle: DUMMY_TYPED_HANDLES.bool,
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          storageService: mockStorageService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -224,6 +237,7 @@ describe('decrypt', () => {
           handle: DUMMY_TYPED_HANDLES.bool,
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          storageService: mockStorageService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -244,6 +258,7 @@ describe('decrypt', () => {
           handle: DUMMY_TYPED_HANDLES.bool,
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          storageService: mockStorageService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -311,6 +326,7 @@ describe('decrypt', () => {
             handle: DUMMY_TYPED_HANDLES.bool,
             blockchainService: mockBlockchainService,
             apiService: mockApiService,
+            storageService: mockStorageService,
             config: mockConfig,
           })
         ).rejects.toThrow(
@@ -336,6 +352,7 @@ describe('decrypt', () => {
           handle: DUMMY_TYPED_HANDLES.bool,
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          storageService: mockStorageService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -366,6 +383,7 @@ describe('decrypt', () => {
           handle: DUMMY_TYPED_HANDLES.bool,
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
+          storageService: mockStorageService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -409,6 +427,7 @@ describe('decrypt', () => {
             handle,
             blockchainService: mockBlockchainService,
             apiService: mockApiService,
+            storageService: mockStorageService,
             config: mockConfig,
           })
         ).rejects.toThrow(
@@ -419,6 +438,263 @@ describe('decrypt', () => {
       });
     }
   });
+
+  describe('decryption material caching', () => {
+    it('should store decryption material on successful decryption', async () => {
+      vi.spyOn(rsa, 'generateRsaKeyPair').mockImplementationOnce(
+        generateRsaKeyPairMock
+      );
+      const storageService = new InMemoryStorageService();
+      vi.spyOn(storageService, 'setItem');
+      vi.spyOn(storageService, 'getItem');
+      vi.spyOn(storageService, 'removeItem');
+      mockApiService.get.mockResolvedValueOnce({
+        status: 200,
+        data: {
+          encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
+          iv: TEST_ENCRYPTED_DATA.bool.iv,
+          ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+        },
+      });
+      await decrypt({
+        handle: DUMMY_TYPED_HANDLES.bool,
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        storageService: storageService,
+        config: mockConfig,
+      });
+      expect(storageService.setItem).toHaveBeenCalledTimes(1);
+    });
+
+    it('should reuse stored decryption material for subsequent decryptions', async () => {
+      vi.spyOn(rsa, 'generateRsaKeyPair').mockImplementationOnce(
+        generateRsaKeyPairMock
+      );
+      const storageService = new InMemoryStorageService();
+      vi.spyOn(storageService, 'setItem');
+      vi.spyOn(storageService, 'getItem');
+      vi.spyOn(storageService, 'removeItem');
+      mockApiService.get.mockResolvedValueOnce({
+        status: 200,
+        data: {
+          encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
+          iv: TEST_ENCRYPTED_DATA.bool.iv,
+          ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+        },
+      });
+      await decrypt({
+        handle: DUMMY_TYPED_HANDLES.bool,
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        storageService: storageService,
+        config: mockConfig,
+      });
+      mockApiService.get.mockResolvedValueOnce({
+        status: 200,
+        data: {
+          encryptedSharedSecret:
+            TEST_ENCRYPTED_DATA.bytes8.encryptedSharedSecret,
+          iv: TEST_ENCRYPTED_DATA.bytes8.iv,
+          ciphertext: TEST_ENCRYPTED_DATA.bytes8.ciphertext,
+        },
+      });
+      await decrypt({
+        handle: DUMMY_TYPED_HANDLES.bytes8,
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        storageService: storageService,
+        config: mockConfig,
+      });
+      mockApiService.get.mockResolvedValueOnce({
+        status: 200,
+        data: {
+          encryptedSharedSecret:
+            TEST_ENCRYPTED_DATA.uint256.encryptedSharedSecret,
+          iv: TEST_ENCRYPTED_DATA.uint256.iv,
+          ciphertext: TEST_ENCRYPTED_DATA.uint256.ciphertext,
+        },
+      });
+      await decrypt({
+        handle: DUMMY_TYPED_HANDLES.uint256,
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        storageService: storageService,
+        config: mockConfig,
+      });
+      expect(rsa.generateRsaKeyPair).toHaveBeenCalledTimes(1);
+      expect(storageService.getItem).toHaveBeenCalledTimes(3);
+    });
+
+    it('should not store decryption material if it already exists', async () => {
+      vi.spyOn(rsa, 'generateRsaKeyPair').mockImplementationOnce(
+        generateRsaKeyPairMock
+      );
+      const storageService = new InMemoryStorageService();
+      vi.spyOn(storageService, 'setItem');
+      vi.spyOn(storageService, 'getItem');
+      vi.spyOn(storageService, 'removeItem');
+      mockApiService.get.mockResolvedValueOnce({
+        status: 200,
+        data: {
+          encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
+          iv: TEST_ENCRYPTED_DATA.bool.iv,
+          ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+        },
+      });
+      await decrypt({
+        handle: DUMMY_TYPED_HANDLES.bool,
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        storageService: storageService,
+        config: mockConfig,
+      });
+      mockApiService.get.mockResolvedValueOnce({
+        status: 200,
+        data: {
+          encryptedSharedSecret:
+            TEST_ENCRYPTED_DATA.uint256.encryptedSharedSecret,
+          iv: TEST_ENCRYPTED_DATA.uint256.iv,
+          ciphertext: TEST_ENCRYPTED_DATA.uint256.ciphertext,
+        },
+      });
+      await decrypt({
+        handle: DUMMY_TYPED_HANDLES.uint256,
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        storageService: storageService,
+        config: mockConfig,
+      });
+      expect(storageService.setItem).toHaveBeenCalledTimes(1);
+    });
+
+    it('should clear stored decryption material if retrieved authorization is malformed or outdated', async () => {
+      vi.spyOn(rsa, 'generateRsaKeyPair').mockImplementationOnce(
+        generateRsaKeyPairMock
+      );
+      const storageService = new InMemoryStorageService();
+      vi.spyOn(storageService, 'setItem');
+      vi.spyOn(storageService, 'getItem').mockImplementationOnce(() => {
+        const now = Math.floor(Date.now() / 1000);
+        const json = JSON.stringify({
+          payload: {
+            notBefore: now - 60,
+            expiresAt: now - 30, // already expired
+          },
+          signature: 'foo',
+        });
+        const authorization = `EIP712 ${btoa(json)}`;
+        return JSON.stringify({
+          authorization,
+          pkcs8: TEST_RSA_PKCS8_PRIV_KEY,
+        });
+      });
+      vi.spyOn(storageService, 'removeItem');
+      mockApiService.get.mockResolvedValueOnce({
+        status: 200,
+        data: {
+          encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
+          iv: TEST_ENCRYPTED_DATA.bool.iv,
+          ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+        },
+      });
+      await decrypt({
+        handle: DUMMY_TYPED_HANDLES.bool,
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        storageService: storageService,
+        config: mockConfig,
+      });
+      expect(storageService.removeItem).toHaveBeenCalledTimes(1);
+    });
+
+    it('should clear stored decryption material and retry with a new one if not accepted by the gateway', async () => {
+      vi.spyOn(rsa, 'generateRsaKeyPair').mockImplementationOnce(
+        generateRsaKeyPairMock
+      );
+      const storageService = new InMemoryStorageService();
+      vi.spyOn(storageService, 'setItem');
+      vi.spyOn(storageService, 'getItem').mockImplementationOnce(() => {
+        const now = Math.floor(Date.now() / 1000);
+        const json = JSON.stringify({
+          payload: {
+            notBefore: now - 60,
+            expiresAt: now + 300, // valid for the next 5 minutes
+          },
+          signature: '0x',
+        });
+        const authorization = `EIP712 ${btoa(json)}`;
+        return JSON.stringify({
+          authorization,
+          pkcs8: TEST_RSA_PKCS8_PRIV_KEY,
+        });
+      });
+      vi.spyOn(storageService, 'removeItem');
+      mockApiService.get.mockResolvedValueOnce({
+        status: 401,
+        data: { error: 'Unauthorized' },
+      });
+      mockApiService.get.mockResolvedValueOnce({
+        status: 200,
+        data: {
+          encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
+          iv: TEST_ENCRYPTED_DATA.bool.iv,
+          ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+        },
+      });
+      await decrypt({
+        handle: DUMMY_TYPED_HANDLES.bool,
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        storageService: storageService,
+        config: mockConfig,
+      });
+
+      expect(mockApiService.get).toHaveBeenCalledTimes(2);
+      expect(storageService.removeItem).toHaveBeenCalledTimes(1);
+      expect(rsa.generateRsaKeyPair).toHaveBeenCalledTimes(1);
+      expect(storageService.setItem).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle errors from storage service gracefully', async () => {
+      const failingStorageService: IStorageService = {
+        getItem: vi.fn().mockImplementation(() => {
+          throw new Error('Storage getItem error');
+        }),
+        setItem: vi.fn().mockImplementation(() => {
+          throw new Error('Storage setItem error');
+        }),
+        removeItem: vi.fn().mockImplementation(() => {
+          throw new Error('Storage removeItem error');
+        }),
+      };
+      vi.spyOn(rsa, 'generateRsaKeyPair').mockImplementationOnce(
+        generateRsaKeyPairMock
+      );
+      mockApiService.get.mockResolvedValueOnce({
+        status: 200,
+        data: {
+          encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
+          iv: TEST_ENCRYPTED_DATA.bool.iv,
+          ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+        },
+      });
+      await expect(
+        decrypt({
+          handle: DUMMY_TYPED_HANDLES.bool,
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          storageService: failingStorageService,
+          config: mockConfig,
+        })
+      ).resolves.toStrictEqual({
+        value: TEST_ENCRYPTED_DATA.bool.value,
+        solidityType: 'bool',
+      });
+      expect(failingStorageService.getItem).toHaveBeenCalledTimes(1);
+      expect(failingStorageService.setItem).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('required parameters validation', () => {
     it('rejects missing handle', async () => {
       await expect(
