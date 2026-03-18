@@ -7,7 +7,8 @@ import {
 
 export const NETWORK_CONFIGS: Record<number, HandleClientConfig> = {
   421_614: {
-    gatewayUrl: 'https://nox-gateway.ovh-tdx-dev.noxprotocol.dev',
+    gatewayUrl:
+      'https://2e1800fc0dddeeadc189283ed1dce13c1ae28d48-3000.apps.ovh-tdx-dev.noxprotocol.dev',
     smartContractAddress: '0xd464B198f06756a1d00be223634b85E0a731c229',
     subgraphUrl:
       'https://thegraph.arbitrum-sepolia-testnet.noxprotocol.io/api/subgraphs/id/BjQAX2HpmsSAzURJimKDhjZZnkSJtaczA8RPumggrStb',
