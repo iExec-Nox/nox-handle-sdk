@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-beta.5](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.4...v0.1.0-beta.5) (2026-03-18)
+
+
+### ✍️ Changed
+
+* solve missing dependency issue ([#68](https://github.com/iExec-Nox/nox-handle-sdk/issues/68)) ([408abaa](https://github.com/iExec-Nox/nox-handle-sdk/commit/408abaaacf1cb429c83e179eb54f1e736c3a644d))
+
 ## [0.1.0-beta.4](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.3...v0.1.0-beta.4) (2026-03-18)
 
 
