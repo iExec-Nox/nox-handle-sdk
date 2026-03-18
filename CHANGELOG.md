@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-beta.6](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.5...v0.1.0-beta.6) (2026-03-18)
+
+
+### ✍️ Changed
+
+* use direct connection to gateway CVM ([#71](https://github.com/iExec-Nox/nox-handle-sdk/issues/71)) ([8f70ca2](https://github.com/iExec-Nox/nox-handle-sdk/commit/8f70ca2f4a2a542036d27dbcdb91d5896176f8eb))
+
 ## [0.1.0-beta.5](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.4...v0.1.0-beta.5) (2026-03-18)
 
 
