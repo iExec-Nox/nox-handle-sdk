@@ -49,6 +49,9 @@
     "url": "https://github.com/iExec-Nox/nox-handle-sdk/issues"
   },
   "homepage": "https://github.com/iExec-Nox/nox-handle-sdk#readme",
+  "dependencies": {
+    "graphql-request": "^7.4.0"
+  },
   "peerDependencies": {
     "ethers": "^6.0.0",
     "viem": "^2.0.0"
@@ -72,7 +75,6 @@
     "eslint-plugin-sonarjs": "^4.0.2",
     "eslint-plugin-unicorn": "^63.0.0",
     "ethers": "^6.16.0",
-    "graphql-request": "^7.4.0",
     "prettier": "^3.8.1",
     "typedoc": "^0.28.16",
     "typedoc-plugin-markdown": "^4.9.0",
