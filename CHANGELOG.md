@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.0-beta.4](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.3...v0.1.0-beta.4) (2026-03-18)
+
+
+### 🚀 Added
+
+* cache user decryption material to avoid unnecessary signature requests ([#65](https://github.com/iExec-Nox/nox-handle-sdk/issues/65)) ([cfe2bdd](https://github.com/iExec-Nox/nox-handle-sdk/commit/cfe2bddb5107140e0d00a4f7984e732dd1b71721))
+
+
+### ✍️ Changed
+
+* **sdk:** restrict supported Solidity types to protocol subset ([#59](https://github.com/iExec-Nox/nox-handle-sdk/issues/59)) ([75eb1b3](https://github.com/iExec-Nox/nox-handle-sdk/commit/75eb1b30dbc1b2ff08f23d788e5b31244978a626))
+* sort imports ([#57](https://github.com/iExec-Nox/nox-handle-sdk/issues/57)) ([67f06f4](https://github.com/iExec-Nox/nox-handle-sdk/commit/67f06f4658ecd2ce489091cfcafd55861d194aa2))
+* update handle format with attribute byte ([#63](https://github.com/iExec-Nox/nox-handle-sdk/issues/63)) ([b347bcc](https://github.com/iExec-Nox/nox-handle-sdk/commit/b347bcc4b125ae4e56872f12865c2651bbc9feb5))
+* update latest default config for arbitrum-sepolia ([#66](https://github.com/iExec-Nox/nox-handle-sdk/issues/66)) ([78af30a](https://github.com/iExec-Nox/nox-handle-sdk/commit/78af30a379d937ba4aebebad57b4b41702663325))
+* update latest default config for arbitrum-sepolia ([#67](https://github.com/iExec-Nox/nox-handle-sdk/issues/67)) ([7db1f41](https://github.com/iExec-Nox/nox-handle-sdk/commit/7db1f41fe93f45d6e9ef836381d9e4691f03286e))
+
 ## [0.1.0-beta.3](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.2...v0.1.0-beta.3) (2026-03-16)
 
 
