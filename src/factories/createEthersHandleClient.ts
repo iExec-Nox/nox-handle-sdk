@@ -1,11 +1,12 @@
 import { HandleClient } from '../client/HandleClient.js';
+import type { HandleClientConfig } from '../client/HandleClient.js';
 import { resolveNetworkConfig } from '../config/networks.js';
 import { ApiService } from '../services/api/ApiService.js';
 import {
   EthersBlockchainService,
   type EthersClient,
 } from '../services/blockchain/EthersBlockchainService.js';
-import type { HandleClientConfig } from '../client/HandleClient.js';
+import SubgraphService from '../services/subgraph/SubgraphService.js';
 
 /**
  * Creates a {@link HandleClient} from an ethers signer provider
@@ -48,9 +49,11 @@ export const createEthersHandleClient = async (
   const ethersBlockchainService = new EthersBlockchainService(ethersClient);
   const chainId = await ethersBlockchainService.getChainId();
   const resolvedConfig = resolveNetworkConfig(chainId, config);
+  const subgraphService = new SubgraphService(resolvedConfig.subgraphUrl);
   const apiService = new ApiService(resolvedConfig.gatewayUrl);
   return new HandleClient({
     blockchainService: ethersBlockchainService,
+    subgraphService,
     apiService,
     config: resolvedConfig,
   });

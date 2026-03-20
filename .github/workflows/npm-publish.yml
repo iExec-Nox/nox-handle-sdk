@@ -1,0 +1,17 @@
+# ⚠️ THIS WORKFLOW IS THE TRUSTED PUBLISHER CONFIGURED ON NPMJS.COM, DO NOT RENAME OR DELETE THIS FILE ⚠️
+name: npm publish
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  id-token: write # Required for OIDC
+  packages: write
+  contents: read
+
+jobs:
+  npm-publish-latest:
+    uses: ./.github/workflows/reusable-npm.yml
+    with:
+      tag: latest

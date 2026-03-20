@@ -1,11 +1,17 @@
 import type { HandleClientConfig } from '../client/HandleClient.js';
-import { isBaseURL, isEthereumAddress } from '../utils/validators.js';
+import {
+  isBaseURL,
+  isEthereumAddress,
+  isSubgraphURL,
+} from '../utils/validators.js';
 
-// TODO: replace with production endpoints
 export const NETWORK_CONFIGS: Record<number, HandleClientConfig> = {
   421_614: {
-    gatewayUrl: 'https://nox-gateway.arbitrum-sepolia-testnet.iex.ec',
-    smartContractAddress: '0x4e5eFffc593B22A50e37C772DaC0F3aFD905B1a2',
+    gatewayUrl:
+      'https://2e1800fc0dddeeadc189283ed1dce13c1ae28d48-3000.apps.ovh-tdx-dev.noxprotocol.dev',
+    smartContractAddress: '0xd464B198f06756a1d00be223634b85E0a731c229',
+    subgraphUrl:
+      'https://thegraph.arbitrum-sepolia-testnet.noxprotocol.io/api/subgraphs/id/BjQAX2HpmsSAzURJimKDhjZZnkSJtaczA8RPumggrStb',
   },
 };
 
@@ -18,12 +24,13 @@ export function resolveNetworkConfig(
   const gatewayUrl = override?.gatewayUrl ?? networkConfig?.gatewayUrl;
   const smartContractAddress =
     override?.smartContractAddress ?? networkConfig?.smartContractAddress;
+  const subgraphUrl = override?.subgraphUrl ?? networkConfig?.subgraphUrl;
 
-  if (!gatewayUrl || !smartContractAddress) {
+  if (!gatewayUrl || !smartContractAddress || !subgraphUrl) {
     const supported = Object.keys(NETWORK_CONFIGS).join(', ');
     throw new Error(
       `Chain ${chainId} is not supported. Supported chains: ${supported}. ` +
-        `To use an unsupported chain, provide both gatewayUrl and smartContractAddress.`
+        `To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.`
     );
   }
 
@@ -39,5 +46,11 @@ export function resolveNetworkConfig(
     );
   }
 
-  return { gatewayUrl, smartContractAddress };
+  if (!isSubgraphURL(subgraphUrl)) {
+    throw new TypeError(
+      `Invalid subgraphUrl: expected valid URL, got ${subgraphUrl}`
+    );
+  }
+
+  return { gatewayUrl, smartContractAddress, subgraphUrl };
 }

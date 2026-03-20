@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
+import { SOLIDITY_TYPE_TO_CODE } from '../../../src/utils/types.js';
 import {
   isBaseURL,
   isEthereumAddress,
+  isSubgraphURL,
   validateHandle,
   validateHandleProof,
 } from '../../../src/utils/validators.js';
-import { SOLIDITY_TYPE_TO_CODE } from '../../../src/utils/types.js';
 import { buildHandle } from '../../helpers/mocks.js';
 
 describe('isBaseURL', () => {
@@ -38,6 +39,35 @@ describe('isBaseURL', () => {
   for (const url of invalidUrls) {
     it(`should return false for invalid URL: ${String(url)}`, () => {
       expect(isBaseURL(url)).toBe(false);
+    });
+  }
+});
+
+describe('isSubgraphURL', () => {
+  const validUrls = [
+    'http://example.com',
+    'https://example.com',
+    'https://api.example.com',
+    'http://localhost',
+    'https://gateway.testnet.nox.com',
+    'https://example.com/',
+    'https://gateway.thegraph.com/api/subgraphs/id/abc123',
+    'https://example.com/subgraphs/id/xyz',
+    'https://example.com/path/to/subgraph',
+    'https://example.com/path?query=1',
+  ];
+
+  for (const url of validUrls) {
+    it(`should return true for valid URL: ${url}`, () => {
+      expect(isSubgraphURL(url)).toBe(true);
+    });
+  }
+
+  const invalidUrls = ['not-a-url', 'ftp://example.com', '', 123, undefined];
+
+  for (const url of invalidUrls) {
+    it(`should return false for invalid URL: ${String(url)}`, () => {
+      expect(isSubgraphURL(url)).toBe(false);
     });
   }
 });
@@ -121,7 +151,7 @@ describe('validateHandle', () => {
     it('rejects non-string handle', () => {
       expect(() =>
         validateHandle({
-          handle: 12345,
+          handle: 12_345,
           expectedChainId: 1,
           expectedSolidityType: 'bool',
         })
@@ -129,7 +159,7 @@ describe('validateHandle', () => {
     });
   });
 
-  describe('chain ID validation (bytes 26-29)', () => {
+  describe('chain ID validation (bytes 1-4)', () => {
     it('accepts matching chain ID', () => {
       const handle = buildHandle({ chainId: 421_614, typeCode: 0, version: 0 });
       expect(() =>
@@ -169,7 +199,7 @@ describe('validateHandle', () => {
     });
   });
 
-  describe('type code validation (byte 30)', () => {
+  describe('type code validation (byte 5)', () => {
     for (const [type, code] of SOLIDITY_TYPE_TO_CODE.entries()) {
       it(`should accept handle with matching type ${type} (code ${code})`, () => {
         const handle = buildHandle({ chainId: 1, typeCode: code, version: 0 });
@@ -217,7 +247,57 @@ describe('validateHandle', () => {
     });
   });
 
-  describe('version validation (byte 31)', () => {
+  describe('attribute validation (byte 6)', () => {
+    it('should accept handle with supported attribute (0)', () => {
+      const handle = buildHandle({
+        chainId: 1,
+        typeCode: 0,
+        version: 0,
+        attribute: 0,
+      });
+      expect(() =>
+        validateHandle({
+          handle,
+          expectedChainId: 1,
+          expectedSolidityType: 'bool',
+        })
+      ).not.toThrow();
+    });
+
+    it('should accept handle with supported attribute (1)', () => {
+      const handle = buildHandle({
+        chainId: 1,
+        typeCode: 0,
+        version: 0,
+        attribute: 1,
+      });
+      expect(() =>
+        validateHandle({
+          handle,
+          expectedChainId: 1,
+          expectedSolidityType: 'bool',
+        })
+      ).not.toThrow();
+    });
+
+    it('should reject handle with unsupported attribute', () => {
+      const handle = buildHandle({
+        chainId: 1,
+        typeCode: 0,
+        version: 0,
+        attribute: 2 as any,
+      });
+      expect(() =>
+        validateHandle({
+          handle,
+          expectedChainId: 1,
+          expectedSolidityType: 'bool',
+        })
+      ).toThrow(`Unsupported handle attribute: expected one of [0,1], got 2`);
+    });
+  });
+
+  describe('version validation (byte 0)', () => {
     it('accepts version 0', () => {
       const handle = buildHandle({ chainId: 1, typeCode: 0, version: 0 });
       expect(() =>
@@ -260,13 +340,13 @@ describe('validateHandle', () => {
   describe('cross-chain isolation', () => {
     it('should reject handle with same prehandle but different chain IDs', () => {
       const handle1 = buildHandle({
-        prehandle: 'aa'.repeat(26),
+        prehandle: 'aa'.repeat(25),
         chainId: 1,
         typeCode: 0,
         version: 0,
       });
       const handle2 = buildHandle({
-        prehandle: 'aa'.repeat(26),
+        prehandle: 'aa'.repeat(25),
         chainId: 2,
         typeCode: 0,
         version: 0,

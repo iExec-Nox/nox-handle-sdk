@@ -1,14 +1,15 @@
 import type { WalletClient } from 'viem';
 import { HandleClient } from '../client/HandleClient.js';
+import type { HandleClientConfig } from '../client/HandleClient.js';
 import { resolveNetworkConfig } from '../config/networks.js';
 import { ApiService } from '../services/api/ApiService.js';
 import { ViemBlockchainService } from '../services/blockchain/ViemBlockchainService.js';
-import type { HandleClientConfig } from '../client/HandleClient.js';
+import SubgraphService from '../services/subgraph/SubgraphService.js';
 
 /**
- * Creates a {@link HandleClient} from a viem WalletClient
+ * Creates a {@link HandleClient} from a viem WalletClient or SmartAccount
  *
- * @param viemClient A viem WalletClient instance connected to an account
+ * @param viemClient A viem WalletClient instance connected to an account or a viem SmartAccount instance
  * @param config Optional partial {@link HandleClientConfig} to override network defaults
  * @returns A Promise of {@link HandleClient} instance
  * @throws {TypeError} if the provided viemClient is invalid
@@ -51,9 +52,11 @@ export const createViemHandleClient = async (
   const viemBlockchainService = new ViemBlockchainService(viemClient);
   const chainId = await viemBlockchainService.getChainId();
   const resolvedConfig = resolveNetworkConfig(chainId, config);
+  const subgraphService = new SubgraphService(resolvedConfig.subgraphUrl);
   const apiService = new ApiService(resolvedConfig.gatewayUrl);
   return new HandleClient({
     blockchainService: viemBlockchainService,
+    subgraphService,
     apiService,
     config: resolvedConfig,
   });

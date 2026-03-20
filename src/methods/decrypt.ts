@@ -1,22 +1,22 @@
+import type { HandleClientConfig } from '../client/HandleClient.js';
+import type { IApiService } from '../services/api/IApiService.js';
 import type {
   IBlockchainService,
   EIP712TypedData,
 } from '../services/blockchain/IBlockchainService.js';
-import type { IApiService } from '../services/api/IApiService.js';
-import type { HandleClientConfig } from '../client/HandleClient.js';
+import { IS_VIEWER_ABI } from '../services/blockchain/abis/isViewer.abi.js';
+import type { IStorageService } from '../services/storage/IStorageService.js';
+import type { HexString } from '../types/internalTypes.js';
+import { eciesDecrypt } from '../utils/ecies.js';
+import { decodeValue } from '../utils/encoding.js';
+import { isHexString } from '../utils/hex.js';
 import {
   generateRsaKeyPair,
   exportRsaPublicKey,
   rsaDecrypt,
+  exportRsaPrivateKey,
+  importRsaPrivateKey,
 } from '../utils/rsa.js';
-import { eciesDecrypt } from '../utils/ecies.js';
-import {
-  hexToBool,
-  hexToIntX,
-  hexToString,
-  hexToUintX,
-  isHexString,
-} from '../utils/hex.js';
 import {
   handleToChainId,
   handleToSolidityType,
@@ -24,19 +24,19 @@ import {
   type JsValue,
   type SolidityType,
 } from '../utils/types.js';
-import type { HexString } from '../types/internalTypes.js';
 import { assertRequiredParams } from '../utils/validators.js';
-import { IS_VIEWER_ABI } from '../abis/isViewer.abi.js';
 
 export async function decrypt<T extends SolidityType>({
   handle,
   apiService,
   blockchainService,
+  storageService,
   config,
 }: {
   handle: Handle<T>;
   apiService: IApiService;
   blockchainService: IBlockchainService;
+  storageService: IStorageService;
   config: HandleClientConfig;
 }): Promise<{ value: JsValue<T>; solidityType: T }> {
   assertRequiredParams({ handle }, ['handle']);
@@ -60,12 +60,144 @@ export async function decrypt<T extends SolidityType>({
   );
   if (!isViewer) {
     throw new Error(
-      `User (${userAddress}) is not authorized to decrypt the handle`
+      `Handle (${handle}) does not exist or user (${userAddress}) is not authorized to decrypt it`
     );
   }
 
   const solidityType = handleToSolidityType(handle) as T;
 
+  let authorization: string;
+  let rsaPrivateKey: CryptoKey;
+  let isFreshDecryptionMaterial = false;
+
+  const storageKey = computeDecryptionMaterialStorageKey({
+    userAddress,
+    chainId,
+    verifyingContract: config.smartContractAddress,
+  });
+  const storedDecryptionMaterial = await retrieveDecryptionMaterial({
+    storageKey,
+    storageService,
+  });
+
+  if (storedDecryptionMaterial) {
+    authorization = storedDecryptionMaterial.authorization;
+    rsaPrivateKey = storedDecryptionMaterial.rsaPrivateKey;
+  } else {
+    const decryptionMaterial = await generateDecryptionMaterial({
+      userAddress,
+      chainId,
+      smartContractAddress: config.smartContractAddress,
+      blockchainService,
+    });
+    authorization = decryptionMaterial.authorization;
+    rsaPrivateKey = decryptionMaterial.rsaPrivateKey;
+    isFreshDecryptionMaterial = true;
+  }
+
+  let { status, data } = await apiService.get({
+    endpoint: `/v0/secrets/${handle}`,
+    headers: {
+      Authorization: authorization,
+    },
+  });
+
+  // Clear stored decryption material if authorization is invalid to avoid trying to reuse it on subsequent decryptions
+  if (status === 401 && storedDecryptionMaterial) {
+    try {
+      storageService.removeItem(storageKey);
+    } catch {
+      // ignore
+    }
+    // Retry decryption once after clearing stored material in case the failure was due to an invalid stored authorization
+    const decryptionMaterial = await generateDecryptionMaterial({
+      userAddress,
+      chainId,
+      smartContractAddress: config.smartContractAddress,
+      blockchainService,
+    });
+    authorization = decryptionMaterial.authorization;
+    rsaPrivateKey = decryptionMaterial.rsaPrivateKey;
+    isFreshDecryptionMaterial = true;
+    ({ status, data } = await apiService.get({
+      endpoint: `/v0/secrets/${handle}`,
+      headers: {
+        Authorization: authorization,
+      },
+    }));
+  }
+
+  // Validate response
+  if (
+    status !== 200 ||
+    typeof data !== 'object' ||
+    data === null ||
+    !isHexString((data as { ciphertext?: unknown })?.ciphertext) ||
+    !isHexString((data as { iv?: unknown })?.iv, 12) ||
+    !isHexString(
+      (data as { encryptedSharedSecret?: unknown })?.encryptedSharedSecret
+    )
+  ) {
+    throw new Error(
+      `Unexpected response from Handle Gateway (status: ${status}, data: ${JSON.stringify(data)})`
+    );
+  }
+
+  const { ciphertext, iv, encryptedSharedSecret } = data as {
+    ciphertext: HexString;
+    iv: HexString;
+    encryptedSharedSecret: HexString;
+  };
+
+  if (isFreshDecryptionMaterial) {
+    await storeDecryptionMaterial({
+      storageKey,
+      authorization,
+      rsaPrivateKey,
+      storageService,
+    }).catch(() => {
+      // ignore
+    });
+  }
+
+  const sharedSecret = await rsaDecrypt({
+    privateKey: rsaPrivateKey,
+    ciphertext: encryptedSharedSecret,
+  }).catch((error) => {
+    throw new Error('Failed to decrypt shared secret', { cause: error });
+  });
+
+  const plaintext = await eciesDecrypt({
+    ciphertext,
+    iv,
+    sharedSecret,
+  }).catch((error) => {
+    throw new Error('Failed to decrypt ciphertext', { cause: error });
+  });
+
+  let value: JsValue<T>;
+  try {
+    value = decodeValue<T>(plaintext, solidityType);
+  } catch (error) {
+    throw new Error(
+      `Failed to decode decrypted plaintext: expected hex encoded ${solidityType}, got ${plaintext}`,
+      { cause: error }
+    );
+  }
+  return { value, solidityType };
+}
+
+async function generateDecryptionMaterial({
+  userAddress,
+  chainId,
+  smartContractAddress,
+  blockchainService,
+}: {
+  userAddress: HexString;
+  chainId: number;
+  smartContractAddress: HexString;
+  blockchainService: IBlockchainService;
+}): Promise<{ authorization: string; rsaPrivateKey: CryptoKey }> {
   const rsaKeyPair = await generateRsaKeyPair().catch((error) => {
     throw new Error('Failed to generate RSA key pair', { cause: error });
   });
@@ -74,6 +206,7 @@ export async function decrypt<T extends SolidityType>({
       throw new Error('Failed to export RSA public key', { cause: error });
     }
   );
+  const rsaPrivateKey = rsaKeyPair.privateKey;
 
   const now = Math.floor(Date.now() / 1000);
 
@@ -121,7 +254,7 @@ export async function decrypt<T extends SolidityType>({
       name: 'Handle Gateway',
       version: '1', // major version
       chainId: chainId,
-      verifyingContract: config.smartContractAddress, // Nox contract address to specify
+      verifyingContract: smartContractAddress,
     },
     primaryType: 'DataAccessAuthorization',
     message: {
@@ -138,7 +271,6 @@ export async function decrypt<T extends SolidityType>({
         cause: error,
       });
     });
-
   const authorization = `EIP712 ${btoa(
     JSON.stringify({
       payload: dataAccessAuthorizationTypedData.message,
@@ -146,94 +278,104 @@ export async function decrypt<T extends SolidityType>({
     })
   )}`;
 
-  const { status, data } = await apiService.get({
-    endpoint: `/v0/secrets/${handle}`,
-    headers: {
-      Authorization: authorization,
-    },
-  });
-
-  // Validate response
-  if (
-    status !== 200 ||
-    typeof data !== 'object' ||
-    data === null ||
-    !isHexString((data as { ciphertext?: unknown })?.ciphertext) ||
-    !isHexString((data as { iv?: unknown })?.iv, 12) ||
-    !isHexString(
-      (data as { encryptedSharedSecret?: unknown })?.encryptedSharedSecret
-    )
-  ) {
-    throw new Error(
-      `Unexpected response from Handle Gateway (status: ${status}, data: ${JSON.stringify(data)})`
-    );
-  }
-  const { ciphertext, iv, encryptedSharedSecret } = data as {
-    ciphertext: HexString;
-    iv: HexString;
-    encryptedSharedSecret: HexString;
-  };
-
-  const sharedSecret = await rsaDecrypt({
-    privateKey: rsaKeyPair.privateKey,
-    ciphertext: encryptedSharedSecret,
-  }).catch((error) => {
-    throw new Error('Failed to decrypt shared secret', { cause: error });
-  });
-
-  const plaintext = await eciesDecrypt({
-    ciphertext,
-    iv,
-    sharedSecret,
-  }).catch((error) => {
-    throw new Error('Failed to decrypt ciphertext', { cause: error });
-  });
-
-  let value: JsValue<T>;
-  try {
-    value = decodeValue<T>(plaintext, solidityType);
-  } catch (error) {
-    throw new Error(
-      `Failed to decode decrypted plaintext: expected hex encoded ${solidityType}, got ${plaintext}`,
-      { cause: error }
-    );
-  }
-  return { value, solidityType };
+  return { authorization, rsaPrivateKey };
 }
 
-// eslint-disable-next-line sonarjs/function-return-type
-function decodeValue<T extends SolidityType>(
-  plaintext: HexString,
-  solidityType: T
-): JsValue<T> {
-  let value: JsValue<T>;
-  /* eslint unicorn/prefer-switch: ["error", {"minimumCases": 5}] */
-  if (solidityType === 'bool') {
-    value = hexToBool(plaintext) as JsValue<T>;
-  } else if (solidityType === 'string') {
-    value = hexToString(plaintext) as JsValue<T>;
-  } else if (solidityType === 'bytes') {
-    // no validation needed plaintext is always hex
-    value = plaintext as JsValue<T>;
-  } else if (solidityType === 'address') {
-    if (!isHexString(plaintext, 20)) {
-      throw new TypeError('Invalid address');
-    }
-    value = plaintext as JsValue<T>;
-  } else if (solidityType.startsWith('uint')) {
-    const bitSize = Number.parseInt(solidityType.slice(4), 10);
-    value = hexToUintX(plaintext, bitSize) as JsValue<T>;
-  } else if (solidityType.startsWith('int')) {
-    const bitSize = Number.parseInt(solidityType.slice(3), 10);
-    value = hexToIntX(plaintext, bitSize) as JsValue<T>;
-  } else if (solidityType.startsWith('bytes')) {
-    const byteSize = Number.parseInt(solidityType.slice(5), 10);
-    if (!isHexString(plaintext, byteSize)) {
-      throw new TypeError(`Invalid ${solidityType}`);
-    }
-    value = plaintext as JsValue<T>;
-  } else {
-    throw new Error(`Unsupported solidity type ${solidityType}`); // should never happen
+/**
+ * Retrieves the authorization and RSA private key from the storage service
+ *
+ * NB: clears the stored data if the authorization is invalid (expired or malformed) to avoid trying to reuse it on subsequent decryptions
+ */
+async function retrieveDecryptionMaterial({
+  storageKey,
+  storageService,
+}: {
+  storageKey: string;
+  storageService: IStorageService;
+}): Promise<{ authorization: string; rsaPrivateKey: CryptoKey } | undefined> {
+  let data: string | null;
+  try {
+    data = storageService.getItem(storageKey);
+  } catch {
+    return undefined;
   }
-  return value;
+  if (data === null) {
+    return undefined;
+  }
+  try {
+    const { authorization, pkcs8 } = JSON.parse(data) as {
+      authorization: `EIP712 ${string}`;
+      pkcs8: HexString;
+    };
+    const rsaPrivateKey = await importRsaPrivateKey({ pkcs8Hex: pkcs8 });
+    const now = Math.floor(Date.now() / 1000);
+    const authPayload = JSON.parse(
+      atob(authorization.split('EIP712 ')[1]!)
+    ) as {
+      payload: {
+        notBefore: number;
+        expiresAt: number;
+      };
+    };
+    if (
+      typeof authPayload.payload.notBefore !== 'number' ||
+      now < authPayload.payload.notBefore ||
+      typeof authPayload.payload.expiresAt !== 'number' ||
+      now > authPayload.payload.expiresAt - 10 // invalid if expired or will expire in the next 10 seconds
+    ) {
+      throw new Error('Invalid stored authorization');
+    }
+    return { authorization, rsaPrivateKey };
+  } catch {
+    try {
+      storageService.removeItem(storageKey);
+    } catch {
+      // ignore
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Computes a unique storage key for the user
+ */
+function computeDecryptionMaterialStorageKey({
+  userAddress,
+  verifyingContract,
+  chainId,
+}: {
+  userAddress: HexString;
+  verifyingContract: HexString;
+  chainId: number;
+}): string {
+  const version = '1'; // major version only to allow breaking changes in storage format if needed
+  return `DecryptionMaterial:${userAddress}:${chainId}:${verifyingContract}:${version}`;
+}
+
+/**
+ * Stores the authorization and RSA private key in the storage service
+ */
+async function storeDecryptionMaterial({
+  storageKey,
+  authorization,
+  rsaPrivateKey,
+  storageService,
+}: {
+  storageKey: string;
+  authorization: string;
+  rsaPrivateKey: CryptoKey;
+  storageService: IStorageService;
+}): Promise<void> {
+  try {
+    const pkcs8 = await exportRsaPrivateKey({ privateKey: rsaPrivateKey });
+    const data = {
+      authorization,
+      pkcs8,
+    };
+    storageService.setItem(storageKey, JSON.stringify(data));
+  } catch (error) {
+    throw new Error('Failed to store authorization and RSA private key', {
+      cause: error,
+    });
+  }
 }

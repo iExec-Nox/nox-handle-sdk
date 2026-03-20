@@ -16,7 +16,7 @@ Creates a [HandleClient](../interfaces/HandleClient.md) from a client of either 
 
 [`BlockchainClient`](../type-aliases/BlockchainClient.md)
 
-An ethers client with a Signer and a Provider or a viem WalletClient connected to an account
+An ethers or viem client
 
 ### config?
 

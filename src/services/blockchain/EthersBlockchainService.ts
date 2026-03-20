@@ -1,4 +1,6 @@
 import type { AbstractSigner, BrowserProvider, Provider, Signer } from 'ethers';
+import type { EthereumAddress, HexString } from '../../types/internalTypes.js';
+import { safeJsonStringify } from '../../utils/format.js';
 import type {
   EIP712TypedData,
   IBlockchainService,
@@ -7,8 +9,6 @@ import type {
   AbiFragmentTypes,
   AbiReadFunctionJsonFragment,
 } from './abi.types.js';
-import type { EthereumAddress, HexString } from '../../types/internalTypes.js';
-import { safeJsonStringify } from '../../utils/format.js';
 
 export type EthersClient = AbstractSigner | BrowserProvider;
 

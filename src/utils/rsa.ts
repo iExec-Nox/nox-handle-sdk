@@ -23,7 +23,8 @@ export async function generateRsaKeyPair(): Promise<CryptoKeyPair> {
 /**
  * Export RSA public key to spki (DER) hex encoded format
  *
- * @param keyPair
+ * @param param0
+ * @param param0.publicKey The RSA public key to export
  * @returns spki (DER) hex encoded string public key
  */
 export async function exportRsaPublicKey({
@@ -33,6 +34,48 @@ export async function exportRsaPublicKey({
 }): Promise<HexString> {
   const publicKeyBuffer = await crypto.subtle.exportKey('spki', publicKey);
   return bytesToHex(new Uint8Array(publicKeyBuffer));
+}
+
+/**
+ * Export RSA private key to pkcs8 (DER) hex encoded format
+ *
+ * @param param0
+ * @param param0.privateKey The RSA private key to export
+ * @returns pkcs8 (DER) hex encoded string private key
+ */
+export async function exportRsaPrivateKey({
+  privateKey,
+}: {
+  privateKey: CryptoKey;
+}): Promise<HexString> {
+  const privateKeyBuffer = await crypto.subtle.exportKey('pkcs8', privateKey);
+  return bytesToHex(new Uint8Array(privateKeyBuffer));
+}
+
+/**
+ * Import RSA private key from pkcs8 (DER) hex encoded format
+ *
+ * @param param0
+ * @param param0.pkcs8Hex The pkcs8 (DER) hex encoded string private key to import
+ * @returns The imported RSA private key as a CryptoKey
+ */
+export async function importRsaPrivateKey({
+  pkcs8Hex,
+}: {
+  pkcs8Hex: HexString;
+}): Promise<CryptoKey> {
+  const pkcs8Buffer = hexToBytes(pkcs8Hex);
+  const privateKey = await crypto.subtle.importKey(
+    'pkcs8',
+    pkcs8Buffer,
+    {
+      name: 'RSA-OAEP',
+      hash: 'SHA-256',
+    },
+    true,
+    ['decrypt']
+  );
+  return privateKey;
 }
 
 /**

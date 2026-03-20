@@ -2,6 +2,13 @@ import type { IApiService } from '../services/api/IApiService.js';
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
 import type { EthereumAddress, HexString } from '../types/internalTypes.js';
 import {
+  boolToHex,
+  intXToHex,
+  isHexString,
+  stringToHex,
+  uintXToHex,
+} from '../utils/hex.js';
+import {
   SOLIDITY_TYPES_SET,
   type Handle,
   type JsValue,
@@ -12,13 +19,6 @@ import {
   validateHandle,
   validateHandleProof,
 } from '../utils/validators.js';
-import {
-  boolToHex,
-  intXToHex,
-  isHexString,
-  stringToHex,
-  uintXToHex,
-} from '../utils/hex.js';
 
 interface GatewaySecretResponse {
   handle: string;
@@ -33,9 +33,24 @@ interface EncryptInputParameters {
   applicationContract: EthereumAddress;
 }
 
+/**
+ * Nox protocol supported types for encryption.
+ * Only these types can be used for encryptInput().
+ */
+const NOX_SUPPORTED_TYPES = ['bool', 'uint16', 'uint256', 'int16', 'int256'];
+const NOX_SUPPORTED_TYPES_SET = new Set(NOX_SUPPORTED_TYPES);
+
 function assertValidSolidityType(type: string): asserts type is SolidityType {
   if (!SOLIDITY_TYPES_SET.has(type)) {
     throw new TypeError(`Invalid Solidity type: ${type}`);
+  }
+}
+
+function assertNoxSupportedType(type: string): void {
+  if (!NOX_SUPPORTED_TYPES_SET.has(type)) {
+    throw new TypeError(
+      `Unsupported Solidity type for encryption: ${type}. Nox protocol only supports: ${NOX_SUPPORTED_TYPES.join(', ')}`
+    );
   }
 }
 
@@ -71,8 +86,6 @@ function encodeValue(
   value: JsValue<SolidityType>,
   solidityType: SolidityType
 ): HexString {
-  assertValidSolidityType(solidityType);
-
   switch (solidityType) {
     case 'bool': {
       return boolToHex(value as boolean);
@@ -121,6 +134,9 @@ export async function encryptInput<T extends SolidityType>({
     'solidityType',
     'applicationContract',
   ]);
+  assertValidSolidityType(solidityType);
+  // Restrict encryption to Nox-supported types only
+  assertNoxSupportedType(solidityType);
   assertValidAddress(applicationContract);
   const encodedValue = encodeValue(value, solidityType);
   const [owner, chainId] = await Promise.all([

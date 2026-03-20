@@ -6,4 +6,4 @@
 
 # Type Alias: ViemClient
 
-> **ViemClient** = `WalletClient`
+> **ViemClient** = `WalletClient` \| `SmartAccount`

@@ -6,7 +6,7 @@
 
 # Type Alias: Handle\<T\>
 
-> **Handle**\<`T`\> = `HexString` & `object`
+> **Handle**\<`T`\> = [`HexString`](HexString.md) & `object`
 
 Handle type representing an off-chain encrypted value manipulable on-chain.
 The generic parameter T indicates the Solidity type of the represented value.

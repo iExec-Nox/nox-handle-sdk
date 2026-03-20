@@ -1,4 +1,5 @@
 import { HandleClient } from '../client/HandleClient.js';
+import type { HandleClientConfig } from '../client/HandleClient.js';
 import { resolveNetworkConfig } from '../config/networks.js';
 import { ApiService } from '../services/api/ApiService.js';
 import {
@@ -9,17 +10,18 @@ import {
 } from '../services/blockchain/EthersBlockchainService.js';
 import {
   isViemWalletClient,
+  isViemSmartAccount,
   ViemBlockchainService,
   type ViemClient,
 } from '../services/blockchain/ViemBlockchainService.js';
-import type { HandleClientConfig } from '../client/HandleClient.js';
+import SubgraphService from '../services/subgraph/SubgraphService.js';
 
 export type BlockchainClient = EthersClient | ViemClient;
 
 /**
  * Creates a {@link HandleClient} from a client of either ethers or viem
  *
- * @param blockchainClient An ethers client with a Signer and a Provider or a viem WalletClient connected to an account
+ * @param blockchainClient An ethers or viem client
  * @param config Optional partial {@link HandleClientConfig} to override network defaults
  * @returns A Promise of {@link HandleClient} instance
  * @throws {TypeError} if the provided blockchainClient is invalid
@@ -67,20 +69,27 @@ export const createHandleClient = async (
     const chainId = await ethersBlockchainService.getChainId();
     const resolvedConfig = resolveNetworkConfig(chainId, config);
     const apiService = new ApiService(resolvedConfig.gatewayUrl);
+    const subgraphService = new SubgraphService(resolvedConfig.subgraphUrl);
     return new HandleClient({
       blockchainService: ethersBlockchainService,
+      subgraphService,
       apiService,
       config: resolvedConfig,
     });
   }
 
-  if (isViemWalletClient(blockchainClient)) {
+  if (
+    isViemWalletClient(blockchainClient) ||
+    isViemSmartAccount(blockchainClient)
+  ) {
     const viemBlockchainService = new ViemBlockchainService(blockchainClient);
     const chainId = await viemBlockchainService.getChainId();
     const resolvedConfig = resolveNetworkConfig(chainId, config);
     const apiService = new ApiService(resolvedConfig.gatewayUrl);
+    const subgraphService = new SubgraphService(resolvedConfig.subgraphUrl);
     return new HandleClient({
       blockchainService: viemBlockchainService,
+      subgraphService,
       apiService,
       config: resolvedConfig,
     });

@@ -1,11 +1,12 @@
+import { describe, it, expect } from 'vitest';
 import { hexToBytes } from '../../../src/utils/hex.js';
 import {
   generateRsaKeyPair,
   exportRsaPublicKey,
   rsaDecrypt,
+  exportRsaPrivateKey,
+  importRsaPrivateKey,
 } from '../../../src/utils/rsa.js';
-
-import { describe, it, expect } from 'vitest';
 
 describe('rsa', () => {
   describe('generateRsaKeyPair', () => {
@@ -22,6 +23,28 @@ describe('rsa', () => {
       const publicKeyHex = await exportRsaPublicKey(keyPair);
       expect(typeof publicKeyHex).toBe('string');
       expect(publicKeyHex).toMatch(/^0x([0-9a-f]{2})+$/);
+    });
+  });
+
+  describe('exportRsaPrivateKey/importRsaPrivateKey', () => {
+    it('should export the RSA private key to PKCS8 format hex string with "0x" prefix', async () => {
+      const keyPair = await generateRsaKeyPair();
+      const privateKeyHex = await exportRsaPrivateKey(keyPair);
+      expect(typeof privateKeyHex).toBe('string');
+      expect(privateKeyHex).toMatch(/^0x([0-9a-f]{2})+$/);
+    });
+
+    it('should export and re-import the RSA private key correctly', async () => {
+      const keyPair = await generateRsaKeyPair();
+      const privateKeyHex = await exportRsaPrivateKey(keyPair);
+      const importedPrivateKey = await importRsaPrivateKey({
+        pkcs8Hex: privateKeyHex,
+      });
+      expect(importedPrivateKey).toBeInstanceOf(CryptoKey);
+      const reExportedPrivateKeyHex = await exportRsaPrivateKey({
+        privateKey: importedPrivateKey,
+      });
+      expect(reExportedPrivateKeyHex).toBe(privateKeyHex);
     });
   });
 

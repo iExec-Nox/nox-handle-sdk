@@ -2,6 +2,11 @@ name: PR test
 
 on: [pull_request]
 
+permissions:
+  id-token: write # Required by iExecBlockchainComputing/github-actions-workflows/.github/workflows/publish-npm.yml@publish-npm-v1.6.0
+  packages: write # Required by iExecBlockchainComputing/github-actions-workflows/.github/workflows/publish-npm.yml@publish-npm-v1.6.0
+  contents: read
+
 concurrency:
   group: ${{ github.ref }}-pr-test
   cancel-in-progress: true
@@ -49,3 +54,8 @@ jobs:
 
       - name: Run tests
         run: npm run test:run
+
+  npm-dry-run:
+    uses: ./.github/workflows/reusable-npm.yml
+    with:
+      dry-run: true

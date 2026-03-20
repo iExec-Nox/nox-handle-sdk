@@ -167,7 +167,7 @@ const { value, solidityType } = await handleClient.decrypt(handle);
 | --------- | -------- | ------------------------------- |
 | `handle`  | `string` | The handle (bytes32) to decrypt |
 
-**Returns:** `{  value: JsValue<T>; solidityType: T extends SolidityType }`
+**Returns:** `{ value: JsValue<T>; solidityType: T extends SolidityType }`
 
 - `value`: The decrypted value cast in the JS type (`boolean`|`bigint`|`string`) corresponding to the Solidity type
 - `solidityType`: The Solidity type of the value
@@ -180,6 +180,36 @@ const { value, solidityType } = await handleClient.decrypt(handle);
 const { value, solidityType } = await handleClient.decrypt(
   '0x7a3b9c8d2e1f0a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b'
 );
+```
+
+### publicDecrypt
+
+Decrypts a publicly decryptable handle and returns the original value and a decryption proof.
+
+```typescript
+const { value, solidityType, decryptionProof } =
+  await handleClient.publicDecrypt(handle);
+```
+
+**Parameters:**
+
+| Parameter | Type     | Description                                          |
+| --------- | -------- | ---------------------------------------------------- |
+| `handle`  | `string` | The publicly decryptable handle (bytes32) to decrypt |
+
+**Returns:** `{ value: JsValue<T>; solidityType: T extends SolidityType; decryptionProof: HexString }`
+
+- `value`: The decrypted value cast in the JS type (`boolean`|`bigint`|`string`) corresponding to the Solidity type
+- `solidityType`: The Solidity type of the value
+- `decryptionProof`: The proof that the value was correctly decrypted, containing the encoded data and a provenance proof verifiable by the smart contract
+
+**Example:**
+
+```typescript
+const { value, solidityType, decryptionProof } =
+  await handleClient.publicDecrypt(
+    '0x7a3b9c8d2e1f0a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b'
+  );
 ```
 
 ## Types
