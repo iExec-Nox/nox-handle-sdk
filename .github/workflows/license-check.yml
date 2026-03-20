@@ -14,10 +14,10 @@ jobs:
   license-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
@@ -26,4 +26,4 @@ jobs:
         run: npm ci --omit=dev
 
       - name: Check licenses
-        run: npx license-checker --onlyAllow 'MIT'
+        run: npx license-checker@25.0.1 --onlyAllow 'MIT'
