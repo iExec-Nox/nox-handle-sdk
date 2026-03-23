@@ -160,7 +160,17 @@ async function makeCall({
       response.headers.get('Content-Type')?.includes('application/json') &&
       response.body
     ) {
-      result.data = await response.json();
+      const data = await response.json();
+      if (
+        typeof data?.payload === 'object' &&
+        typeof data?.signature === 'string'
+      ) {
+        result.data = data.payload;
+        result.signature = data.signature;
+      } else {
+        // legacy response format without "payload" wrapper
+        result.data = data;
+      }
     }
     return result;
   } catch (error) {

@@ -260,4 +260,102 @@ describe('ApiService', () => {
       );
     });
   });
+
+  describe('response parsing', () => {
+    const api = new ApiService('https://api.example.com');
+
+    describe('with legacy response format (without {payload, signature})', () => {
+      it('should handle legacy response format', async () => {
+        fetchSpy.mockResolvedValue(mockJsonResponse({ id: 1 }, 200));
+        const result = await api.get({ endpoint: '/v0/resources/999' });
+        expect(result).toEqual({
+          ok: true,
+          status: 200,
+          data: { id: 1 },
+        });
+      });
+
+      it('should treat non-string signature as legacy format', async () => {
+        const body = {
+          payload: { id: 1 },
+          signature: 123 as unknown as string,
+        };
+        fetchSpy.mockResolvedValue(mockJsonResponse(body, 200));
+        const result = await api.get({ endpoint: '/v0/resources/999' });
+        expect(result).toEqual({
+          ok: true,
+          status: 200,
+          data: body,
+        });
+      });
+
+      it('should treat missing signature when payload exists as legacy format', async () => {
+        const body = { payload: { id: 1 } };
+        fetchSpy.mockResolvedValue(mockJsonResponse(body, 200));
+        const result = await api.get({ endpoint: '/v0/resources/999' });
+        expect(result).toEqual({
+          ok: true,
+          status: 200,
+          data: body,
+        });
+      });
+
+      it('should treat missing payload when signature exists as legacy format', async () => {
+        const body = { signature: 'abc123' };
+        fetchSpy.mockResolvedValue(mockJsonResponse(body, 200));
+        const result = await api.get({ endpoint: '/v0/resources/999' });
+        expect(result).toEqual({
+          ok: true,
+          status: 200,
+          data: body,
+        });
+      });
+    });
+
+    describe('with {payload, signature} response format', () => {
+      it('should unwrap data and signature from response', async () => {
+        fetchSpy.mockResolvedValue(
+          mockJsonResponse({ payload: { id: 1 }, signature: 'abc123' }, 200)
+        );
+        const result = await api.get({ endpoint: '/v0/resources/999' });
+        expect(result).toEqual({
+          ok: true,
+          status: 200,
+          data: { id: 1 },
+          signature: 'abc123',
+        });
+      });
+
+      it('should unwrap payload null', async () => {
+        fetchSpy.mockResolvedValue(
+          // eslint-disable-next-line unicorn/no-null
+          mockJsonResponse({ payload: null, signature: 'abc123' }, 200)
+        );
+        const result = await api.get({ endpoint: '/v0/resources/999' });
+        expect(result).toEqual({
+          ok: true,
+          status: 200,
+          // eslint-disable-next-line unicorn/no-null
+          data: null,
+          signature: 'abc123',
+        });
+      });
+
+      it('should unwrap error data and signature from response', async () => {
+        fetchSpy.mockResolvedValue(
+          mockJsonResponse(
+            { payload: { error: 'foo' }, signature: 'abc123' },
+            400
+          )
+        );
+        const result = await api.get({ endpoint: '/v0/resources/999' });
+        expect(result).toEqual({
+          ok: false,
+          status: 400,
+          data: { error: 'foo' },
+          signature: 'abc123',
+        });
+      });
+    });
+  });
 });
