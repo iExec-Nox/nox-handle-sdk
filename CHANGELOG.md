@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.0-beta.7](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.6...v0.1.0-beta.7) (2026-03-23)
+
+
+### 🚀 Added
+
+* add MIT license ([#73](https://github.com/iExec-Nox/nox-handle-sdk/issues/73)) ([bd4bf94](https://github.com/iExec-Nox/nox-handle-sdk/commit/bd4bf94e3f853f80d33cd1606a95590ffc446bec))
+
+
+### ✍️ Changed
+
+* support signed payload API responses ([#76](https://github.com/iExec-Nox/nox-handle-sdk/issues/76)) ([337fb11](https://github.com/iExec-Nox/nox-handle-sdk/commit/337fb11a39f119df211443b4cdbc2d55390e9ba4))
+
 ## [0.1.0-beta.6](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.5...v0.1.0-beta.6) (2026-03-18)
 
 
