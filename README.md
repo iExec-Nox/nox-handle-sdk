@@ -340,3 +340,7 @@ type Config = {
 ## Status & Limitations
 
 This library is still under development, and interfaces may slightly change in the next versions.
+
+## License
+
+This project is licensed under the [MIT License](./LICENSE) © iExec.

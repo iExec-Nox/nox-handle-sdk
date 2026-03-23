@@ -1,0 +1,29 @@
+name: License check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.ref }}-license-check
+  cancel-in-progress: true
+
+jobs:
+  license-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --omit=dev
+
+      - name: Check licenses
+        run: npx license-checker@25.0.1 --onlyAllow 'MIT'
