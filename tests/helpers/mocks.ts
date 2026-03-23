@@ -4,6 +4,7 @@ import {
   Wallet,
 } from 'ethers';
 import type { EIP1193Provider as ViemEIP1193Provider } from 'viem';
+import type { SmartAccount } from 'viem/account-abstraction';
 import { vi, type Mock } from 'vitest';
 import type { EIP712TypedData } from '../../src/services/blockchain/IBlockchainService.js';
 import type { HexString } from '../../src/types/internalTypes.js';
@@ -74,6 +75,31 @@ export function createMockEIP1193Provider(
       call: callMock,
     },
   } as unknown as EIP1193Provider & MockProvider;
+}
+
+/**
+ * Creates a mock Viem SmartAccount for testing
+ */
+export function createMockViemSmartAccount(
+  chainId: number,
+  privateKey: string
+): SmartAccount {
+  const mockProvider = createMockEIP1193Provider(chainId, privateKey);
+  const wallet = new Wallet(privateKey);
+  return {
+    type: 'smart' as const,
+    getAddress: vi.fn().mockResolvedValue(wallet.address),
+    signTypedData: vi.fn().mockResolvedValue('0x' + 'ab'.repeat(65)),
+    client: {
+      chain: { id: chainId },
+      getChainId: vi.fn().mockResolvedValue(chainId),
+      extend: vi.fn().mockImplementation((actions) => ({
+        ...actions,
+        readContract: vi.fn().mockResolvedValue(true),
+      })),
+      request: mockProvider.request,
+    },
+  } as unknown as SmartAccount;
 }
 
 /**
