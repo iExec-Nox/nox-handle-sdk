@@ -4,6 +4,11 @@ A TypeScript SDK for encrypting, decrypting, and managing confidential values on
 
 Handles are 32-byte identifiers that reference encrypted values stored off-chain, enabling privacy-preserving smart contract interactions.
 
+## Prerequisites
+
+- **Node.js** 22
+- **npm** 11.10.0 or newer
+
 ## Installation
 
 ```bash
@@ -86,9 +91,10 @@ The SDK provides a unified `HandleClient` that abstracts blockchain interactions
 
 **Core components:**
 
-- **HandleClient**: Entry point to work with handles, exposing `encryptInput` and `decrypt` methods
+- **HandleClient**: Entry point to work with handles, exposing `encryptInput`, `decrypt`, `publicDecrypt`, and `viewACL` methods
 - **Blockchain adapters**: Handle wallet signing and chain interactions for ethers or viem
 - **Gateway API**: Manages encryption, storage, and retrieval of confidential values
+- **Subgraph**: GraphQL access to handle metadata and access control lists (`viewACL`)
 
 ## Core API
 
@@ -97,6 +103,9 @@ The SDK provides a unified `HandleClient` that abstracts blockchain interactions
 ### encryptInput
 
 Encrypts a value and returns a handle for use in smart contracts.
+
+> [!WARNING]
+> **encryptInput** only supports these types today: `bool`, `uint16`, `uint256`, `int16`, `int256`. Any other `SolidityType` is rejected at runtime until the protocol extends support.
 
 ```typescript
 const { handle, handleProof } = await handleClient.encryptInput(
@@ -210,6 +219,34 @@ const { value, solidityType, decryptionProof } =
   await handleClient.publicDecrypt(
     '0x7a3b9c8d2e1f0a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b'
   );
+```
+
+### viewACL
+
+Returns the access control list for a handle (public flag, admins, viewers) using the configured subgraph.
+
+```typescript
+const { isPublic, admins, viewers } = await handleClient.viewACL(handle);
+```
+
+**Parameters:**
+
+| Parameter | Type     | Description      |
+| --------- | -------- | ---------------- |
+| `handle`  | `string` | Handle (bytes32) |
+
+**Returns:** `ACL`
+
+- `isPublic`: Whether the handle is publicly decryptable
+- `admins`: Admin addresses
+- `viewers`: Viewer addresses
+
+**Example:**
+
+```typescript
+import type { ACL } from '@iexec-nox/handle';
+
+const acl: ACL = await handleClient.viewACL(someHandle);
 ```
 
 ## Types
@@ -328,14 +365,19 @@ type SolidityType =
 
 ### Config
 
-Optional configuration for custom deployments:
+Optional overrides when creating a client. If your chain is not built into the SDK defaults, you must supply **all** of: `gatewayUrl`, `smartContractAddress`, and `subgraphUrl`.
 
 ```typescript
 type Config = {
   gatewayUrl: string; // Gateway API endpoint
   smartContractAddress: string; // Protocol contract address
+  subgraphUrl: string; // The Graph subgraph HTTP endpoint
 };
 ```
+
+### Supported networks (defaults)
+
+Built-in defaults include **Arbitrum Sepolia** (`chainId` **421614**). Other chains require a full `HandleClientConfig` override as above.
 
 ## Status & Limitations
 
