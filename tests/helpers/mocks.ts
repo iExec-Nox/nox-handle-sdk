@@ -8,6 +8,7 @@ import type { SmartAccount } from 'viem/account-abstraction';
 import { vi, type Mock } from 'vitest';
 import type { EIP712TypedData } from '../../src/services/blockchain/IBlockchainService.js';
 import type { HexString } from '../../src/types/internalTypes.js';
+import { SUPPORTED_CHAIN_ID, TEST_GATEWAY_PRIVATE_KEY } from './testData.js';
 
 type MockProvider = {
   /**
@@ -123,6 +124,31 @@ export function buildHandle(options: {
   const attributeHex = (options.attribute ?? 1).toString(16).padStart(2, '0');
   const prehandle = options.prehandle ?? 'ab'.repeat(25);
   return `0x${versionHex}${chainIdHex}${typeHex}${attributeHex}${prehandle}`;
+}
+
+const GATEWAY_WALLET_MOCK = new Wallet(TEST_GATEWAY_PRIVATE_KEY);
+
+/**
+ * Mocks the gateway signature for a given typed data and salt using a predefined wallet.
+ */
+export async function mockGatewaySignature(
+  typedData: Omit<EIP712TypedData, 'domain'>,
+  salt: string
+): Promise<`0x${string}`> {
+  const typedDataWithSalt = {
+    ...typedData,
+    domain: {
+      name: 'Handle Gateway',
+      version: '1',
+      chainId: SUPPORTED_CHAIN_ID,
+      salt,
+    },
+  };
+  return (await GATEWAY_WALLET_MOCK.signTypedData(
+    typedDataWithSalt.domain,
+    typedDataWithSalt.types,
+    typedDataWithSalt.message
+  )) as `0x${string}`;
 }
 
 /**

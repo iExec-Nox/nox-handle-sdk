@@ -36,6 +36,17 @@ export const SUPPORTED_CHAIN_ID = Number(Object.keys(NETWORK_CONFIGS)[0]);
 export const UNSUPPORTED_CHAIN_ID = 999_999;
 
 /**
+ * Dummy Gateway wallet private key for testing purposes
+ */
+export const TEST_GATEWAY_PRIVATE_KEY =
+  '0xdef456def456def456def456def456def456def456def456def456def456def4';
+/**
+ * Dummy Gateway address for testing purposes
+ */
+export const TEST_GATEWAY_ADDRESS =
+  '0xF8da78B54951Fd47ca160bce1B208aECC308817F';
+
+/**
  * Dummy typed handles for each Solidity type for testing purposes
  */
 export const DUMMY_TYPED_HANDLES: Record<SolidityType, HexString> = {
