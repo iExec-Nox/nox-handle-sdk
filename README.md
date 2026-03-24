@@ -6,8 +6,9 @@ Handles are 32-byte identifiers that reference encrypted values stored off-chain
 
 ## Prerequisites
 
-- **Node.js** 22
+- **Node.js** >=22.13.0
 - **npm** 11.10.0 or newer
+- **ethers** or **viem** (peer dependency; install at least one)
 
 ## Installation
 
@@ -105,7 +106,7 @@ The SDK provides a unified `HandleClient` that abstracts blockchain interactions
 Encrypts a value and returns a handle for use in smart contracts.
 
 > [!WARNING]
-> **encryptInput** only supports these types today: `bool`, `uint16`, `uint256`, `int16`, `int256`. Any other `SolidityType` is rejected at runtime until the protocol extends support.
+> The SDK aims to support the full `SolidityType` union for encryption. Today, **encryptInput** only accepts the subset implemented by the Nox protocol: `bool`, `uint16`, `uint256`, `int16`, `int256`. The union below is broader (handles, `decrypt` / `publicDecrypt`); any other value is rejected by `encryptInput` until the protocol adds support.
 
 ```typescript
 const { handle, handleProof } = await handleClient.encryptInput(
@@ -253,7 +254,8 @@ const acl: ACL = await handleClient.viewACL(someHandle);
 
 ### SolidityType
 
-All supported Solidity types for encryption:
+> [!NOTE]
+> **encryptInput** currently supports only `bool`, `uint16`, `uint256`, `int16`, and `int256`. The union below lists every `SolidityType` used in handles and in `decrypt` / `publicDecrypt` (broader than encryption today).
 
 ```typescript
 type SolidityType =
