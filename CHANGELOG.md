@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-beta.9](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.8...v0.1.0-beta.9) (2026-03-25)
+
+
+### ✍️ Changed
+
+* update public decryption proof format ([#81](https://github.com/iExec-Nox/nox-handle-sdk/issues/81)) ([c11ebce](https://github.com/iExec-Nox/nox-handle-sdk/commit/c11ebce0cba2ef99f769e751c28da7b5020e87fc))
+
 ## [0.1.0-beta.8](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.7...v0.1.0-beta.8) (2026-03-25)
 
 
