@@ -1,6 +1,14 @@
+import type { HandleClientConfig } from '../index.js';
 import type { IApiService } from '../services/api/IApiService.js';
-import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
+import type {
+  EIP712TypedData,
+  IBlockchainService,
+} from '../services/blockchain/IBlockchainService.js';
 import type { EthereumAddress, HexString } from '../types/internalTypes.js';
+import {
+  generateRequestSalt,
+  attestResponse,
+} from '../utils/gatewayAttestation.js';
 import {
   boolToHex,
   intXToHex,
@@ -28,6 +36,7 @@ interface GatewaySecretResponse {
 interface EncryptInputParameters {
   blockchainService: IBlockchainService;
   apiService: IApiService;
+  config: HandleClientConfig;
   value: JsValue<SolidityType>;
   solidityType: SolidityType;
   applicationContract: EthereumAddress;
@@ -122,6 +131,7 @@ function encodeValue(
 export async function encryptInput<T extends SolidityType>({
   blockchainService,
   apiService,
+  config,
   value,
   solidityType,
   applicationContract,
@@ -143,8 +153,11 @@ export async function encryptInput<T extends SolidityType>({
     blockchainService.getAddress(),
     blockchainService.getChainId(),
   ]);
+
+  const salt = generateRequestSalt();
   const response = await apiService.post({
     endpoint: '/v0/secrets',
+    query: { salt },
     body: {
       value: encodedValue,
       solidityType,
@@ -154,10 +167,26 @@ export async function encryptInput<T extends SolidityType>({
   });
 
   if (!response.ok) {
+    // TODO: verify non-ok response provenance when supported
     throw new Error(
       `Gateway API error: ${response.status} - ${JSON.stringify(response.data)}`
     );
   }
+
+  await attestResponse({
+    blockchainService,
+    noxContractAddress: config.smartContractAddress,
+    message: response.data as EIP712TypedData['message'],
+    types: {
+      HandleWithProof: [
+        { name: 'handle', type: 'string' },
+        { name: 'proof', type: 'string' },
+      ],
+    },
+    primaryType: 'HandleWithProof',
+    requestSalt: salt,
+    signature: response.signature,
+  });
 
   const data = response.data as GatewaySecretResponse;
   if (!data?.handle || !data?.proof) {
