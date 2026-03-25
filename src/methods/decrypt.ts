@@ -9,6 +9,10 @@ import type { IStorageService } from '../services/storage/IStorageService.js';
 import type { HexString } from '../types/internalTypes.js';
 import { eciesDecrypt } from '../utils/ecies.js';
 import { decodeValue } from '../utils/encoding.js';
+import {
+  generateRequestSalt,
+  attestResponse,
+} from '../utils/gatewayAttestation.js';
 import { isHexString } from '../utils/hex.js';
 import {
   generateRsaKeyPair,
@@ -95,15 +99,17 @@ export async function decrypt<T extends SolidityType>({
     isFreshDecryptionMaterial = true;
   }
 
-  let { status, data } = await apiService.get({
+  let salt = generateRequestSalt();
+  let response = await apiService.get({
     endpoint: `/v0/secrets/${handle}`,
+    query: { salt },
     headers: {
       Authorization: authorization,
     },
   });
 
   // Clear stored decryption material if authorization is invalid to avoid trying to reuse it on subsequent decryptions
-  if (status === 401 && storedDecryptionMaterial) {
+  if (response.status === 401 && storedDecryptionMaterial) {
     try {
       storageService.removeItem(storageKey);
     } catch {
@@ -119,31 +125,58 @@ export async function decrypt<T extends SolidityType>({
     authorization = decryptionMaterial.authorization;
     rsaPrivateKey = decryptionMaterial.rsaPrivateKey;
     isFreshDecryptionMaterial = true;
-    ({ status, data } = await apiService.get({
+    salt = generateRequestSalt(); // generate a new salt for the retry
+    response = await apiService.get({
       endpoint: `/v0/secrets/${handle}`,
+      query: { salt },
       headers: {
         Authorization: authorization,
       },
-    }));
+    });
   }
 
-  // Validate response
-  if (
-    status !== 200 ||
-    typeof data !== 'object' ||
-    data === null ||
-    !isHexString((data as { ciphertext?: unknown })?.ciphertext) ||
-    !isHexString((data as { iv?: unknown })?.iv, 12) ||
-    !isHexString(
-      (data as { encryptedSharedSecret?: unknown })?.encryptedSharedSecret
-    )
-  ) {
+  if (!response.ok) {
+    // TODO: verify non-ok response provenance when supported
     throw new Error(
-      `Unexpected response from Handle Gateway (status: ${status}, data: ${JSON.stringify(data)})`
+      `Gateway API error: ${response.status} - ${JSON.stringify(response.data)}`
     );
   }
 
-  const { ciphertext, iv, encryptedSharedSecret } = data as {
+  await attestResponse({
+    blockchainService,
+    noxContractAddress: config.smartContractAddress,
+    message: response.data as EIP712TypedData['message'],
+    types: {
+      HandleCryptoMaterial: [
+        { name: 'handle', type: 'string' },
+        { name: 'ciphertext', type: 'string' },
+        { name: 'encryptedSharedSecret', type: 'string' },
+        { name: 'iv', type: 'string' },
+      ],
+    },
+    primaryType: 'HandleCryptoMaterial',
+    requestSalt: salt,
+    signature: response.signature,
+  });
+
+  // Validate response
+  if (
+    response.status !== 200 ||
+    typeof response.data !== 'object' ||
+    response.data === null ||
+    !isHexString((response.data as { ciphertext?: unknown })?.ciphertext) ||
+    !isHexString((response.data as { iv?: unknown })?.iv, 12) ||
+    !isHexString(
+      (response.data as { encryptedSharedSecret?: unknown })
+        ?.encryptedSharedSecret
+    )
+  ) {
+    throw new Error(
+      `Unexpected response from Handle Gateway (status: ${response.status}, data: ${JSON.stringify(response.data)})`
+    );
+  }
+
+  const { ciphertext, iv, encryptedSharedSecret } = response.data as {
     ciphertext: HexString;
     iv: HexString;
     encryptedSharedSecret: HexString;
