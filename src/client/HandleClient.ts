@@ -97,11 +97,12 @@ export class HandleClient {
     handleProof: HexString;
   }> {
     return encryptInput({
-      blockchainService: this.blockchainService,
-      apiService: this.apiService,
       value,
       solidityType,
       applicationContract,
+      blockchainService: this.blockchainService,
+      apiService: this.apiService,
+      config: this.config,
     });
   }
 
