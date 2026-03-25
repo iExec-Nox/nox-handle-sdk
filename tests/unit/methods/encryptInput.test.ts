@@ -90,16 +90,13 @@ describe('encryptInput', () => {
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
-        query: {
-          salt: REQUEST_SALT_MOCK,
-        },
+        query: { salt: REQUEST_SALT_MOCK, chain_id: 1 },
         body: {
           value: '0x01',
           solidityType: 'bool',
           owner: TEST_ADDRESS,
           applicationContract: TEST_ADDRESS,
         },
-        query: { chain_id: 1 },
       });
     });
 
@@ -114,16 +111,13 @@ describe('encryptInput', () => {
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
-        query: {
-          salt: REQUEST_SALT_MOCK,
-        },
+        query: { salt: REQUEST_SALT_MOCK, chain_id: 1 },
         body: {
           value: '0x00',
           solidityType: 'bool',
           owner: TEST_ADDRESS,
           applicationContract: TEST_ADDRESS,
         },
-        query: { chain_id: 1 },
       });
     });
 
@@ -203,9 +197,7 @@ describe('encryptInput', () => {
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
-        query: {
-          salt: REQUEST_SALT_MOCK,
-        },
+        query: { salt: REQUEST_SALT_MOCK, chain_id: 1 },
         body: {
           value:
             '0x00000000000000000000000000000000000000000000000000000000000f4240',
@@ -213,7 +205,6 @@ describe('encryptInput', () => {
           owner: TEST_ADDRESS,
           applicationContract: TEST_ADDRESS,
         },
-        query: { chain_id: 1 },
       });
     });
 
@@ -572,16 +563,13 @@ describe('encryptInput', () => {
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
-        query: {
-          salt: REQUEST_SALT_MOCK,
-        },
+        query: { salt: REQUEST_SALT_MOCK, chain_id: 1 },
         body: {
           value: '0x01',
           solidityType: 'bool',
           owner: customAddress,
           applicationContract: TEST_ADDRESS,
         },
-        query: { chain_id: 1 },
       });
     });
 
@@ -610,19 +598,20 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
+        config: mockConfig,
         value: true,
         solidityType: 'bool',
         applicationContract: TEST_ADDRESS,
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
+        query: { salt: REQUEST_SALT_MOCK, chain_id: 421_614 },
         body: {
           value: '0x01',
           solidityType: 'bool',
           owner: TEST_ADDRESS,
           applicationContract: TEST_ADDRESS,
         },
-        query: { chain_id: 421_614 },
       });
     });
   });

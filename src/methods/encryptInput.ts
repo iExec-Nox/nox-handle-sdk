@@ -157,14 +157,13 @@ export async function encryptInput<T extends SolidityType>({
   const salt = generateRequestSalt();
   const response = await apiService.post({
     endpoint: '/v0/secrets',
-    query: { salt },
+    query: { salt, chain_id: chainId },
     body: {
       value: encodedValue,
       solidityType,
       applicationContract,
       owner,
     },
-    query: { chain_id: chainId },
   });
 
   if (!response.ok) {
