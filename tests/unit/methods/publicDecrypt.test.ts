@@ -97,7 +97,8 @@ describe('publicDecrypt', () => {
           status: 200,
           data: {
             decryptionProof:
-              DUMMY_DECRYPTION_PROOF_SIGNATURE + encryptedData.packedPlaintext,
+              DUMMY_DECRYPTION_PROOF_SIGNATURE +
+              encryptedData.plaintext.slice(2),
           },
         });
         const result = await publicDecrypt({
@@ -110,7 +111,7 @@ describe('publicDecrypt', () => {
           value: encryptedData.value,
           solidityType,
           decryptionProof:
-            DUMMY_DECRYPTION_PROOF_SIGNATURE + encryptedData.packedPlaintext,
+            DUMMY_DECRYPTION_PROOF_SIGNATURE + encryptedData.plaintext.slice(2),
         });
       });
     }
@@ -225,7 +226,7 @@ describe('publicDecrypt', () => {
         })
       ).rejects.toThrow(
         new Error(
-          `Failed to decode decrypted plaintext: expected packed bool, got 0x0000000000000000000000000000000000000000000000000000000000000002`
+          `Failed to decode decrypted plaintext: expected hex encoded bool, got 0x0000000000000000000000000000000000000000000000000000000000000002`
         )
       );
     });
