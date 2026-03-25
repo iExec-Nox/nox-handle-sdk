@@ -5,7 +5,7 @@ import {
   GatewayTrustError,
   generateRequestSalt,
   verifyResponse,
-} from '../../../src/utils/gateway.js';
+} from '../../../src/utils/gatewayAttestation.js';
 import {
   EIP712_TYPED_DATA_MOCK,
   mockGatewaySignature,
