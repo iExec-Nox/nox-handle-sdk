@@ -3,7 +3,7 @@ import type { IApiService } from '../services/api/IApiService.js';
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
 import { IS_PUBLICLY_DECRYPTABLE_ABI } from '../services/blockchain/abis/isPubliclyDecryptable.abi.js';
 import type { HexString } from '../types/internalTypes.js';
-import { decodeValue, unpack } from '../utils/encoding.js';
+import { decodeValue } from '../utils/encoding.js';
 import { isHexString } from '../utils/hex.js';
 import {
   handleToChainId,
@@ -60,16 +60,13 @@ export async function publicDecrypt<T extends SolidityType>({
     status,
     data,
   });
-
-  const solidityPlaintext: HexString = `0x${decryptionProof.slice(2 + 65 * 2)}`; // strip leading 65 bytes (proof signature) to get the packed hex-encoded plaintext
-
+  const plaintext: HexString = `0x${decryptionProof.slice(2 + 65 * 2)}`; // strip leading 65 bytes (proof signature) to get the hex-encoded plaintext
   let value: JsValue<T>;
   try {
-    const plaintext = unpack(solidityPlaintext, solidityType);
     value = decodeValue<T>(plaintext, solidityType);
   } catch (error) {
     throw new Error(
-      `Failed to decode decrypted plaintext: expected packed ${solidityType}, got ${solidityPlaintext}`,
+      `Failed to decode decrypted plaintext: expected hex encoded ${solidityType}, got ${plaintext}`,
       { cause: error }
     );
   }
@@ -91,8 +88,7 @@ function validateApiResponse({
     typeof data !== 'object' ||
     data === null ||
     !isHexString((data as { decryptionProof?: unknown })?.decryptionProof) ||
-    (data as { decryptionProof: string }).decryptionProof.length <
-      2 + (65 + 32) * 2 // decryption proof must contain at least 65 bytes of signature + 32 bytes of plaintext (may be more for dynamic types)
+    (data as { decryptionProof: string }).decryptionProof.length < 2 + 65 * 2 // decryption proof must contain at least 65 bytes of signature
   ) {
     throw new Error(
       `Unexpected response from Handle Gateway (status: ${status}, data: ${JSON.stringify(data)})`
