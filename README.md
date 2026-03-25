@@ -250,6 +250,9 @@ const acl: ACL = await handleClient.viewACL(someHandle);
 
 Supported Solidity types for encryption:
 
+> [!WARNING]
+> The Nox protocol aims to support the full `SolidityType` union. Today, only `bool`, `uint16`, `uint256`, `int16`, `int256` are implemented.
+
 ```typescript
 type SolidityType =
   // Special types
