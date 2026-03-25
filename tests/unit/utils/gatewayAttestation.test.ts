@@ -4,7 +4,7 @@ import type { EIP712TypedData } from '../../../src/services/blockchain/IBlockcha
 import {
   GatewayTrustError,
   generateRequestSalt,
-  verifyResponse,
+  attestResponse,
 } from '../../../src/utils/gatewayAttestation.js';
 import {
   EIP712_TYPED_DATA_MOCK,
@@ -30,7 +30,7 @@ describe('generateRequestSalt', () => {
   });
 });
 
-describe('verifyResponse', () => {
+describe('attestResponse', () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { domain, ...TYPED_RESPONSE_MOCK } = EIP712_TYPED_DATA_MOCK;
 
@@ -78,7 +78,7 @@ describe('verifyResponse', () => {
       requestSalt
     );
     await expect(
-      verifyResponse({
+      attestResponse({
         blockchainService: mockBlockchainService,
         noxContractAddress: '0xNoxContract',
         ...TYPED_RESPONSE_MOCK,
@@ -94,7 +94,7 @@ describe('verifyResponse', () => {
   describe('when the gateway response is untrustable', () => {
     it('should throw an error if signature is missing', async () => {
       await expect(
-        verifyResponse({
+        attestResponse({
           blockchainService: mockBlockchainService,
           noxContractAddress: '0xNoxContract',
           ...TYPED_RESPONSE_MOCK,
@@ -118,7 +118,7 @@ describe('verifyResponse', () => {
         requestSalt
       );
       await expect(
-        verifyResponse({
+        attestResponse({
           blockchainService: mockBlockchainService,
           noxContractAddress: '0xNoxContract',
           primaryType: TYPED_RESPONSE_MOCK.primaryType,
@@ -144,7 +144,7 @@ describe('verifyResponse', () => {
         requestSalt
       );
       await expect(
-        verifyResponse({
+        attestResponse({
           blockchainService: mockBlockchainService,
           noxContractAddress: '0xNoxContract',
           primaryType: TYPED_RESPONSE_WITH_EXTRA_FIELD_MOCK.primaryType,
@@ -170,7 +170,7 @@ describe('verifyResponse', () => {
       );
 
       await expect(
-        verifyResponse({
+        attestResponse({
           blockchainService: mockBlockchainService,
           noxContractAddress: '0xNoxContract',
           ...TYPED_RESPONSE_MOCK,
@@ -203,7 +203,7 @@ describe('verifyResponse', () => {
         SUPPORTED_CHAIN_ID + 1
       ); // different chainId
       await expect(
-        verifyResponse({
+        attestResponse({
           blockchainService: mockBlockchainService,
           noxContractAddress: '0xNoxContract',
           ...TYPED_RESPONSE_MOCK,
@@ -235,7 +235,7 @@ describe('verifyResponse', () => {
       const wrongAddress = Wallet.createRandom().address;
       mockBlockchainService.readContract.mockResolvedValueOnce(wrongAddress);
       await expect(
-        verifyResponse({
+        attestResponse({
           blockchainService: mockBlockchainService,
           noxContractAddress: '0xNoxContract',
           ...TYPED_RESPONSE_MOCK,
@@ -257,7 +257,7 @@ describe('verifyResponse', () => {
     it('should throw an error if salt is not bytes32 hex string', async () => {
       const invalidSalt = '0x1234';
       await expect(
-        verifyResponse({
+        attestResponse({
           blockchainService: mockBlockchainService,
           noxContractAddress: '0xNoxContract',
           ...TYPED_RESPONSE_MOCK,
@@ -265,7 +265,7 @@ describe('verifyResponse', () => {
           signature: '0xSignature',
         })
       ).rejects.toThrow(
-        new Error('Gateway signature verification failed', {
+        new Error('Failed to attest gateway response', {
           cause: new Error('Invalid salt format'),
         })
       );
@@ -283,7 +283,7 @@ describe('verifyResponse', () => {
       const chainIdError = new Error('getChainId failed');
       mockBlockchainService.getChainId.mockRejectedValueOnce(chainIdError);
       await expect(
-        verifyResponse({
+        attestResponse({
           blockchainService: mockBlockchainService,
           noxContractAddress: '0xNoxContract',
           ...TYPED_RESPONSE_MOCK,
@@ -291,7 +291,7 @@ describe('verifyResponse', () => {
           signature,
         })
       ).rejects.toThrow(
-        new Error('Gateway signature verification failed', {
+        new Error('Failed to attest gateway response', {
           cause: chainIdError,
         })
       );
@@ -309,7 +309,7 @@ describe('verifyResponse', () => {
       const readError = new Error('readContract failed');
       mockBlockchainService.readContract.mockRejectedValueOnce(readError);
       await expect(
-        verifyResponse({
+        attestResponse({
           blockchainService: mockBlockchainService,
           noxContractAddress: '0xNoxContract',
           ...TYPED_RESPONSE_MOCK,
@@ -317,7 +317,7 @@ describe('verifyResponse', () => {
           signature,
         })
       ).rejects.toThrow(
-        new Error('Gateway signature verification failed', {
+        new Error('Failed to attest gateway response', {
           cause: readError,
         })
       );

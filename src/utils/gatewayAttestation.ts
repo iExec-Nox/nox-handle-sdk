@@ -28,9 +28,10 @@ export function generateRequestSalt(): HexString {
 }
 
 /**
- *  Verifies the response is an EIP712 signed by the gateway with the provided salt.
+ * Attests the response comes from the registered gateway by verifying the EIP-712 signature included in the response.
+ * It checks that the response is signed by the gateway with the provided salt.
  */
-export async function verifyResponse({
+export async function attestResponse({
   blockchainService,
   noxContractAddress,
   message,
@@ -87,7 +88,7 @@ export async function verifyResponse({
     if (error instanceof GatewayTrustError) {
       throw error;
     }
-    throw new Error('Gateway signature verification failed', {
+    throw new Error('Failed to attest gateway response', {
       cause: error,
     });
   }
