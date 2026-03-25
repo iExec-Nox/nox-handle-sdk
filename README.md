@@ -100,7 +100,7 @@ The SDK provides a unified `HandleClient` that abstracts blockchain interactions
 Encrypts a value and returns a handle for use in smart contracts.
 
 > [!WARNING]
-> The SDK aims to support the full `SolidityType` union for encryption. Today, **encryptInput** only accepts the subset implemented by the Nox protocol: `bool`, `uint16`, `uint256`, `int16`, `int256`. The union below is broader (handles, `decrypt` / `publicDecrypt`); any other value is rejected by `encryptInput` until the protocol adds support.
+> The SDK aims to support the full `SolidityType` union for encryption. Today, **encryptInput** only accepts the subset implemented by the Nox protocol: `bool`, `uint16`, `uint256`, `int16`, `int256`.
 
 ```typescript
 const { handle, handleProof } = await handleClient.encryptInput(
