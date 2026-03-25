@@ -4,12 +4,6 @@ A TypeScript SDK for encrypting, decrypting, and managing confidential values on
 
 Handles are 32-byte identifiers that reference encrypted values stored off-chain, enabling privacy-preserving smart contract interactions.
 
-## Prerequisites
-
-- **Node.js** >=22.13.0
-- **npm** 11.10.0 or newer
-- **ethers** or **viem** (peer dependency; install at least one)
-
 ## Installation
 
 ```bash
@@ -254,8 +248,7 @@ const acl: ACL = await handleClient.viewACL(someHandle);
 
 ### SolidityType
 
-> [!NOTE]
-> **encryptInput** currently supports only `bool`, `uint16`, `uint256`, `int16`, and `int256`. The union below lists every `SolidityType` used in handles and in `decrypt` / `publicDecrypt` (broader than encryption today).
+Supported Solidity types for encryption:
 
 ```typescript
 type SolidityType =
