@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.0-beta.8](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.7...v0.1.0-beta.8) (2026-03-25)
+
+
+### ✍️ Changed
+
+* remove engines from package.json ([#77](https://github.com/iExec-Nox/nox-handle-sdk/issues/77)) ([4e26942](https://github.com/iExec-Nox/nox-handle-sdk/commit/4e269428f869fdea8bd066dc4fc700d559c136cb))
+
+
+### 📋 Misc
+
+* **deps:** bump dependencies ([#77](https://github.com/iExec-Nox/nox-handle-sdk/issues/77)) ([4e26942](https://github.com/iExec-Nox/nox-handle-sdk/commit/4e269428f869fdea8bd066dc4fc700d559c136cb))
+
 ## [0.1.0-beta.7](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.6...v0.1.0-beta.7) (2026-03-23)
 
 
