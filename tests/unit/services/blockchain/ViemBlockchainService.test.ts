@@ -109,6 +109,15 @@ describe('ViemBlockchainService', () => {
             TEST_EIP712_TYPED_DATA
           );
           expect(signature).toMatch(/0x[a-fA-F0-9]{130}/);
+          if (name === 'Local signer') {
+            expect(mockProvider.request).not.toHaveBeenCalled();
+          } else {
+            expect(mockProvider.request).toHaveBeenCalledWith(
+              expect.objectContaining({
+                method: 'eth_signTypedData_v4',
+              })
+            );
+          }
         });
       });
 

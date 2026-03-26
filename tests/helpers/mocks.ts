@@ -44,30 +44,32 @@ export function createMockEIP1193Provider(
   const wallet = new Wallet(privateKey);
   const callMock = vi.fn().mockResolvedValue('0x');
   return {
-    async request({ method, params }: { method: string; params?: string[] }) {
-      if (method === 'eth_chainId') {
-        return `0x${chainId.toString(16)}`;
-      }
-      if (method === 'eth_requestAccounts' || method === 'eth_accounts') {
-        return [wallet.address];
-      }
-      if (method === 'eth_signTypedData_v4') {
-        const typedData = JSON.parse(params![1] as string) as EIP712TypedData;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { EIP712Domain, ...types } = typedData.types; // Exclude EIP712Domain not needed for ethers
-        return await wallet.signTypedData(
-          typedData.domain,
-          types,
-          typedData.message
+    request: vi.fn(
+      async ({ method, params }: { method: string; params?: string[] }) => {
+        if (method === 'eth_chainId') {
+          return `0x${chainId.toString(16)}`;
+        }
+        if (method === 'eth_requestAccounts' || method === 'eth_accounts') {
+          return [wallet.address];
+        }
+        if (method === 'eth_signTypedData_v4') {
+          const typedData = JSON.parse(params![1] as string) as EIP712TypedData;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { EIP712Domain, ...types } = typedData.types; // Exclude EIP712Domain not needed for ethers
+          return await wallet.signTypedData(
+            typedData.domain,
+            types,
+            typedData.message
+          );
+        }
+        if (method === 'eth_call') {
+          return await callMock(params![0]);
+        }
+        throw new Error(
+          `Unsupported method: ${method} called with params: ${JSON.stringify(params)}`
         );
       }
-      if (method === 'eth_call') {
-        return await callMock(params![0]);
-      }
-      throw new Error(
-        `Unsupported method: ${method} called with params: ${JSON.stringify(params)}`
-      );
-    },
+    ),
     mocks: {
       call: callMock,
     },
