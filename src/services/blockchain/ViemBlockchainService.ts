@@ -73,7 +73,7 @@ class WalletClientAdapter implements ViemAdapter {
   async signTypedData(data: EIP712TypedData): Promise<HexString> {
     return this.walletClient.signTypedData({
       ...data,
-      account: await this.getAddress(),
+      account: this.walletClient.account ?? (await this.getAddress()), // use the local account if available, otherwise fallback to RPC call
     });
   }
 }
