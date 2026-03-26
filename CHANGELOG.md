@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-beta.10](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.9...v0.1.0-beta.10) (2026-03-26)
+
+
+### ✍️ Changed
+
+* resolve viem local account issue for decrypt ([#83](https://github.com/iExec-Nox/nox-handle-sdk/issues/83)) ([0b774d0](https://github.com/iExec-Nox/nox-handle-sdk/commit/0b774d0ffe8ec419651020e91071021d3d1319b6))
+
 ## [0.1.0-beta.9](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.8...v0.1.0-beta.9) (2026-03-25)
 
 
