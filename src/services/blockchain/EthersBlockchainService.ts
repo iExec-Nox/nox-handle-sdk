@@ -206,9 +206,11 @@ export class EthersBlockchainService implements IBlockchainService {
     try {
       const { verifyTypedData } =
         await EthersBlockchainService.getEthersModule();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { EIP712Domain, ...types } = data.types; // strip out EIP712Domain for ethers
       return verifyTypedData(
         data.domain,
-        data.types,
+        types,
         data.message,
         signature
       ) as EthereumAddress;
