@@ -5,7 +5,10 @@ import {
   ViemBlockchainService,
   isViemSmartAccount,
 } from '../../../../src/services/blockchain/ViemBlockchainService.js';
-import { createMockEIP1193Provider } from '../../../helpers/mocks.js';
+import {
+  createMockEIP1193Provider,
+  createMockViemSmartAccount,
+} from '../../../helpers/mocks.js';
 import {
   SUPPORTED_CHAIN_ID,
   TEST_ADDRESS,
@@ -25,10 +28,12 @@ describe('isViemSmartAccount', () => {
   });
 
   it('should return false for null', () => {
+    // eslint-disable-next-line unicorn/no-null
     expect(isViemSmartAccount(null)).toBe(false);
   });
 
   it('should return false for undefined', () => {
+    // eslint-disable-next-line unicorn/no-useless-undefined
     expect(isViemSmartAccount(undefined)).toBe(false);
   });
 
@@ -53,7 +58,7 @@ describe('isViemSmartAccount', () => {
 
   it('should return false for WalletClient', () => {
     const mockProvider = createMockEIP1193Provider(
-      421614,
+      421_614,
       '0x' + 'ab'.repeat(32)
     );
     const walletClient = createWalletClient({
@@ -277,6 +282,26 @@ describe('ViemBlockchainService', () => {
           expect(typeof result.value2).toBe('bigint');
         });
       });
+
+      describe('verifyTypedData', () => {
+        it('should verify typed data and recover signer address', async () => {
+          const signature = await blockchainService.signTypedData(
+            TEST_EIP712_TYPED_DATA
+          );
+          const recoveredAddress = await blockchainService.verifyTypedData(
+            {
+              domain: TEST_EIP712_TYPED_DATA.domain,
+              types: TEST_EIP712_TYPED_DATA.types,
+              primaryType: TEST_EIP712_TYPED_DATA.primaryType,
+              message: TEST_EIP712_TYPED_DATA.message,
+            },
+            signature
+          );
+          expect(recoveredAddress.toLowerCase()).toBe(
+            TEST_ADDRESS.toLowerCase()
+          );
+        });
+      });
     });
   }
 
@@ -496,42 +521,46 @@ describe('ViemBlockchainService', () => {
         );
       });
     });
+
+    describe('verifyTypedData', () => {
+      it('should throw wrapped error when address recovery fails', async () => {
+        const client = createWalletClient({
+          transport: custom(
+            createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
+          ),
+        });
+        const service = new ViemBlockchainService(client);
+        try {
+          await service.verifyTypedData(
+            TEST_EIP712_TYPED_DATA,
+            '0xinvalidsignature'
+          );
+          expect.fail('Should have thrown');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe('Failed to verify typed data');
+          expect((error as Error)?.cause).toBeInstanceOf(Error);
+        }
+      });
+    });
   });
 
   describe('with SmartAccount (ERC-4337)', () => {
-    /**
-     * Creates a mock Viem SmartAccount for testing
-     */
-    function createMockViemSmartAccount() {
-      const mockProvider = createMockEIP1193Provider(
+    it('should accept SmartAccount in constructor', () => {
+      const mockSmartAccount = createMockViemSmartAccount(
         SUPPORTED_CHAIN_ID,
         TEST_PRIVATE_KEY
       );
-      return {
-        type: 'smart' as const,
-        getAddress: vi.fn().mockResolvedValue(TEST_ADDRESS),
-        signTypedData: vi.fn().mockResolvedValue('0x' + 'ab'.repeat(65)),
-        client: {
-          chain: { id: SUPPORTED_CHAIN_ID },
-          getChainId: vi.fn().mockResolvedValue(SUPPORTED_CHAIN_ID),
-          extend: vi.fn().mockImplementation((actions) => ({
-            ...actions,
-            readContract: vi.fn().mockResolvedValue(true),
-          })),
-          request: mockProvider.request,
-        },
-      };
-    }
-
-    it('should accept SmartAccount in constructor', () => {
-      const mockSmartAccount = createMockViemSmartAccount();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const service = new ViemBlockchainService(mockSmartAccount as any);
       expect(service).toBeInstanceOf(ViemBlockchainService);
     });
 
     it('should return Smart Account address from getAddress', async () => {
-      const mockSmartAccount = createMockViemSmartAccount();
+      const mockSmartAccount = createMockViemSmartAccount(
+        SUPPORTED_CHAIN_ID,
+        TEST_PRIVATE_KEY
+      );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const service = new ViemBlockchainService(mockSmartAccount as any);
 
@@ -542,7 +571,10 @@ describe('ViemBlockchainService', () => {
     });
 
     it('should return chain ID from SmartAccount client', async () => {
-      const mockSmartAccount = createMockViemSmartAccount();
+      const mockSmartAccount = createMockViemSmartAccount(
+        SUPPORTED_CHAIN_ID,
+        TEST_PRIVATE_KEY
+      );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const service = new ViemBlockchainService(mockSmartAccount as any);
 
@@ -552,7 +584,10 @@ describe('ViemBlockchainService', () => {
     });
 
     it('should sign typed data using SmartAccount', async () => {
-      const mockSmartAccount = createMockViemSmartAccount();
+      const mockSmartAccount = createMockViemSmartAccount(
+        SUPPORTED_CHAIN_ID,
+        TEST_PRIVATE_KEY
+      );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const service = new ViemBlockchainService(mockSmartAccount as any);
 

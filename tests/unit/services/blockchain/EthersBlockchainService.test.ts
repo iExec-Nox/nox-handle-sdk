@@ -211,6 +211,24 @@ describe('EthersBlockchainService', () => {
           expect(typeof result.value2).toBe('bigint');
         });
       });
+
+      describe('verifyTypedData', () => {
+        it('should verify typed data correctly', async () => {
+          const signature = await blockchainService.signTypedData(
+            TEST_EIP712_TYPED_DATA
+          );
+          const recoveredAddress = await blockchainService.verifyTypedData(
+            {
+              domain: TEST_EIP712_TYPED_DATA.domain,
+              types: TEST_EIP712_TYPED_DATA.types,
+              primaryType: TEST_EIP712_TYPED_DATA.primaryType,
+              message: TEST_EIP712_TYPED_DATA.message,
+            },
+            signature
+          );
+          expect(recoveredAddress).toBe(TEST_ADDRESS);
+        });
+      });
     });
   }
 
@@ -402,6 +420,27 @@ describe('EthersBlockchainService', () => {
             'Failed to read contract at 0x0000000000000000000000000000000000000001 (method: getValue, parameters: [])'
           )
         );
+      });
+    });
+
+    describe('verifyTypedData', () => {
+      it('should throw wrapped error when address recovery fails', async () => {
+        const browserProvider = new BrowserProvider(
+          createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
+        );
+        const service = new EthersBlockchainService(browserProvider);
+
+        try {
+          await service.verifyTypedData(
+            TEST_EIP712_TYPED_DATA,
+            '0xinvalidsignature'
+          );
+          expect.fail('Should have thrown');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe('Failed to verify typed data');
+          expect((error as Error)?.cause).toBeInstanceOf(Error);
+        }
       });
     });
   });

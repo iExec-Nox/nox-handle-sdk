@@ -4,9 +4,11 @@ import {
   Wallet,
 } from 'ethers';
 import type { EIP1193Provider as ViemEIP1193Provider } from 'viem';
+import type { SmartAccount } from 'viem/account-abstraction';
 import { vi, type Mock } from 'vitest';
 import type { EIP712TypedData } from '../../src/services/blockchain/IBlockchainService.js';
 import type { HexString } from '../../src/types/internalTypes.js';
+import { SUPPORTED_CHAIN_ID, TEST_GATEWAY_PRIVATE_KEY } from './testData.js';
 
 type MockProvider = {
   /**
@@ -77,6 +79,31 @@ export function createMockEIP1193Provider(
 }
 
 /**
+ * Creates a mock Viem SmartAccount for testing
+ */
+export function createMockViemSmartAccount(
+  chainId: number,
+  privateKey: string
+): SmartAccount {
+  const mockProvider = createMockEIP1193Provider(chainId, privateKey);
+  const wallet = new Wallet(privateKey);
+  return {
+    type: 'smart' as const,
+    getAddress: vi.fn().mockResolvedValue(wallet.address),
+    signTypedData: vi.fn().mockResolvedValue('0x' + 'ab'.repeat(65)),
+    client: {
+      chain: { id: chainId },
+      getChainId: vi.fn().mockResolvedValue(chainId),
+      extend: vi.fn().mockImplementation((actions) => ({
+        ...actions,
+        readContract: vi.fn().mockResolvedValue(true),
+      })),
+      request: mockProvider.request,
+    },
+  } as unknown as SmartAccount;
+}
+
+/**
  * Handle Structure (32 bytes) per spec:
  * [0]       Version (1 byte)
  * [1-4]     Chain ID (4 bytes, uint32)
@@ -97,6 +124,31 @@ export function buildHandle(options: {
   const attributeHex = (options.attribute ?? 1).toString(16).padStart(2, '0');
   const prehandle = options.prehandle ?? 'ab'.repeat(25);
   return `0x${versionHex}${chainIdHex}${typeHex}${attributeHex}${prehandle}`;
+}
+
+const GATEWAY_WALLET_MOCK = new Wallet(TEST_GATEWAY_PRIVATE_KEY);
+
+/**
+ * Mocks the gateway signature for a given typed data and salt using a predefined wallet.
+ */
+export async function mockGatewaySignature(
+  typedData: Omit<EIP712TypedData, 'domain'>,
+  salt: string
+): Promise<`0x${string}`> {
+  const typedDataWithSalt = {
+    ...typedData,
+    domain: {
+      name: 'Handle Gateway',
+      version: '1',
+      chainId: SUPPORTED_CHAIN_ID,
+      salt,
+    },
+  };
+  return (await GATEWAY_WALLET_MOCK.signTypedData(
+    typedDataWithSalt.domain,
+    typedDataWithSalt.types,
+    typedDataWithSalt.message
+  )) as `0x${string}`;
 }
 
 /**

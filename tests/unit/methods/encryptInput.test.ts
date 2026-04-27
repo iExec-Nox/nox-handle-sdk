@@ -22,6 +22,7 @@ function createMockBlockchainService(
     getAddress: vi.fn().mockResolvedValue(TEST_ADDRESS),
     signTypedData: vi.fn().mockResolvedValue('0xsignature'),
     readContract: vi.fn().mockResolvedValue(true),
+    verifyTypedData: vi.fn().mockResolvedValue(TEST_ADDRESS),
     ...overrides,
   };
 }

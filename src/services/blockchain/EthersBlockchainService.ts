@@ -198,4 +198,24 @@ export class EthersBlockchainService implements IBlockchainService {
       throw new Error('Failed to sign typed data', { cause: error });
     }
   }
+
+  async verifyTypedData(
+    data: EIP712TypedData,
+    signature: HexString
+  ): Promise<EthereumAddress> {
+    try {
+      const { verifyTypedData } =
+        await EthersBlockchainService.getEthersModule();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { EIP712Domain, ...types } = data.types; // strip out EIP712Domain for ethers
+      return verifyTypedData(
+        data.domain,
+        types,
+        data.message,
+        signature
+      ) as EthereumAddress;
+    } catch (error) {
+      throw new Error('Failed to verify typed data', { cause: error });
+    }
+  }
 }
