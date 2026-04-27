@@ -1,5 +1,6 @@
 import { verifyTypedData, Wallet } from 'ethers';
 import { describe, it, expect, vi } from 'vitest';
+import type { EthereumAddress, HexString } from '../../../src/index.js';
 import type { EIP712TypedData } from '../../../src/services/blockchain/IBlockchainService.js';
 import {
   GatewayTrustError,
@@ -56,19 +57,21 @@ describe('attestResponse', () => {
     signTypedData: vi.fn(() => {
       throw new Error('not implemented');
     }),
-    verifyTypedData: vi.fn((typedData: EIP712TypedData, signature: string) => {
-      try {
-        const address = verifyTypedData(
-          typedData.domain,
-          typedData.types,
-          typedData.message,
-          signature
-        );
-        return Promise.resolve(address);
-      } catch (error) {
-        return Promise.reject(error);
+    verifyTypedData: vi.fn(
+      (typedData: EIP712TypedData, signature: HexString) => {
+        try {
+          const address = verifyTypedData(
+            typedData.domain,
+            typedData.types,
+            typedData.message,
+            signature
+          ) as EthereumAddress;
+          return Promise.resolve(address);
+        } catch (error) {
+          return Promise.reject(error);
+        }
       }
-    }),
+    ),
   };
 
   it('should verify valid signature successfully', async () => {

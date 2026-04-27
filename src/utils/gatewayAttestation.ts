@@ -69,6 +69,9 @@ export async function attestResponse({
       if (!signature) {
         throw new Error('Missing gateway signature');
       }
+      if (!isHexString(signature)) {
+        throw new Error('Invalid signature format');
+      }
       const signerAddress = await blockchainService
         .verifyTypedData(
           { domain: requestDomain, types, primaryType, message: message },

@@ -225,8 +225,8 @@ export class ViemBlockchainService implements IBlockchainService {
 
   async verifyTypedData(
     data: EIP712TypedData,
-    signature: string
-  ): Promise<string> {
+    signature: HexString
+  ): Promise<EthereumAddress> {
     try {
       const { recoverTypedDataAddress } =
         await ViemBlockchainService.getViemModule();
@@ -235,7 +235,7 @@ export class ViemBlockchainService implements IBlockchainService {
         types: data.types,
         primaryType: data.primaryType,
         message: data.message,
-        signature: signature as HexString,
+        signature: signature,
       });
     } catch (error) {
       throw new Error('Failed to verify typed data', { cause: error });

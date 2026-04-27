@@ -201,12 +201,17 @@ export class EthersBlockchainService implements IBlockchainService {
 
   async verifyTypedData(
     data: EIP712TypedData,
-    signature: string
-  ): Promise<string> {
+    signature: HexString
+  ): Promise<EthereumAddress> {
     try {
       const { verifyTypedData } =
         await EthersBlockchainService.getEthersModule();
-      return verifyTypedData(data.domain, data.types, data.message, signature);
+      return verifyTypedData(
+        data.domain,
+        data.types,
+        data.message,
+        signature
+      ) as EthereumAddress;
     } catch (error) {
       throw new Error('Failed to verify typed data', { cause: error });
     }
