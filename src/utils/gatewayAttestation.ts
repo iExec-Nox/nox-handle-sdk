@@ -5,7 +5,7 @@ import type {
 } from '../services/blockchain/IBlockchainService.js';
 import { GATEWAY_ABI } from '../services/blockchain/abis/gateway.abi.js';
 import type { HexString } from '../types/internalTypes.js';
-import { bytesToHex } from './hex.js';
+import { bytesToHex, isHexString } from './hex.js';
 
 /**
  * Custom error class for gateway server verification failures.
@@ -50,7 +50,7 @@ export async function attestResponse({
   signature?: string;
 }): Promise<void> {
   try {
-    if (!/^0x[0-9a-f]{64}$/.test(requestSalt)) {
+    if (!isHexString(requestSalt, 32)) {
       throw new Error('Invalid salt format');
     }
     const [chainId, gatewayAddress] = await Promise.all([
