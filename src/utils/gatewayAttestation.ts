@@ -5,6 +5,7 @@ import type {
 } from '../services/blockchain/IBlockchainService.js';
 import { GATEWAY_ABI } from '../services/blockchain/abis/gateway.abi.js';
 import type { HexString } from '../types/internalTypes.js';
+import { bytesToHex } from './hex.js';
 
 /**
  * Custom error class for gateway server verification failures.
@@ -24,7 +25,7 @@ export class GatewayTrustError extends Error {
  */
 export function generateRequestSalt(): HexString {
   const randomBytes = crypto.getRandomValues(new Uint8Array(32));
-  return `0x${Buffer.from(randomBytes).toString('hex')}`;
+  return bytesToHex(randomBytes);
 }
 
 /**
