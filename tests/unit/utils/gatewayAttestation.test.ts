@@ -94,7 +94,7 @@ describe('attestResponse', () => {
     expect(mockBlockchainService.verifyTypedData).toHaveBeenCalledTimes(1);
   });
 
-  describe('when the gateway response is untrustable', () => {
+  describe('when the gateway response is untrusted', () => {
     it('should throw an error if signature is missing', async () => {
       await expect(
         attestResponse({
@@ -105,7 +105,7 @@ describe('attestResponse', () => {
           signature: undefined, // missing signature
         })
       ).rejects.toThrow(
-        new GatewayTrustError('Untrustable Gateway response', {
+        new GatewayTrustError('Untrusted Gateway response', {
           cause: new Error('Missing gateway signature'),
         })
       );
@@ -131,7 +131,7 @@ describe('attestResponse', () => {
           signature,
         })
       ).rejects.toThrow(
-        new GatewayTrustError('Untrustable Gateway response', {
+        new GatewayTrustError('Untrusted Gateway response', {
           cause: new Error('Invalid gateway signature'),
         })
       );
@@ -157,7 +157,7 @@ describe('attestResponse', () => {
           signature,
         })
       ).rejects.toThrow(
-        new GatewayTrustError('Untrustable Gateway response', {
+        new GatewayTrustError('Untrusted Gateway response', {
           cause: new Error('Invalid gateway signature'),
         })
       );
@@ -181,7 +181,7 @@ describe('attestResponse', () => {
           signature,
         })
       ).rejects.toThrow(
-        new GatewayTrustError('Untrustable Gateway response', {
+        new GatewayTrustError('Untrusted Gateway response', {
           cause: new Error('Invalid gateway signature'),
         })
       );
@@ -214,7 +214,7 @@ describe('attestResponse', () => {
           signature,
         })
       ).rejects.toThrow(
-        new GatewayTrustError('Untrustable Gateway response', {
+        new GatewayTrustError('Untrusted Gateway response', {
           cause: new Error('Invalid gateway signature'),
         })
       );
@@ -246,7 +246,7 @@ describe('attestResponse', () => {
           signature,
         })
       ).rejects.toThrow(
-        new GatewayTrustError('Untrustable Gateway response', {
+        new GatewayTrustError('Untrusted Gateway response', {
           cause: new Error('Invalid gateway signature'),
         })
       );

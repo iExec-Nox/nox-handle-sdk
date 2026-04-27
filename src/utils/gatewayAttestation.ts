@@ -84,7 +84,7 @@ export async function attestResponse({
         throw new Error('Invalid gateway signature');
       }
     } catch (error) {
-      throw new GatewayTrustError('Untrustable Gateway response', {
+      throw new GatewayTrustError('Untrusted Gateway response', {
         cause: error,
       });
     }
