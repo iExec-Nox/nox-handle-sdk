@@ -12,6 +12,21 @@ import {
   TEST_PRIVATE_KEY,
 } from '../../helpers/testData.js';
 
+const REQUEST_SALT_MOCK =
+  '0xabababababababababababababababababababababababababababababababab';
+
+vi.mock('../../../src/utils/gatewayAttestation.js', async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import('../../../src/utils/gatewayAttestation.js')
+    >();
+  return {
+    ...actual,
+    generateRequestSalt: vi.fn(() => REQUEST_SALT_MOCK),
+    attestResponse: vi.fn(() => Promise.resolve()),
+  };
+});
+
 describe('publicDecrypt', () => {
   const mockProvider = createMockEIP1193Provider(
     SUPPORTED_CHAIN_ID,
@@ -94,6 +109,7 @@ describe('publicDecrypt', () => {
     } of testCases) {
       it(`should decrypt a solidity ${solidityType} handle into a JS ${jsType}`, async () => {
         mockApiService.get.mockResolvedValueOnce({
+          ok: true,
           status: 200,
           data: {
             decryptionProof:
@@ -160,15 +176,16 @@ describe('publicDecrypt', () => {
     const testCases = [
       {
         name: 'response has non-200 status',
-        apiResponse: { status: 500, data: { error: 'Oops!' } },
+        apiResponse: { ok: true, status: 201, data: { foo: 'Oops!' } },
       },
       {
         name: 'response has missing data',
-        apiResponse: { status: 200 },
+        apiResponse: { ok: true, status: 200 },
       },
       {
         name: 'response has missing data.decryptionProof',
         apiResponse: {
+          ok: true,
           status: 200,
           data: {},
         },
@@ -176,6 +193,7 @@ describe('publicDecrypt', () => {
       {
         name: 'response has invalid data.decryptionProof (non-hex)',
         apiResponse: {
+          ok: true,
           status: 200,
           data: { decryptionProof: 'foo' },
         },
@@ -183,6 +201,7 @@ describe('publicDecrypt', () => {
       {
         name: 'response has invalid data.decryptionProof length',
         apiResponse: {
+          ok: true,
           status: 200,
           data: { decryptionProof: '0xabcd' },
         },
@@ -210,6 +229,7 @@ describe('publicDecrypt', () => {
     it('should throw when decrypted plaintext is invalid', async () => {
       const boolHandle = DUMMY_TYPED_HANDLES.bool;
       mockApiService.get.mockResolvedValueOnce({
+        ok: true,
         status: 200,
         data: {
           decryptionProof:

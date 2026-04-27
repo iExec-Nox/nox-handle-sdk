@@ -18,6 +18,21 @@ import {
   TEST_RSA_SPKI_PUB_KEY,
 } from '../../helpers/testData.js';
 
+const REQUEST_SALT_MOCK =
+  '0xabababababababababababababababababababababababababababababababab';
+
+vi.mock('../../../src/utils/gatewayAttestation.js', async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import('../../../src/utils/gatewayAttestation.js')
+    >();
+  return {
+    ...actual,
+    generateRequestSalt: vi.fn(() => REQUEST_SALT_MOCK),
+    attestResponse: vi.fn(() => Promise.resolve()),
+  };
+});
+
 async function generateRsaKeyPairMock() {
   const privateKey = await crypto.subtle.importKey(
     'pkcs8',
@@ -136,6 +151,7 @@ describe('decrypt', () => {
           generateRsaKeyPairMock
         );
         mockApiService.get.mockResolvedValueOnce({
+          ok: true,
           status: 200,
           data: {
             encryptedSharedSecret: encryptedData.encryptedSharedSecret,
@@ -274,19 +290,24 @@ describe('decrypt', () => {
     const testCases = [
       {
         name: 'response has non-200 status',
-        apiResponse: { status: 500, data: { error: 'Oops!' } },
+        apiResponse: { ok: true, status: 500, data: { error: 'Oops!' } },
       },
       {
         name: 'response has missing data',
-        apiResponse: { status: 200 },
+        apiResponse: { ok: true, status: 200 },
       },
       {
         name: 'response has missing data.ciphertext',
-        apiResponse: { status: 200, data: { iv, encryptedSharedSecret } },
+        apiResponse: {
+          ok: true,
+          status: 200,
+          data: { iv, encryptedSharedSecret },
+        },
       },
       {
         name: 'response has invalid data.ciphertext',
         apiResponse: {
+          ok: true,
           status: 200,
           data: { iv, encryptedSharedSecret, ciphertext: 'foo' },
         },
@@ -294,6 +315,7 @@ describe('decrypt', () => {
       {
         name: 'response has missing data.iv',
         apiResponse: {
+          ok: true,
           status: 200,
           data: { ciphertext, encryptedSharedSecret },
         },
@@ -301,17 +323,19 @@ describe('decrypt', () => {
       {
         name: 'response has invalid data.iv',
         apiResponse: {
+          ok: true,
           status: 200,
           data: { iv: 'foo', encryptedSharedSecret, ciphertext },
         },
       },
       {
         name: 'response has missing data.encryptedSharedSecret',
-        apiResponse: { status: 200, data: { ciphertext, iv } },
+        apiResponse: { ok: true, status: 200, data: { ciphertext, iv } },
       },
       {
         name: 'response has invalid data.encryptedSharedSecret',
         apiResponse: {
+          ok: true,
           status: 200,
           data: { iv, encryptedSharedSecret: 'foo', ciphertext },
         },
@@ -343,6 +367,7 @@ describe('decrypt', () => {
       const { iv, ciphertext, encryptedSharedSecret } =
         TEST_ENCRYPTED_DATA.bool;
       mockApiService.get.mockResolvedValueOnce({
+        ok: true,
         status: 200,
         data: { iv, ciphertext, encryptedSharedSecret },
       });
@@ -371,6 +396,7 @@ describe('decrypt', () => {
       const { iv, ciphertext, encryptedSharedSecret } =
         TEST_ENCRYPTED_DATA.bool;
       mockApiService.get.mockResolvedValueOnce({
+        ok: true,
         status: 200,
         data: {
           iv,
@@ -414,6 +440,7 @@ describe('decrypt', () => {
           generateRsaKeyPairMock
         );
         mockApiService.get.mockResolvedValueOnce({
+          ok: true,
           status: 200,
           data: {
             encryptedSharedSecret: encryptedData.encryptedSharedSecret,
@@ -449,6 +476,7 @@ describe('decrypt', () => {
       vi.spyOn(storageService, 'getItem');
       vi.spyOn(storageService, 'removeItem');
       mockApiService.get.mockResolvedValueOnce({
+        ok: true,
         status: 200,
         data: {
           encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
@@ -475,6 +503,7 @@ describe('decrypt', () => {
       vi.spyOn(storageService, 'getItem');
       vi.spyOn(storageService, 'removeItem');
       mockApiService.get.mockResolvedValueOnce({
+        ok: true,
         status: 200,
         data: {
           encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
@@ -490,6 +519,7 @@ describe('decrypt', () => {
         config: mockConfig,
       });
       mockApiService.get.mockResolvedValueOnce({
+        ok: true,
         status: 200,
         data: {
           encryptedSharedSecret:
@@ -506,6 +536,7 @@ describe('decrypt', () => {
         config: mockConfig,
       });
       mockApiService.get.mockResolvedValueOnce({
+        ok: true,
         status: 200,
         data: {
           encryptedSharedSecret:
@@ -534,6 +565,7 @@ describe('decrypt', () => {
       vi.spyOn(storageService, 'getItem');
       vi.spyOn(storageService, 'removeItem');
       mockApiService.get.mockResolvedValueOnce({
+        ok: true,
         status: 200,
         data: {
           encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
@@ -549,6 +581,7 @@ describe('decrypt', () => {
         config: mockConfig,
       });
       mockApiService.get.mockResolvedValueOnce({
+        ok: true,
         status: 200,
         data: {
           encryptedSharedSecret:
@@ -590,6 +623,7 @@ describe('decrypt', () => {
       });
       vi.spyOn(storageService, 'removeItem');
       mockApiService.get.mockResolvedValueOnce({
+        ok: true,
         status: 200,
         data: {
           encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
@@ -630,10 +664,12 @@ describe('decrypt', () => {
       });
       vi.spyOn(storageService, 'removeItem');
       mockApiService.get.mockResolvedValueOnce({
+        ok: false,
         status: 401,
         data: { error: 'Unauthorized' },
       });
       mockApiService.get.mockResolvedValueOnce({
+        ok: true,
         status: 200,
         data: {
           encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
@@ -671,6 +707,7 @@ describe('decrypt', () => {
         generateRsaKeyPairMock
       );
       mockApiService.get.mockResolvedValueOnce({
+        ok: true,
         status: 200,
         data: {
           encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
