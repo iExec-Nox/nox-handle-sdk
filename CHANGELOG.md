@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-beta.11](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.10...v0.1.0-beta.11) (2026-04-27)
+
+
+### 🚀 Added
+
+* add gateway utils for server responses attestation ([#78](https://github.com/iExec-Nox/nox-handle-sdk/issues/78)) ([f3459cc](https://github.com/iExec-Nox/nox-handle-sdk/commit/f3459cced7bc16a2ab47dc5408dbf4686bcedcff))
+
 ## [0.1.0-beta.10](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.9...v0.1.0-beta.10) (2026-03-26)
 
 
