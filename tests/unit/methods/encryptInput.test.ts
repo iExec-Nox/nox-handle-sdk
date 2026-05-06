@@ -67,6 +67,7 @@ describe('encryptInput', () => {
           owner: TEST_ADDRESS,
           applicationContract: TEST_ADDRESS,
         },
+        query: { chain_id: 1 },
       });
     });
 
@@ -86,6 +87,7 @@ describe('encryptInput', () => {
           owner: TEST_ADDRESS,
           applicationContract: TEST_ADDRESS,
         },
+        query: { chain_id: 1 },
       });
     });
 
@@ -168,6 +170,7 @@ describe('encryptInput', () => {
           owner: TEST_ADDRESS,
           applicationContract: TEST_ADDRESS,
         },
+        query: { chain_id: 1 },
       });
     });
 
@@ -241,6 +244,7 @@ describe('encryptInput', () => {
       );
     });
   });
+
   describe('solidity type validation', () => {
     it('rejects unsupported types with complete error message', async () => {
       await expect(
@@ -511,6 +515,7 @@ describe('encryptInput', () => {
           owner: customAddress,
           applicationContract: TEST_ADDRESS,
         },
+        query: { chain_id: 1 },
       });
     });
 
@@ -529,6 +534,29 @@ describe('encryptInput', () => {
           applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Wallet not connected');
+    });
+
+    it('sends the chain ID from the connected network in the query params', async () => {
+      mockBlockchainService = createMockBlockchainService({
+        getChainId: vi.fn().mockResolvedValue(421_614),
+      });
+      await encryptInput({
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        value: true,
+        solidityType: 'bool',
+        applicationContract: TEST_ADDRESS,
+      });
+      expect(mockApiService.post).toHaveBeenCalledWith({
+        endpoint: '/v0/secrets',
+        body: {
+          value: '0x01',
+          solidityType: 'bool',
+          owner: TEST_ADDRESS,
+          applicationContract: TEST_ADDRESS,
+        },
+        query: { chain_id: 421_614 },
+      });
     });
   });
 });

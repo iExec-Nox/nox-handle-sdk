@@ -100,6 +100,9 @@ export async function decrypt<T extends SolidityType>({
     headers: {
       Authorization: authorization,
     },
+    query: {
+      chain_id: chainId,
+    },
   });
 
   // Clear stored decryption material if authorization is invalid to avoid trying to reuse it on subsequent decryptions
@@ -123,6 +126,9 @@ export async function decrypt<T extends SolidityType>({
       endpoint: `/v0/secrets/${handle}`,
       headers: {
         Authorization: authorization,
+      },
+      query: {
+        chain_id: chainId,
       },
     }));
   }

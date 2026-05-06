@@ -151,6 +151,7 @@ export async function encryptInput<T extends SolidityType>({
       applicationContract,
       owner,
     },
+    query: { chain_id: chainId },
   });
 
   if (!response.ok) {
