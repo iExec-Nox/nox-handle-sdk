@@ -734,7 +734,10 @@ describe('decrypt', () => {
           signature: '0x',
         });
         const authorization = `EIP712 ${btoa(json)}`;
-        return JSON.stringify({ authorization, pkcs8: TEST_RSA_PKCS8_PRIV_KEY });
+        return JSON.stringify({
+          authorization,
+          pkcs8: TEST_RSA_PKCS8_PRIV_KEY,
+        });
       });
       mockApiService.get.mockResolvedValueOnce({
         status: 401,
