@@ -695,6 +695,81 @@ describe('decrypt', () => {
     });
   });
 
+  describe('chain ID propagation', () => {
+    it('sends the chain ID from the connected network in the GET query params', async () => {
+      vi.spyOn(rsa, 'generateRsaKeyPair').mockImplementationOnce(
+        generateRsaKeyPairMock
+      );
+      mockApiService.get.mockResolvedValueOnce({
+        status: 200,
+        data: {
+          encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
+          iv: TEST_ENCRYPTED_DATA.bool.iv,
+          ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+        },
+      });
+      await decrypt({
+        handle: DUMMY_TYPED_HANDLES.bool,
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        storageService: mockStorageService,
+        config: mockConfig,
+      });
+      expect(mockApiService.get).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: { chain_id: SUPPORTED_CHAIN_ID },
+        })
+      );
+    });
+
+    it('sends the chain ID in both the initial and retry GET requests after 401', async () => {
+      vi.spyOn(rsa, 'generateRsaKeyPair').mockImplementationOnce(
+        generateRsaKeyPairMock
+      );
+      const storageService = new InMemoryStorageService();
+      vi.spyOn(storageService, 'getItem').mockImplementationOnce(() => {
+        const now = Math.floor(Date.now() / 1000);
+        const json = JSON.stringify({
+          payload: { notBefore: now - 60, expiresAt: now + 300 },
+          signature: '0x',
+        });
+        const authorization = `EIP712 ${btoa(json)}`;
+        return JSON.stringify({
+          authorization,
+          pkcs8: TEST_RSA_PKCS8_PRIV_KEY,
+        });
+      });
+      mockApiService.get.mockResolvedValueOnce({
+        status: 401,
+        data: { error: 'Unauthorized' },
+      });
+      mockApiService.get.mockResolvedValueOnce({
+        status: 200,
+        data: {
+          encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
+          iv: TEST_ENCRYPTED_DATA.bool.iv,
+          ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+        },
+      });
+      await decrypt({
+        handle: DUMMY_TYPED_HANDLES.bool,
+        blockchainService: mockBlockchainService,
+        apiService: mockApiService,
+        storageService,
+        config: mockConfig,
+      });
+      expect(mockApiService.get).toHaveBeenCalledTimes(2);
+      expect(mockApiService.get).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ query: { chain_id: SUPPORTED_CHAIN_ID } })
+      );
+      expect(mockApiService.get).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ query: { chain_id: SUPPORTED_CHAIN_ID } })
+      );
+    });
+  });
+
   describe('required parameters validation', () => {
     it('rejects missing handle', async () => {
       await expect(
