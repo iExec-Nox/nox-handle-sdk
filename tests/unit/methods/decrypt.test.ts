@@ -275,7 +275,7 @@ describe('decrypt', () => {
     const testCases = [
       {
         name: 'response has non-200 status',
-        apiResponse: { ok: true, status: 500, data: { error: 'Oops!' } },
+        apiResponse: { ok: false, status: 500, data: { error: 'Oops!' } },
       },
       {
         name: 'response has missing data',
