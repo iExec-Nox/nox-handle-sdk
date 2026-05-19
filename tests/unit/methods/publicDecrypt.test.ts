@@ -191,6 +191,14 @@ describe('publicDecrypt', () => {
           data: { decryptionProof: '0xabcd' },
         },
       },
+      {
+        name: 'response is not ok',
+        apiResponse: {
+          ok: false,
+          status: 500,
+          data: { error: 'Internal server error' },
+        },
+      },
     ];
 
     for (const { name, apiResponse } of testCases) {
