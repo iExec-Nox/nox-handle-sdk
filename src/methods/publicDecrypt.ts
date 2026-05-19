@@ -1,16 +1,9 @@
 import type { HandleClientConfig } from '../client/HandleClient.js';
 import type { IApiService } from '../services/api/IApiService.js';
-import type {
-  EIP712TypedData,
-  IBlockchainService,
-} from '../services/blockchain/IBlockchainService.js';
+import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
 import { IS_PUBLICLY_DECRYPTABLE_ABI } from '../services/blockchain/abis/isPubliclyDecryptable.abi.js';
 import type { HexString } from '../types/internalTypes.js';
 import { decodeValue } from '../utils/encoding.js';
-import {
-  generateRequestSalt,
-  attestResponse,
-} from '../utils/gatewayAttestation.js';
 import { isHexString } from '../utils/hex.js';
 import {
   handleToChainId,
@@ -59,29 +52,14 @@ export async function publicDecrypt<T extends SolidityType>({
 
   const solidityType = handleToSolidityType(handle) as T;
 
-  const salt = generateRequestSalt();
   const response = await apiService.get({
     endpoint: `/v0/public/${handle}`,
-    query: { salt },
-  });
-
-  if (!response.ok) {
-    // TODO: verify non-ok response provenance when supported
-    throw new Error(
-      `Gateway API error: ${response.status} - ${JSON.stringify(response.data)}`
-    );
-  }
-
-  await attestResponse({
-    blockchainService,
-    noxContractAddress: config.smartContractAddress,
-    message: response.data as EIP712TypedData['message'],
-    types: {
-      PublicDecryptionResult: [{ name: 'decryptionProof', type: 'string' }],
+    expectedResponse: {
+      types: {
+        PublicDecryptionResult: [{ name: 'decryptionProof', type: 'string' }],
+      },
+      primaryType: 'PublicDecryptionResult',
     },
-    primaryType: 'PublicDecryptionResult',
-    requestSalt: salt,
-    signature: response.signature,
   });
 
   const { decryptionProof } = validateApiResponse({

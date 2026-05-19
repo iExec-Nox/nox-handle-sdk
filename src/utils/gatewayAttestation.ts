@@ -1,10 +1,9 @@
-import type { HandleClientConfig } from '../client/HandleClient.js';
 import type {
-  IBlockchainService,
   EIP712TypedData,
+  IBlockchainService,
 } from '../services/blockchain/IBlockchainService.js';
 import { GATEWAY_ABI } from '../services/blockchain/abis/gateway.abi.js';
-import type { HexString } from '../types/internalTypes.js';
+import type { EthereumAddress, HexString } from '../types/internalTypes.js';
 import { bytesToHex, isHexString } from './hex.js';
 
 /**
@@ -16,6 +15,24 @@ export class GatewayTrustError extends Error {
     super(message, options);
     this.name = 'GatewayTrustError';
   }
+}
+
+/**
+ * Retrieves the gateway address from the smart contract.
+ */
+export async function getGatewayAddress({
+  blockchainService,
+  smartContractAddress,
+}: {
+  blockchainService: IBlockchainService;
+  smartContractAddress: EthereumAddress;
+}): Promise<EthereumAddress> {
+  const gatewayAddress = (await blockchainService.readContract(
+    smartContractAddress,
+    GATEWAY_ABI,
+    []
+  )) as `0x${string}`;
+  return gatewayAddress;
 }
 
 /**
@@ -33,16 +50,21 @@ export function generateRequestSalt(): HexString {
  * It checks that the response is signed by the gateway with the provided salt.
  */
 export async function attestResponse({
-  blockchainService,
-  noxContractAddress,
+  verifyTypedData,
+  gatewayAddress,
+  chainId,
   message,
   types,
   primaryType,
   requestSalt,
   signature,
 }: {
-  blockchainService: IBlockchainService;
-  noxContractAddress: HandleClientConfig['smartContractAddress'];
+  verifyTypedData: (
+    data: EIP712TypedData,
+    signature: HexString
+  ) => Promise<EthereumAddress>;
+  gatewayAddress: EthereumAddress;
+  chainId: number;
   message: EIP712TypedData['message'];
   types: EIP712TypedData['types'];
   primaryType: EIP712TypedData['primaryType'];
@@ -53,10 +75,6 @@ export async function attestResponse({
     if (!isHexString(requestSalt, 32)) {
       throw new Error('Invalid salt format');
     }
-    const [chainId, gatewayAddress] = await Promise.all([
-      blockchainService.getChainId(),
-      blockchainService.readContract(noxContractAddress, GATEWAY_ABI, []),
-    ]);
 
     const requestDomain: EIP712TypedData['domain'] = {
       name: 'Handle Gateway',
@@ -72,14 +90,12 @@ export async function attestResponse({
       if (!isHexString(signature)) {
         throw new Error('Invalid signature format');
       }
-      const signerAddress = await blockchainService
-        .verifyTypedData(
-          { domain: requestDomain, types, primaryType, message: message },
-          signature
-        )
-        .catch((error) => {
-          throw new Error('Invalid gateway signature', { cause: error });
-        });
+      const signerAddress = await verifyTypedData(
+        { domain: requestDomain, types, primaryType, message },
+        signature
+      ).catch((error) => {
+        throw new Error('Invalid gateway signature', { cause: error });
+      });
       if (signerAddress.toLowerCase() !== gatewayAddress.toLowerCase()) {
         throw new Error('Invalid gateway signature');
       }

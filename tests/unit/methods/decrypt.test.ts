@@ -18,21 +18,6 @@ import {
   TEST_RSA_SPKI_PUB_KEY,
 } from '../../helpers/testData.js';
 
-const REQUEST_SALT_MOCK =
-  '0xabababababababababababababababababababababababababababababababab';
-
-vi.mock('../../../src/utils/gatewayAttestation.js', async (importOriginal) => {
-  const actual =
-    await importOriginal<
-      typeof import('../../../src/utils/gatewayAttestation.js')
-    >();
-  return {
-    ...actual,
-    generateRequestSalt: vi.fn(() => REQUEST_SALT_MOCK),
-    attestResponse: vi.fn(() => Promise.resolve()),
-  };
-});
-
 async function generateRsaKeyPairMock() {
   const privateKey = await crypto.subtle.importKey(
     'pkcs8',

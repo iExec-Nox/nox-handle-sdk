@@ -9,10 +9,6 @@ import type { IStorageService } from '../services/storage/IStorageService.js';
 import type { HexString } from '../types/internalTypes.js';
 import { eciesDecrypt } from '../utils/ecies.js';
 import { decodeValue } from '../utils/encoding.js';
-import {
-  generateRequestSalt,
-  attestResponse,
-} from '../utils/gatewayAttestation.js';
 import { isHexString } from '../utils/hex.js';
 import {
   generateRsaKeyPair,
@@ -84,6 +80,27 @@ export async function decrypt<T extends SolidityType>({
     storageService,
   });
 
+  const getHandleCryptoMaterialFromApi = (authorization: string) => {
+    return apiService.get({
+      endpoint: `/v0/secrets/${handle}`,
+      query: { chain_id: chainId },
+      headers: {
+        Authorization: authorization,
+      },
+      expectedResponse: {
+        types: {
+          HandleCryptoMaterial: [
+            { name: 'handle', type: 'string' },
+            { name: 'ciphertext', type: 'string' },
+            { name: 'encryptedSharedSecret', type: 'string' },
+            { name: 'iv', type: 'string' },
+          ],
+        },
+        primaryType: 'HandleCryptoMaterial',
+      },
+    });
+  };
+
   if (storedDecryptionMaterial) {
     authorization = storedDecryptionMaterial.authorization;
     rsaPrivateKey = storedDecryptionMaterial.rsaPrivateKey;
@@ -98,16 +115,7 @@ export async function decrypt<T extends SolidityType>({
     rsaPrivateKey = decryptionMaterial.rsaPrivateKey;
     isFreshDecryptionMaterial = true;
   }
-
-  let salt = generateRequestSalt();
-  let response = await apiService.get({
-    endpoint: `/v0/secrets/${handle}`,
-    query: { salt, chain_id: chainId },
-    headers: {
-      Authorization: authorization,
-    },
-  });
-
+  let response = await getHandleCryptoMaterialFromApi(authorization);
   // Clear stored decryption material if authorization is invalid to avoid trying to reuse it on subsequent decryptions
   if (response.status === 401 && storedDecryptionMaterial) {
     try {
@@ -125,42 +133,8 @@ export async function decrypt<T extends SolidityType>({
     authorization = decryptionMaterial.authorization;
     rsaPrivateKey = decryptionMaterial.rsaPrivateKey;
     isFreshDecryptionMaterial = true;
-    salt = generateRequestSalt(); // generate a new salt for the retry
-    response = await apiService.get({
-      endpoint: `/v0/secrets/${handle}`,
-      query: {
-        salt,
-        chain_id: chainId,
-      },
-      headers: {
-        Authorization: authorization,
-      },
-    });
+    response = await getHandleCryptoMaterialFromApi(authorization);
   }
-
-  if (!response.ok) {
-    // TODO: verify non-ok response provenance when supported
-    throw new Error(
-      `Gateway API error: ${response.status} - ${JSON.stringify(response.data)}`
-    );
-  }
-
-  await attestResponse({
-    blockchainService,
-    noxContractAddress: config.smartContractAddress,
-    message: response.data as EIP712TypedData['message'],
-    types: {
-      HandleCryptoMaterial: [
-        { name: 'handle', type: 'string' },
-        { name: 'ciphertext', type: 'string' },
-        { name: 'encryptedSharedSecret', type: 'string' },
-        { name: 'iv', type: 'string' },
-      ],
-    },
-    primaryType: 'HandleCryptoMaterial',
-    requestSalt: salt,
-    signature: response.signature,
-  });
 
   // Validate response
   if (

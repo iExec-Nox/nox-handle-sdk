@@ -5,7 +5,11 @@ export type ResponseData = {
   ok: boolean;
   status: number;
   data?: unknown;
-  signature?: string;
+};
+
+export type ExpectedResponse = {
+  types: Record<string, { name: string; type: string }[]>;
+  primaryType: string;
 };
 
 /**
@@ -17,6 +21,7 @@ export interface IApiService {
     query?: QueryParameters;
     headers?: Headers;
     timeout?: number;
+    expectedResponse: ExpectedResponse;
   }): Promise<ResponseData>;
 
   post(parameters: {
@@ -25,5 +30,6 @@ export interface IApiService {
     body?: Body;
     headers?: Headers;
     timeout?: number;
+    expectedResponse: ExpectedResponse;
   }): Promise<ResponseData>;
 }

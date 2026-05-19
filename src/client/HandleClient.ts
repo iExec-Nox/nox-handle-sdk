@@ -102,7 +102,6 @@ export class HandleClient {
       applicationContract,
       blockchainService: this.blockchainService,
       apiService: this.apiService,
-      config: this.config,
     });
   }
 

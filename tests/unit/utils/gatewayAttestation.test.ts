@@ -1,4 +1,4 @@
-import { verifyTypedData, Wallet } from 'ethers';
+import { verifyTypedData as ethersVerifyTypedData, Wallet } from 'ethers';
 import { describe, it, expect, vi } from 'vitest';
 import type { EthereumAddress, HexString } from '../../../src/index.js';
 import type { EIP712TypedData } from '../../../src/services/blockchain/IBlockchainService.js';
@@ -15,6 +15,22 @@ import {
   SUPPORTED_CHAIN_ID,
   TEST_GATEWAY_ADDRESS,
 } from '../../helpers/testData.js';
+
+const spyVerifyTypedData = vi.fn(
+  (typedData: EIP712TypedData, signature: HexString) => {
+    try {
+      const address = ethersVerifyTypedData(
+        typedData.domain,
+        typedData.types,
+        typedData.message,
+        signature
+      ) as EthereumAddress;
+      return Promise.resolve(address);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+);
 
 describe('generateRequestSalt', () => {
   it('should generate a valid bytes32 hex string', () => {
@@ -46,34 +62,6 @@ describe('attestResponse', () => {
     message: { ...TYPED_RESPONSE_MOCK.message, extraField: 'extraValue' },
   };
 
-  const mockBlockchainService = {
-    getChainId: vi.fn(() => Promise.resolve(SUPPORTED_CHAIN_ID)),
-    getAddress: vi.fn(() => {
-      throw new Error('not implemented');
-    }),
-    readContract: vi
-      .fn()
-      .mockImplementation(() => Promise.resolve(TEST_GATEWAY_ADDRESS)),
-    signTypedData: vi.fn(() => {
-      throw new Error('not implemented');
-    }),
-    verifyTypedData: vi.fn(
-      (typedData: EIP712TypedData, signature: HexString) => {
-        try {
-          const address = verifyTypedData(
-            typedData.domain,
-            typedData.types,
-            typedData.message,
-            signature
-          ) as EthereumAddress;
-          return Promise.resolve(address);
-        } catch (error) {
-          return Promise.reject(error);
-        }
-      }
-    ),
-  };
-
   it('should verify valid signature successfully', async () => {
     const requestSalt = generateRequestSalt();
     const signature = await mockGatewaySignature(
@@ -82,24 +70,24 @@ describe('attestResponse', () => {
     );
     await expect(
       attestResponse({
-        blockchainService: mockBlockchainService,
-        noxContractAddress: '0xNoxContract',
+        gatewayAddress: TEST_GATEWAY_ADDRESS,
+        chainId: SUPPORTED_CHAIN_ID,
+        verifyTypedData: spyVerifyTypedData,
         ...TYPED_RESPONSE_MOCK,
         requestSalt,
         signature,
       })
     ).resolves.toBeUndefined();
-    expect(mockBlockchainService.getChainId).toHaveBeenCalledTimes(1);
-    expect(mockBlockchainService.readContract).toHaveBeenCalledTimes(1);
-    expect(mockBlockchainService.verifyTypedData).toHaveBeenCalledTimes(1);
+    expect(spyVerifyTypedData).toHaveBeenCalledTimes(1);
   });
 
   describe('when the gateway response is untrusted', () => {
     it('should throw an error if signature is missing', async () => {
       await expect(
         attestResponse({
-          blockchainService: mockBlockchainService,
-          noxContractAddress: '0xNoxContract',
+          gatewayAddress: TEST_GATEWAY_ADDRESS,
+          chainId: SUPPORTED_CHAIN_ID,
+          verifyTypedData: spyVerifyTypedData,
           ...TYPED_RESPONSE_MOCK,
           requestSalt: generateRequestSalt(),
           signature: undefined, // missing signature
@@ -109,9 +97,7 @@ describe('attestResponse', () => {
           cause: new Error('Missing gateway signature'),
         })
       );
-      expect(mockBlockchainService.getChainId).toHaveBeenCalledTimes(1);
-      expect(mockBlockchainService.readContract).toHaveBeenCalledTimes(1);
-      expect(mockBlockchainService.verifyTypedData).toHaveBeenCalledTimes(0);
+      expect(spyVerifyTypedData).not.toHaveBeenCalled();
     });
 
     it('should throw an error if data contains unexpected fields', async () => {
@@ -122,8 +108,9 @@ describe('attestResponse', () => {
       );
       await expect(
         attestResponse({
-          blockchainService: mockBlockchainService,
-          noxContractAddress: '0xNoxContract',
+          gatewayAddress: TEST_GATEWAY_ADDRESS,
+          chainId: SUPPORTED_CHAIN_ID,
+          verifyTypedData: spyVerifyTypedData,
           primaryType: TYPED_RESPONSE_MOCK.primaryType,
           types: TYPED_RESPONSE_MOCK.types, // expected fields
           message: TYPED_RESPONSE_WITH_EXTRA_FIELD_MOCK.message, // message with extra field
@@ -135,9 +122,7 @@ describe('attestResponse', () => {
           cause: new Error('Invalid gateway signature'),
         })
       );
-      expect(mockBlockchainService.getChainId).toHaveBeenCalledTimes(1);
-      expect(mockBlockchainService.readContract).toHaveBeenCalledTimes(1);
-      expect(mockBlockchainService.verifyTypedData).toHaveBeenCalledTimes(1);
+      expect(spyVerifyTypedData).toHaveBeenCalledTimes(1);
     });
 
     it('should throw an error if data misses expected fields', async () => {
@@ -148,8 +133,9 @@ describe('attestResponse', () => {
       );
       await expect(
         attestResponse({
-          blockchainService: mockBlockchainService,
-          noxContractAddress: '0xNoxContract',
+          gatewayAddress: TEST_GATEWAY_ADDRESS,
+          chainId: SUPPORTED_CHAIN_ID,
+          verifyTypedData: spyVerifyTypedData,
           primaryType: TYPED_RESPONSE_WITH_EXTRA_FIELD_MOCK.primaryType,
           types: TYPED_RESPONSE_WITH_EXTRA_FIELD_MOCK.types, // expected fields
           message: TYPED_RESPONSE_MOCK.message, // message with missing field
@@ -161,9 +147,7 @@ describe('attestResponse', () => {
           cause: new Error('Invalid gateway signature'),
         })
       );
-      expect(mockBlockchainService.getChainId).toHaveBeenCalledTimes(1);
-      expect(mockBlockchainService.readContract).toHaveBeenCalledTimes(1);
-      expect(mockBlockchainService.verifyTypedData).toHaveBeenCalledTimes(1);
+      expect(spyVerifyTypedData).toHaveBeenCalledTimes(1);
     });
 
     it("should throw an error if salts don't match", async () => {
@@ -174,8 +158,9 @@ describe('attestResponse', () => {
 
       await expect(
         attestResponse({
-          blockchainService: mockBlockchainService,
-          noxContractAddress: '0xNoxContract',
+          gatewayAddress: TEST_GATEWAY_ADDRESS,
+          chainId: SUPPORTED_CHAIN_ID,
+          verifyTypedData: spyVerifyTypedData,
           ...TYPED_RESPONSE_MOCK,
           requestSalt: generateRequestSalt(), // different salt
           signature,
@@ -185,9 +170,7 @@ describe('attestResponse', () => {
           cause: new Error('Invalid gateway signature'),
         })
       );
-      expect(mockBlockchainService.getChainId).toHaveBeenCalledTimes(1);
-      expect(mockBlockchainService.readContract).toHaveBeenCalledTimes(1);
-      expect(mockBlockchainService.verifyTypedData).toHaveBeenCalledTimes(1);
+      expect(spyVerifyTypedData).toHaveBeenCalledTimes(1);
     });
 
     it('should throw an error if the chainId mismatch', async () => {
@@ -202,13 +185,11 @@ describe('attestResponse', () => {
         },
       };
       const signature = await mockGatewaySignature(data, requestSalt);
-      mockBlockchainService.getChainId.mockResolvedValueOnce(
-        SUPPORTED_CHAIN_ID + 1
-      ); // different chainId
       await expect(
         attestResponse({
-          blockchainService: mockBlockchainService,
-          noxContractAddress: '0xNoxContract',
+          gatewayAddress: TEST_GATEWAY_ADDRESS,
+          chainId: SUPPORTED_CHAIN_ID + 1, // different chainId
+          verifyTypedData: spyVerifyTypedData,
           ...TYPED_RESPONSE_MOCK,
           requestSalt,
           signature,
@@ -218,9 +199,7 @@ describe('attestResponse', () => {
           cause: new Error('Invalid gateway signature'),
         })
       );
-      expect(mockBlockchainService.getChainId).toHaveBeenCalledTimes(1);
-      expect(mockBlockchainService.readContract).toHaveBeenCalledTimes(1);
-      expect(mockBlockchainService.verifyTypedData).toHaveBeenCalledTimes(1);
+      expect(spyVerifyTypedData).toHaveBeenCalledTimes(1);
     });
 
     it('should throw an error if the signer address mismatch', async () => {
@@ -235,12 +214,12 @@ describe('attestResponse', () => {
         },
       };
       const signature = await mockGatewaySignature(data, requestSalt);
-      const wrongAddress = Wallet.createRandom().address;
-      mockBlockchainService.readContract.mockResolvedValueOnce(wrongAddress);
+      const wrongAddress = Wallet.createRandom().address as EthereumAddress;
       await expect(
         attestResponse({
-          blockchainService: mockBlockchainService,
-          noxContractAddress: '0xNoxContract',
+          gatewayAddress: wrongAddress, // wrong gateway address
+          chainId: SUPPORTED_CHAIN_ID,
+          verifyTypedData: spyVerifyTypedData,
           ...TYPED_RESPONSE_MOCK,
           requestSalt,
           signature,
@@ -250,9 +229,7 @@ describe('attestResponse', () => {
           cause: new Error('Invalid gateway signature'),
         })
       );
-      expect(mockBlockchainService.getChainId).toHaveBeenCalledTimes(1);
-      expect(mockBlockchainService.readContract).toHaveBeenCalledTimes(1);
-      expect(mockBlockchainService.verifyTypedData).toHaveBeenCalledTimes(1);
+      expect(spyVerifyTypedData).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -261,8 +238,9 @@ describe('attestResponse', () => {
       const invalidSalt = '0x1234';
       await expect(
         attestResponse({
-          blockchainService: mockBlockchainService,
-          noxContractAddress: '0xNoxContract',
+          gatewayAddress: TEST_GATEWAY_ADDRESS,
+          chainId: SUPPORTED_CHAIN_ID,
+          verifyTypedData: spyVerifyTypedData,
           ...TYPED_RESPONSE_MOCK,
           requestSalt: invalidSalt,
           signature: '0xSignature',
@@ -272,61 +250,32 @@ describe('attestResponse', () => {
           cause: new Error('Invalid salt format'),
         })
       );
-      expect(mockBlockchainService.getChainId).toHaveBeenCalledTimes(0);
-      expect(mockBlockchainService.readContract).toHaveBeenCalledTimes(0);
-      expect(mockBlockchainService.verifyTypedData).toHaveBeenCalledTimes(0);
+      expect(spyVerifyTypedData).not.toHaveBeenCalled();
     });
 
-    it('should throw an error if getChainId fails', async () => {
+    it('should throw an error if verifyTypedData fails', async () => {
       const requestSalt = generateRequestSalt();
       const signature = await mockGatewaySignature(
         TYPED_RESPONSE_MOCK,
         requestSalt
       );
-      const chainIdError = new Error('getChainId failed');
-      mockBlockchainService.getChainId.mockRejectedValueOnce(chainIdError);
+      const verifyError = new Error('verifyTypedData failed');
+      const failingVerify = vi.fn().mockRejectedValueOnce(verifyError);
       await expect(
         attestResponse({
-          blockchainService: mockBlockchainService,
-          noxContractAddress: '0xNoxContract',
+          gatewayAddress: TEST_GATEWAY_ADDRESS,
+          chainId: SUPPORTED_CHAIN_ID,
+          verifyTypedData: failingVerify,
           ...TYPED_RESPONSE_MOCK,
           requestSalt,
           signature,
         })
       ).rejects.toThrow(
-        new Error('Failed to attest gateway response', {
-          cause: chainIdError,
+        new GatewayTrustError('Untrusted Gateway response', {
+          cause: new Error('Invalid gateway signature', { cause: verifyError }),
         })
       );
-      expect(mockBlockchainService.getChainId).toHaveBeenCalledTimes(1);
-      expect(mockBlockchainService.readContract).toHaveBeenCalledTimes(1);
-      expect(mockBlockchainService.verifyTypedData).toHaveBeenCalledTimes(0);
-    });
-
-    it('should throw an error if readContract fails', async () => {
-      const requestSalt = generateRequestSalt();
-      const signature = await mockGatewaySignature(
-        TYPED_RESPONSE_MOCK,
-        requestSalt
-      );
-      const readError = new Error('readContract failed');
-      mockBlockchainService.readContract.mockRejectedValueOnce(readError);
-      await expect(
-        attestResponse({
-          blockchainService: mockBlockchainService,
-          noxContractAddress: '0xNoxContract',
-          ...TYPED_RESPONSE_MOCK,
-          requestSalt,
-          signature,
-        })
-      ).rejects.toThrow(
-        new Error('Failed to attest gateway response', {
-          cause: readError,
-        })
-      );
-      expect(mockBlockchainService.getChainId).toHaveBeenCalledTimes(1);
-      expect(mockBlockchainService.readContract).toHaveBeenCalledTimes(1);
-      expect(mockBlockchainService.verifyTypedData).toHaveBeenCalledTimes(0);
+      expect(failingVerify).toHaveBeenCalledTimes(1);
     });
   });
 });

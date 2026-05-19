@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { HandleClientConfig } from '../../../src/index.js';
 import { encryptInput } from '../../../src/methods/encryptInput.js';
 import type { IApiService } from '../../../src/services/api/IApiService.js';
 import type { IBlockchainService } from '../../../src/services/blockchain/IBlockchainService.js';
@@ -10,31 +9,10 @@ vi.mock('../../../src/utils/validators.js', async (importOriginal) => {
   return { ...actual, validateHandle: vi.fn(), validateHandleProof: vi.fn() };
 });
 
-const REQUEST_SALT_MOCK =
-  '0xabababababababababababababababababababababababababababababababab';
-
-vi.mock('../../../src/utils/gatewayAttestation.js', async (importOriginal) => {
-  const actual =
-    await importOriginal<
-      typeof import('../../../src/utils/gatewayAttestation.js')
-    >();
-  return {
-    ...actual,
-    generateRequestSalt: vi.fn(() => REQUEST_SALT_MOCK),
-    attestResponse: vi.fn(() => Promise.resolve()),
-  };
-});
-
 const TEST_ADDRESS = '0x1234567890123456789012345678901234567890';
 const MOCK_HANDLE =
   '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
 const MOCK_INPUT_PROOF = '0x' + 'ab'.repeat(137);
-
-const mockConfig: HandleClientConfig = {
-  gatewayUrl: 'https://example.com',
-  smartContractAddress: '0x0000000000000000000000000000000000000000',
-  subgraphUrl: 'https://subgraph.example.com',
-};
 
 function createMockBlockchainService(
   overrides: Partial<IBlockchainService> = {}
@@ -63,7 +41,6 @@ function createMockApiService(
       ok: true,
       status: 200,
       data,
-      signature: '0xsignature',
     }),
     ...overrides,
   };
@@ -83,19 +60,27 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
-        config: mockConfig,
         value: true,
         solidityType: 'bool',
         applicationContract: TEST_ADDRESS,
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
-        query: { salt: REQUEST_SALT_MOCK, chain_id: 1 },
+        query: { chain_id: 1 },
         body: {
           value: '0x01',
           solidityType: 'bool',
           owner: TEST_ADDRESS,
           applicationContract: TEST_ADDRESS,
+        },
+        expectedResponse: {
+          types: {
+            HandleWithProof: [
+              { name: 'handle', type: 'string' },
+              { name: 'proof', type: 'string' },
+            ],
+          },
+          primaryType: 'HandleWithProof',
         },
       });
     });
@@ -104,19 +89,28 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
-        config: mockConfig,
+
         value: false,
         solidityType: 'bool',
         applicationContract: TEST_ADDRESS,
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
-        query: { salt: REQUEST_SALT_MOCK, chain_id: 1 },
+        query: { chain_id: 1 },
         body: {
           value: '0x00',
           solidityType: 'bool',
           owner: TEST_ADDRESS,
           applicationContract: TEST_ADDRESS,
+        },
+        expectedResponse: {
+          types: {
+            HandleWithProof: [
+              { name: 'handle', type: 'string' },
+              { name: 'proof', type: 'string' },
+            ],
+          },
+          primaryType: 'HandleWithProof',
         },
       });
     });
@@ -126,7 +120,6 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
-        config: mockConfig,
         value: 'hello world',
         solidityType: 'string',
         applicationContract: TEST_ADDRESS,
@@ -148,7 +141,6 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
-        config: mockConfig,
         value: address,
         solidityType: 'address',
         applicationContract: TEST_ADDRESS,
@@ -170,7 +162,6 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
-        config: mockConfig,
         value: bytes,
         solidityType: 'bytes',
         applicationContract: TEST_ADDRESS,
@@ -190,20 +181,28 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
-        config: mockConfig,
         value: 1_000_000n,
         solidityType: 'uint256',
         applicationContract: TEST_ADDRESS,
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
-        query: { salt: REQUEST_SALT_MOCK, chain_id: 1 },
+        query: { chain_id: 1 },
         body: {
           value:
             '0x00000000000000000000000000000000000000000000000000000000000f4240',
           solidityType: 'uint256',
           owner: TEST_ADDRESS,
           applicationContract: TEST_ADDRESS,
+        },
+        expectedResponse: {
+          types: {
+            HandleWithProof: [
+              { name: 'handle', type: 'string' },
+              { name: 'proof', type: 'string' },
+            ],
+          },
+          primaryType: 'HandleWithProof',
         },
       });
     });
@@ -213,7 +212,6 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
-        config: mockConfig,
         value: -500n,
         solidityType: 'int128',
         applicationContract: TEST_ADDRESS,
@@ -286,7 +284,6 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
-          config: mockConfig,
           value: 'hello',
           solidityType: 'string' as never,
           applicationContract: TEST_ADDRESS,
@@ -301,7 +298,6 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
-          config: mockConfig,
           value: 'value',
           solidityType: 'invalidType' as never,
           applicationContract: TEST_ADDRESS,
@@ -314,7 +310,6 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
-          config: mockConfig,
           value: 1n,
           solidityType: 'uint7' as never,
           applicationContract: TEST_ADDRESS,
@@ -327,7 +322,6 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
-          config: mockConfig,
           value: '0x',
           solidityType: 'bytes33' as never,
           applicationContract: TEST_ADDRESS,
@@ -342,7 +336,6 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
-          config: mockConfig,
           value: 'true',
           solidityType: 'bool',
           applicationContract: TEST_ADDRESS,
@@ -356,7 +349,6 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
-          config: mockConfig,
           value: true,
           solidityType: 'string',
           applicationContract: TEST_ADDRESS,
@@ -370,7 +362,6 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
-          config: mockConfig,
           value: '0x1234',
           solidityType: 'address',
           applicationContract: TEST_ADDRESS,
@@ -384,7 +375,6 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
-          config: mockConfig,
           value: 'not hex',
           solidityType: 'bytes',
           applicationContract: TEST_ADDRESS,
@@ -398,7 +388,6 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
-          config: mockConfig,
           value: '0x1234567890',
           solidityType: 'bytes4',
           applicationContract: TEST_ADDRESS,
@@ -411,7 +400,6 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
-          config: mockConfig,
           value: '1000',
           solidityType: 'uint256',
           applicationContract: TEST_ADDRESS,
@@ -424,7 +412,6 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
-          config: mockConfig,
           value: -1n,
           solidityType: 'uint256',
           applicationContract: TEST_ADDRESS,
@@ -438,7 +425,6 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
-          config: mockConfig,
           value: 256n,
           solidityType: 'uint8',
           applicationContract: TEST_ADDRESS,
@@ -452,7 +438,6 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
-          config: mockConfig,
           value: 128n,
           solidityType: 'int8',
           applicationContract: TEST_ADDRESS,
@@ -467,7 +452,6 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
-          config: mockConfig,
           value: true,
           solidityType: 'bool',
           applicationContract: '0x1234',
@@ -489,12 +473,13 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
-          config: mockConfig,
           value: true,
           solidityType: 'bool',
           applicationContract: TEST_ADDRESS,
         })
-      ).rejects.toThrow('Gateway API error: 400');
+      ).rejects.toThrow(
+        `Unexpected response from Handle Gateway (status: 400, data: {"error":"Bad request"})`
+      );
     });
 
     it('throws on missing handle in response', async () => {
@@ -509,12 +494,13 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
-          config: mockConfig,
           value: true,
           solidityType: 'bool',
           applicationContract: TEST_ADDRESS,
         })
-      ).rejects.toThrow('Invalid gateway response');
+      ).rejects.toThrow(
+        'Unexpected response from Handle Gateway (status: 200, data: {"proof":"0xababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab"})'
+      );
     });
 
     it('propagates network errors', async () => {
@@ -525,7 +511,6 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
-          config: mockConfig,
           value: true,
           solidityType: 'bool',
           applicationContract: TEST_ADDRESS,
@@ -539,7 +524,6 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
-        config: mockConfig,
         value: true,
         solidityType: 'bool',
         applicationContract: TEST_ADDRESS,
@@ -556,19 +540,27 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
-        config: mockConfig,
         value: true,
         solidityType: 'bool',
         applicationContract: TEST_ADDRESS,
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
-        query: { salt: REQUEST_SALT_MOCK, chain_id: 1 },
+        query: { chain_id: 1 },
         body: {
           value: '0x01',
           solidityType: 'bool',
           owner: customAddress,
           applicationContract: TEST_ADDRESS,
+        },
+        expectedResponse: {
+          types: {
+            HandleWithProof: [
+              { name: 'handle', type: 'string' },
+              { name: 'proof', type: 'string' },
+            ],
+          },
+          primaryType: 'HandleWithProof',
         },
       });
     });
@@ -583,7 +575,6 @@ describe('encryptInput', () => {
         encryptInput({
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
-          config: mockConfig,
           value: true,
           solidityType: 'bool',
           applicationContract: TEST_ADDRESS,
@@ -598,19 +589,27 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
-        config: mockConfig,
         value: true,
         solidityType: 'bool',
         applicationContract: TEST_ADDRESS,
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
-        query: { salt: REQUEST_SALT_MOCK, chain_id: 421_614 },
+        query: { chain_id: 421_614 },
         body: {
           value: '0x01',
           solidityType: 'bool',
           owner: TEST_ADDRESS,
           applicationContract: TEST_ADDRESS,
+        },
+        expectedResponse: {
+          types: {
+            HandleWithProof: [
+              { name: 'handle', type: 'string' },
+              { name: 'proof', type: 'string' },
+            ],
+          },
+          primaryType: 'HandleWithProof',
         },
       });
     });

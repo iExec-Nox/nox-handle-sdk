@@ -1,9 +1,12 @@
 import { createWalletClient, custom } from 'viem';
-import { it, describe, expect } from 'vitest';
+import { it, beforeEach, describe, expect } from 'vitest';
 import { NETWORK_CONFIGS } from '../../../src/config/networks.js';
 import { createViemHandleClient } from '../../../src/factories/createViemHandleClient.js';
 import { ViemBlockchainService } from '../../../src/services/blockchain/ViemBlockchainService.js';
-import { createMockEIP1193Provider } from '../../helpers/mocks.js';
+import {
+  ABI_ENCODED_GATEWAY_ADDRESS,
+  createMockEIP1193Provider,
+} from '../../helpers/mocks.js';
 import {
   SUPPORTED_CHAIN_ID,
   TEST_PRIVATE_KEY,
@@ -25,10 +28,18 @@ describe('createViemHandleClient', () => {
 
   describe('with a ViemClient', () => {
     describe('with a supported chainId', () => {
+      const mockProvider = createMockEIP1193Provider(
+        SUPPORTED_CHAIN_ID,
+        TEST_PRIVATE_KEY
+      );
       const viemClient = createWalletClient({
-        transport: custom(
-          createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
-        ),
+        transport: custom(mockProvider),
+      });
+      beforeEach(() => {
+        mockProvider.mocks.call.mockReset();
+        mockProvider.mocks.call.mockResolvedValueOnce(
+          ABI_ENCODED_GATEWAY_ADDRESS
+        ); // Ensure getGatewayAddress does not fail due to invalid response
       });
 
       it('should create a HandleClient instance with a blockchainService of type ViemBlockchainService', async () => {
@@ -66,10 +77,18 @@ describe('createViemHandleClient', () => {
     });
 
     describe('with an unsupported chainId', () => {
+      const mockProvider = createMockEIP1193Provider(
+        UNSUPPORTED_CHAIN_ID,
+        TEST_PRIVATE_KEY
+      );
       const viemClient = createWalletClient({
-        transport: custom(
-          createMockEIP1193Provider(UNSUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
-        ),
+        transport: custom(mockProvider),
+      });
+      beforeEach(() => {
+        mockProvider.mocks.call.mockReset();
+        mockProvider.mocks.call.mockResolvedValueOnce(
+          ABI_ENCODED_GATEWAY_ADDRESS
+        ); // Ensure getGatewayAddress does not fail due to invalid response
       });
       it('should throw if chainId not supported and no config provided', async () => {
         await expect(createViemHandleClient(viemClient)).rejects.toThrow(
