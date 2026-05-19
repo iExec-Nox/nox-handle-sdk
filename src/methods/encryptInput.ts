@@ -190,7 +190,7 @@ export async function encryptInput<T extends SolidityType>({
 
   const data = response.data as GatewaySecretResponse;
   if (!data?.handle || !data?.proof) {
-    throw new Error('Invalid gateway response: missing handle or handleProof');
+    throw new Error('Invalid gateway response: missing handle or proof');
   }
 
   validateHandle({
