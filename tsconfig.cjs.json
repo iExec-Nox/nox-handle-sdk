@@ -2,8 +2,9 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "module": "CommonJS",
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "verbatimModuleSyntax": false,
+    "rootDir": "./src",
     "outDir": "./dist/cjs",
     "removeComments": true,
     "declaration": false,
