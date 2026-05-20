@@ -7,6 +7,7 @@ import {
   type EthersClient,
 } from '../services/blockchain/EthersBlockchainService.js';
 import SubgraphService from '../services/subgraph/SubgraphService.js';
+import { getGatewayAddress } from '../utils/gatewayAttestation.js';
 
 /**
  * Creates a {@link HandleClient} from an ethers signer provider
@@ -49,8 +50,17 @@ export const createEthersHandleClient = async (
   const ethersBlockchainService = new EthersBlockchainService(ethersClient);
   const chainId = await ethersBlockchainService.getChainId();
   const resolvedConfig = resolveNetworkConfig(chainId, config);
+  const gatewayAddress = await getGatewayAddress({
+    blockchainService: ethersBlockchainService,
+    smartContractAddress: resolvedConfig.smartContractAddress,
+  });
   const subgraphService = new SubgraphService(resolvedConfig.subgraphUrl);
-  const apiService = new ApiService(resolvedConfig.gatewayUrl);
+  const apiService = new ApiService(resolvedConfig.gatewayUrl, {
+    gatewayAddress,
+    chainId,
+    verifyTypedData: (data, sig) =>
+      ethersBlockchainService.verifyTypedData(data, sig),
+  });
   return new HandleClient({
     blockchainService: ethersBlockchainService,
     subgraphService,

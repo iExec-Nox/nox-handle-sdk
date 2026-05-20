@@ -52,13 +52,19 @@ export async function publicDecrypt<T extends SolidityType>({
 
   const solidityType = handleToSolidityType(handle) as T;
 
-  const { status, data } = await apiService.get({
+  const response = await apiService.get({
     endpoint: `/v0/public/${handle}`,
+    expectedResponse: {
+      types: {
+        PublicDecryptionResult: [{ name: 'decryptionProof', type: 'string' }],
+      },
+      primaryType: 'PublicDecryptionResult',
+    },
   });
 
   const { decryptionProof } = validateApiResponse({
-    status,
-    data,
+    status: response.status,
+    data: response.data,
   });
   const plaintext: HexString = `0x${decryptionProof.slice(2 + 65 * 2)}`; // strip leading 65 bytes (proof signature) to get the hex-encoded plaintext
   let value: JsValue<T>;

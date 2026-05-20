@@ -30,12 +30,17 @@ function createMockBlockchainService(
 function createMockApiService(
   overrides: Partial<IApiService> = {}
 ): IApiService {
+  const data = {
+    handle: MOCK_HANDLE,
+    proof: MOCK_INPUT_PROOF,
+  };
+
   return {
     get: vi.fn().mockResolvedValue({ ok: true, status: 200, data: {} }),
     post: vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      data: { handle: MOCK_HANDLE, proof: MOCK_INPUT_PROOF },
+      data,
     }),
     ...overrides,
   };
@@ -61,13 +66,22 @@ describe('encryptInput', () => {
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
+        query: { chain_id: 1 },
         body: {
           value: '0x01',
           solidityType: 'bool',
           owner: TEST_ADDRESS,
           applicationContract: TEST_ADDRESS,
         },
-        query: { chain_id: 1 },
+        expectedResponse: {
+          types: {
+            HandleWithProof: [
+              { name: 'handle', type: 'string' },
+              { name: 'proof', type: 'string' },
+            ],
+          },
+          primaryType: 'HandleWithProof',
+        },
       });
     });
 
@@ -75,19 +89,29 @@ describe('encryptInput', () => {
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
+
         value: false,
         solidityType: 'bool',
         applicationContract: TEST_ADDRESS,
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
+        query: { chain_id: 1 },
         body: {
           value: '0x00',
           solidityType: 'bool',
           owner: TEST_ADDRESS,
           applicationContract: TEST_ADDRESS,
         },
-        query: { chain_id: 1 },
+        expectedResponse: {
+          types: {
+            HandleWithProof: [
+              { name: 'handle', type: 'string' },
+              { name: 'proof', type: 'string' },
+            ],
+          },
+          primaryType: 'HandleWithProof',
+        },
       });
     });
 
@@ -163,6 +187,7 @@ describe('encryptInput', () => {
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
+        query: { chain_id: 1 },
         body: {
           value:
             '0x00000000000000000000000000000000000000000000000000000000000f4240',
@@ -170,7 +195,15 @@ describe('encryptInput', () => {
           owner: TEST_ADDRESS,
           applicationContract: TEST_ADDRESS,
         },
-        query: { chain_id: 1 },
+        expectedResponse: {
+          types: {
+            HandleWithProof: [
+              { name: 'handle', type: 'string' },
+              { name: 'proof', type: 'string' },
+            ],
+          },
+          primaryType: 'HandleWithProof',
+        },
       });
     });
 
@@ -444,7 +477,9 @@ describe('encryptInput', () => {
           solidityType: 'bool',
           applicationContract: TEST_ADDRESS,
         })
-      ).rejects.toThrow('Gateway API error: 400');
+      ).rejects.toThrow(
+        `Unexpected response from Handle Gateway (status: 400, data: {"error":"Bad request"})`
+      );
     });
 
     it('throws on missing handle in response', async () => {
@@ -463,7 +498,9 @@ describe('encryptInput', () => {
           solidityType: 'bool',
           applicationContract: TEST_ADDRESS,
         })
-      ).rejects.toThrow('Invalid gateway response');
+      ).rejects.toThrow(
+        'Unexpected response from Handle Gateway (status: 200, data: {"proof":"0xababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab"})'
+      );
     });
 
     it('propagates network errors', async () => {
@@ -509,13 +546,22 @@ describe('encryptInput', () => {
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
+        query: { chain_id: 1 },
         body: {
           value: '0x01',
           solidityType: 'bool',
           owner: customAddress,
           applicationContract: TEST_ADDRESS,
         },
-        query: { chain_id: 1 },
+        expectedResponse: {
+          types: {
+            HandleWithProof: [
+              { name: 'handle', type: 'string' },
+              { name: 'proof', type: 'string' },
+            ],
+          },
+          primaryType: 'HandleWithProof',
+        },
       });
     });
 
@@ -549,13 +595,22 @@ describe('encryptInput', () => {
       });
       expect(mockApiService.post).toHaveBeenCalledWith({
         endpoint: '/v0/secrets',
+        query: { chain_id: 421_614 },
         body: {
           value: '0x01',
           solidityType: 'bool',
           owner: TEST_ADDRESS,
           applicationContract: TEST_ADDRESS,
         },
-        query: { chain_id: 421_614 },
+        expectedResponse: {
+          types: {
+            HandleWithProof: [
+              { name: 'handle', type: 'string' },
+              { name: 'proof', type: 'string' },
+            ],
+          },
+          primaryType: 'HandleWithProof',
+        },
       });
     });
   });

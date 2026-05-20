@@ -15,6 +15,7 @@ import {
   type ViemClient,
 } from '../services/blockchain/ViemBlockchainService.js';
 import SubgraphService from '../services/subgraph/SubgraphService.js';
+import { getGatewayAddress } from '../utils/gatewayAttestation.js';
 
 export type BlockchainClient = EthersClient | ViemClient;
 
@@ -68,7 +69,16 @@ export const createHandleClient = async (
     );
     const chainId = await ethersBlockchainService.getChainId();
     const resolvedConfig = resolveNetworkConfig(chainId, config);
-    const apiService = new ApiService(resolvedConfig.gatewayUrl);
+    const gatewayAddress = await getGatewayAddress({
+      blockchainService: ethersBlockchainService,
+      smartContractAddress: resolvedConfig.smartContractAddress,
+    });
+    const apiService = new ApiService(resolvedConfig.gatewayUrl, {
+      gatewayAddress,
+      chainId,
+      verifyTypedData: (data, sig) =>
+        ethersBlockchainService.verifyTypedData(data, sig),
+    });
     const subgraphService = new SubgraphService(resolvedConfig.subgraphUrl);
     return new HandleClient({
       blockchainService: ethersBlockchainService,
@@ -85,7 +95,16 @@ export const createHandleClient = async (
     const viemBlockchainService = new ViemBlockchainService(blockchainClient);
     const chainId = await viemBlockchainService.getChainId();
     const resolvedConfig = resolveNetworkConfig(chainId, config);
-    const apiService = new ApiService(resolvedConfig.gatewayUrl);
+    const gatewayAddress = await getGatewayAddress({
+      blockchainService: viemBlockchainService,
+      smartContractAddress: resolvedConfig.smartContractAddress,
+    });
+    const apiService = new ApiService(resolvedConfig.gatewayUrl, {
+      gatewayAddress,
+      chainId,
+      verifyTypedData: (data, sig) =>
+        viemBlockchainService.verifyTypedData(data, sig),
+    });
     const subgraphService = new SubgraphService(resolvedConfig.subgraphUrl);
     return new HandleClient({
       blockchainService: viemBlockchainService,

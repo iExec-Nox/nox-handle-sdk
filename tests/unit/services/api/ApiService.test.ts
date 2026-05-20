@@ -8,6 +8,49 @@ import {
   type Mock,
 } from 'vitest';
 import { ApiService } from '../../../../src/services/api/ApiService.js';
+import type { ExpectedResponse } from '../../../../src/services/api/IApiService.js';
+import { GatewayTrustError } from '../../../../src/utils/gatewayAttestation.js';
+
+const MOCK_GATEWAY_ADDRESS =
+  '0x1234567890123456789012345678901234567890' as const;
+
+function mockAttestationConfig(
+  options: {
+    gatewayAddress?: `0x${string}`;
+    chainId?: number;
+    verifyResult?: string;
+  } = {}
+) {
+  const {
+    gatewayAddress = MOCK_GATEWAY_ADDRESS,
+    chainId = 1,
+    verifyResult = MOCK_GATEWAY_ADDRESS,
+  } = options;
+  return {
+    gatewayAddress,
+    chainId,
+    verifyTypedData: vi.fn().mockResolvedValue(verifyResult),
+  };
+}
+
+const STUB_EXPECTED_RESPONSE: ExpectedResponse = {
+  types: { Result: [{ name: 'id', type: 'uint256' }] },
+  primaryType: 'Result',
+};
+
+function mockSignedJsonResponse(payload: unknown, status = 200): Response {
+  const isOk = status >= 200 && status < 300;
+  return {
+    ok: isOk,
+    status,
+    statusText: isOk ? 'OK' : 'Error',
+    headers: new Headers({ 'Content-Type': 'application/json' }),
+    body: true, // Required for ApiService to parse JSON
+    json: () => Promise.resolve({ payload, signature: '0xdeadbeef' }),
+    text: () =>
+      Promise.resolve(JSON.stringify({ payload, signature: '0xdeadbeef' })),
+  } as unknown as Response;
+}
 
 function mockJsonResponse(data: unknown, status = 200): Response {
   const isOk = status >= 200 && status < 300;
@@ -20,17 +63,6 @@ function mockJsonResponse(data: unknown, status = 200): Response {
     json: () => Promise.resolve(data),
     text: () => Promise.resolve(JSON.stringify(data)),
   } as unknown as Response;
-}
-
-function mockEmptyResponse(status = 204): Response {
-  return {
-    ok: status >= 200 && status < 300,
-    status,
-    statusText: 'No Content',
-    headers: new Headers({ 'Content-Type': 'text/plain' }),
-    json: () => Promise.reject(new Error('No JSON')),
-    text: () => Promise.resolve(''),
-  } as Response;
 }
 
 describe('ApiService', () => {
@@ -53,7 +85,11 @@ describe('ApiService', () => {
       ['IP address', 'https://192.168.1.1'],
     ])('should accept %s: %s', (_, url) => {
       expect(
-        () => new ApiService(url as `http${'' | 's'}://${string}`)
+        () =>
+          new ApiService(
+            url as `http${'' | 's'}://${string}`,
+            mockAttestationConfig()
+          )
       ).not.toThrow();
     });
 
@@ -63,81 +99,88 @@ describe('ApiService', () => {
       ['with path and query', 'https://gateway.example.com/api?v=1'],
     ])('should reject URL %s: %s', (_, url) => {
       expect(
-        () => new ApiService(url as `http${'' | 's'}://${string}`)
+        () =>
+          new ApiService(
+            url as `http${'' | 's'}://${string}`,
+            mockAttestationConfig()
+          )
       ).toThrow(TypeError);
     });
   });
 
   describe('get', () => {
-    const api = new ApiService('https://api.example.com');
+    const attestationConfig = mockAttestationConfig();
+    const api = new ApiService('https://api.example.com', attestationConfig);
+    it('should return ok, status and data for signed JSON response', async () => {
+      const mockPayload = { id: 1, name: 'test' };
+      fetchSpy.mockResolvedValue(mockSignedJsonResponse(mockPayload));
 
-    it('should return ok, status and data for JSON response', async () => {
-      const mockData = { id: 1, name: 'test' };
-      fetchSpy.mockResolvedValue(mockJsonResponse(mockData));
+      const result = await api.get({
+        endpoint: '/v0/resources/123',
+        expectedResponse: STUB_EXPECTED_RESPONSE,
+      });
 
-      const result = await api.get({ endpoint: '/v0/resources/123' });
-
-      expect(result).toEqual({ ok: true, status: 200, data: mockData });
+      expect(result).toEqual({ ok: true, status: 200, data: mockPayload });
     });
 
-    it('should return ok and status without data for non-JSON response', async () => {
-      fetchSpy.mockResolvedValue(mockEmptyResponse(204));
-
-      const result = await api.get({ endpoint: '/health' });
-
-      expect(result).toEqual({ ok: true, status: 204 });
-    });
-
-    it('should return ok false for non-2xx response', async () => {
+    it('should return ok false for non-2xx response without calling attestation', async () => {
       fetchSpy.mockResolvedValue(mockJsonResponse({ error: 'Not found' }, 404));
 
-      const result = await api.get({ endpoint: '/v0/resources/999' });
+      const result = await api.get({
+        endpoint: '/v0/resources/999',
+        expectedResponse: STUB_EXPECTED_RESPONSE,
+      });
 
       expect(result).toEqual({
         ok: false,
         status: 404,
         data: { error: 'Not found' },
       });
+      expect(attestationConfig.verifyTypedData).not.toHaveBeenCalled();
     });
 
-    it('should build URL with query parameters', async () => {
-      fetchSpy.mockResolvedValue(mockJsonResponse({}));
+    it('should inject salt into query parameters', async () => {
+      fetchSpy.mockResolvedValue(mockSignedJsonResponse({}));
 
       await api.get({
         endpoint: '/v0/resources',
-        query: { page: 1, limit: 10 },
+        query: { page: 1 },
+        expectedResponse: STUB_EXPECTED_RESPONSE,
       });
 
-      expect(fetchSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          href: 'https://api.example.com/v0/resources?page=1&limit=10',
-        }),
-        expect.any(Object)
-      );
+      const calledUrl: URL = fetchSpy.mock.calls[0]![0];
+      expect(calledUrl.searchParams.get('page')).toBe('1');
+      expect(calledUrl.searchParams.get('salt')).toMatch(/^0x[a-f0-9]{64}$/);
     });
 
-    it('should build URL without query string when query is empty', async () => {
-      fetchSpy.mockResolvedValue(mockJsonResponse({}));
+    it('should inject a unique salt for each request', async () => {
+      fetchSpy.mockResolvedValue(mockSignedJsonResponse({}));
 
       await api.get({
         endpoint: '/v0/resources',
-        query: {},
+        expectedResponse: STUB_EXPECTED_RESPONSE,
+      });
+      await api.get({
+        endpoint: '/v0/resources',
+        expectedResponse: STUB_EXPECTED_RESPONSE,
       });
 
-      expect(fetchSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          href: 'https://api.example.com/v0/resources',
-        }),
-        expect.any(Object)
+      const salt1 = (fetchSpy.mock.calls[0]![0] as URL).searchParams.get(
+        'salt'
       );
+      const salt2 = (fetchSpy.mock.calls[1]![0] as URL).searchParams.get(
+        'salt'
+      );
+      expect(salt1).not.toBe(salt2);
     });
 
     it('should forward custom headers', async () => {
-      fetchSpy.mockResolvedValue(mockJsonResponse({}));
+      fetchSpy.mockResolvedValue(mockSignedJsonResponse({}));
 
       await api.get({
         endpoint: '/v0/resources/123',
         headers: { Authorization: 'Bearer token123' },
+        expectedResponse: STUB_EXPECTED_RESPONSE,
       });
 
       expect(fetchSpy).toHaveBeenCalledWith(
@@ -156,6 +199,7 @@ describe('ApiService', () => {
           .get({
             endpoint: '/v0/resources/123',
             timeout: 1,
+            expectedResponse: STUB_EXPECTED_RESPONSE,
           })
           .catch((error) => {
             apiError = error as Error;
@@ -172,14 +216,19 @@ describe('ApiService', () => {
   });
 
   describe('post', () => {
-    const api = new ApiService('https://api.example.com');
+    const attestationConfig = mockAttestationConfig();
+    const api = new ApiService('https://api.example.com', attestationConfig);
 
     it('should send JSON body with correct Content-Type', async () => {
-      const responseData = { id: 123, created: true };
-      fetchSpy.mockResolvedValue(mockJsonResponse(responseData, 201));
+      const responsePayload = { id: 123, created: true };
+      fetchSpy.mockResolvedValue(mockSignedJsonResponse(responsePayload, 201));
 
       const body = { name: 'test', value: 42 };
-      const result = await api.post({ endpoint: '/v0/resources', body });
+      const result = await api.post({
+        endpoint: '/v0/resources',
+        body,
+        expectedResponse: STUB_EXPECTED_RESPONSE,
+      });
 
       expect(fetchSpy).toHaveBeenCalledWith(
         expect.any(URL),
@@ -189,16 +238,21 @@ describe('ApiService', () => {
           body: JSON.stringify(body),
         })
       );
-      expect(result).toEqual({ ok: true, status: 201, data: responseData });
+      expect(result).toEqual({
+        ok: true,
+        status: 201,
+        data: responsePayload,
+      });
     });
 
     it('should merge custom headers with Content-Type', async () => {
-      fetchSpy.mockResolvedValue(mockJsonResponse({ id: 1 }));
+      fetchSpy.mockResolvedValue(mockSignedJsonResponse({ id: 1 }));
 
       await api.post({
         endpoint: '/v0/resources',
         body: { key: 'value' },
         headers: { 'X-Request-Id': 'req-123' },
+        expectedResponse: STUB_EXPECTED_RESPONSE,
       });
 
       expect(fetchSpy).toHaveBeenCalledWith(
@@ -220,6 +274,7 @@ describe('ApiService', () => {
           .post({
             endpoint: '/v0/resources/123',
             timeout: 1,
+            expectedResponse: STUB_EXPECTED_RESPONSE,
           })
           .catch((error) => {
             apiError = error as Error;
@@ -236,14 +291,19 @@ describe('ApiService', () => {
   });
 
   describe('error handling', () => {
-    const api = new ApiService('https://api.example.com');
-
+    const api = new ApiService(
+      'https://api.example.com',
+      mockAttestationConfig()
+    );
     it('should throw on network failure', async () => {
       fetchSpy.mockRejectedValue(new Error('Network error'));
 
-      await expect(api.post({ endpoint: '/v0/resources' })).rejects.toThrow(
-        'Network request failed for POST /v0/resources'
-      );
+      await expect(
+        api.post({
+          endpoint: '/v0/resources',
+          expectedResponse: STUB_EXPECTED_RESPONSE,
+        })
+      ).rejects.toThrow('Network request failed for POST /v0/resources');
     });
 
     it('should throw on JSON parse error', async () => {
@@ -255,105 +315,152 @@ describe('ApiService', () => {
         json: () => Promise.reject(new Error('Invalid JSON')),
       } as unknown as Response);
 
-      await expect(api.get({ endpoint: '/v0/resources/123' })).rejects.toThrow(
-        'Failed to parse response'
+      await expect(
+        api.get({
+          endpoint: '/v0/resources/123',
+          expectedResponse: STUB_EXPECTED_RESPONSE,
+        })
+      ).rejects.toThrow('Failed to parse response');
+    });
+  });
+
+  describe('attestation', () => {
+    it('should throw GatewayTrustError if verifyTypedData returns wrong address', async () => {
+      const attestationConfig = mockAttestationConfig({
+        verifyResult: '0x0000000000000000000000000000000000000001', // wrong address
+      });
+      const api = new ApiService('https://api.example.com', attestationConfig);
+      fetchSpy.mockResolvedValue(mockSignedJsonResponse({ id: 1 }));
+
+      await expect(
+        api.get({
+          endpoint: '/v0/resources/123',
+          expectedResponse: STUB_EXPECTED_RESPONSE,
+        })
+      ).rejects.toThrow(GatewayTrustError);
+    });
+
+    it('should throw GatewayTrustError if verifyTypedData rejects', async () => {
+      const attestationConfig = {
+        gatewayAddress: MOCK_GATEWAY_ADDRESS,
+        chainId: 1,
+        verifyTypedData: vi
+          .fn()
+          .mockRejectedValue(new Error('signature invalid')),
+      };
+      const api = new ApiService('https://api.example.com', attestationConfig);
+      fetchSpy.mockResolvedValue(mockSignedJsonResponse({ id: 1 }));
+
+      await expect(
+        api.get({
+          endpoint: '/v0/resources/123',
+          expectedResponse: STUB_EXPECTED_RESPONSE,
+        })
+      ).rejects.toThrow(GatewayTrustError);
+    });
+
+    it('should throw GatewayTrustError for ok response with no signature', async () => {
+      const api = new ApiService(
+        'https://api.example.com',
+        mockAttestationConfig()
       );
+      fetchSpy.mockResolvedValue(mockJsonResponse({ id: 1 }, 200));
+
+      await expect(
+        api.get({
+          endpoint: '/v0/resources/123',
+          expectedResponse: STUB_EXPECTED_RESPONSE,
+        })
+      ).rejects.toThrow(GatewayTrustError);
+    });
+
+    it('should not call verifyTypedData for non-ok responses', async () => {
+      const attestationConfig = mockAttestationConfig();
+      const api = new ApiService('https://api.example.com', attestationConfig);
+      fetchSpy.mockResolvedValue(
+        mockJsonResponse({ error: 'bad request' }, 400)
+      );
+
+      await api.post({
+        endpoint: '/v0/resources',
+        expectedResponse: STUB_EXPECTED_RESPONSE,
+      });
+
+      expect(attestationConfig.verifyTypedData).not.toHaveBeenCalled();
+    });
+
+    it('should pass the salt used in query to verifyTypedData via domain', async () => {
+      const attestationConfig = mockAttestationConfig();
+      const api = new ApiService('https://api.example.com', attestationConfig);
+      fetchSpy.mockResolvedValue(mockSignedJsonResponse({ id: 1 }));
+
+      await api.get({
+        endpoint: '/v0/resources/123',
+        expectedResponse: STUB_EXPECTED_RESPONSE,
+      });
+
+      const calledUrl: URL = fetchSpy.mock.calls[0]![0];
+      const saltInQuery = calledUrl.searchParams.get('salt');
+      const typedDataPassed = attestationConfig.verifyTypedData.mock
+        .calls[0]![0] as { domain: { salt: string } };
+      expect(typedDataPassed.domain.salt).toBe(saltInQuery);
     });
   });
 
   describe('response parsing', () => {
-    const api = new ApiService('https://api.example.com');
-
+    const api = new ApiService(
+      'https://api.example.com',
+      mockAttestationConfig()
+    );
     describe('with legacy response format (without {payload, signature})', () => {
-      it('should handle legacy response format', async () => {
+      it('should throw GatewayTrustError for ok legacy response (no signature)', async () => {
         fetchSpy.mockResolvedValue(mockJsonResponse({ id: 1 }, 200));
-        const result = await api.get({ endpoint: '/v0/resources/999' });
-        expect(result).toEqual({
-          ok: true,
-          status: 200,
-          data: { id: 1 },
-        });
+        await expect(
+          api.get({
+            endpoint: '/v0/resources/999',
+            expectedResponse: STUB_EXPECTED_RESPONSE,
+          })
+        ).rejects.toThrow(GatewayTrustError);
       });
 
-      it('should treat non-string signature as legacy format', async () => {
-        const body = {
-          payload: { id: 1 },
-          signature: 123 as unknown as string,
-        };
-        fetchSpy.mockResolvedValue(mockJsonResponse(body, 200));
-        const result = await api.get({ endpoint: '/v0/resources/999' });
-        expect(result).toEqual({
-          ok: true,
-          status: 200,
-          data: body,
+      it('should return non-ok legacy response without attestation', async () => {
+        fetchSpy.mockResolvedValue(mockJsonResponse({ id: 1 }, 400));
+        const result = await api.get({
+          endpoint: '/v0/resources/999',
+          expectedResponse: STUB_EXPECTED_RESPONSE,
         });
-      });
-
-      it('should treat missing signature when payload exists as legacy format', async () => {
-        const body = { payload: { id: 1 } };
-        fetchSpy.mockResolvedValue(mockJsonResponse(body, 200));
-        const result = await api.get({ endpoint: '/v0/resources/999' });
-        expect(result).toEqual({
-          ok: true,
-          status: 200,
-          data: body,
-        });
-      });
-
-      it('should treat missing payload when signature exists as legacy format', async () => {
-        const body = { signature: 'abc123' };
-        fetchSpy.mockResolvedValue(mockJsonResponse(body, 200));
-        const result = await api.get({ endpoint: '/v0/resources/999' });
-        expect(result).toEqual({
-          ok: true,
-          status: 200,
-          data: body,
-        });
+        expect(result).toEqual({ ok: false, status: 400, data: { id: 1 } });
       });
     });
 
     describe('with {payload, signature} response format', () => {
-      it('should unwrap data and signature from response', async () => {
+      it('should unwrap data from payload and not expose signature', async () => {
         fetchSpy.mockResolvedValue(
-          mockJsonResponse({ payload: { id: 1 }, signature: 'abc123' }, 200)
+          mockJsonResponse({ payload: { id: 1 }, signature: '0xdeadbeef' }, 200)
         );
-        const result = await api.get({ endpoint: '/v0/resources/999' });
-        expect(result).toEqual({
-          ok: true,
-          status: 200,
-          data: { id: 1 },
-          signature: 'abc123',
+        const result = await api.get({
+          endpoint: '/v0/resources/999',
+          expectedResponse: STUB_EXPECTED_RESPONSE,
         });
+        expect(result).toEqual({ ok: true, status: 200, data: { id: 1 } });
+        expect(result).not.toHaveProperty('signature');
       });
 
-      it('should unwrap payload null', async () => {
-        fetchSpy.mockResolvedValue(
-          // eslint-disable-next-line unicorn/no-null
-          mockJsonResponse({ payload: null, signature: 'abc123' }, 200)
-        );
-        const result = await api.get({ endpoint: '/v0/resources/999' });
-        expect(result).toEqual({
-          ok: true,
-          status: 200,
-          // eslint-disable-next-line unicorn/no-null
-          data: null,
-          signature: 'abc123',
-        });
-      });
-
-      it('should unwrap error data and signature from response', async () => {
+      it('should unwrap error data for non-ok response without attestation', async () => {
         fetchSpy.mockResolvedValue(
           mockJsonResponse(
-            { payload: { error: 'foo' }, signature: 'abc123' },
+            { payload: { error: 'foo' }, signature: '0xabc123' },
             400
           )
         );
-        const result = await api.get({ endpoint: '/v0/resources/999' });
+        const result = await api.get({
+          endpoint: '/v0/resources/999',
+          expectedResponse: STUB_EXPECTED_RESPONSE,
+        });
         expect(result).toEqual({
           ok: false,
           status: 400,
           data: { error: 'foo' },
-          signature: 'abc123',
         });
       });
     });

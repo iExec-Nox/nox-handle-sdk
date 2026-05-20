@@ -5,6 +5,7 @@ import { resolveNetworkConfig } from '../config/networks.js';
 import { ApiService } from '../services/api/ApiService.js';
 import { ViemBlockchainService } from '../services/blockchain/ViemBlockchainService.js';
 import SubgraphService from '../services/subgraph/SubgraphService.js';
+import { getGatewayAddress } from '../utils/gatewayAttestation.js';
 
 /**
  * Creates a {@link HandleClient} from a viem WalletClient or SmartAccount
@@ -52,8 +53,17 @@ export const createViemHandleClient = async (
   const viemBlockchainService = new ViemBlockchainService(viemClient);
   const chainId = await viemBlockchainService.getChainId();
   const resolvedConfig = resolveNetworkConfig(chainId, config);
+  const gatewayAddress = await getGatewayAddress({
+    blockchainService: viemBlockchainService,
+    smartContractAddress: resolvedConfig.smartContractAddress,
+  });
   const subgraphService = new SubgraphService(resolvedConfig.subgraphUrl);
-  const apiService = new ApiService(resolvedConfig.gatewayUrl);
+  const apiService = new ApiService(resolvedConfig.gatewayUrl, {
+    gatewayAddress,
+    chainId,
+    verifyTypedData: (data, sig) =>
+      viemBlockchainService.verifyTypedData(data, sig),
+  });
   return new HandleClient({
     blockchainService: viemBlockchainService,
     subgraphService,

@@ -1,4 +1,13 @@
-import type { BaseUrl } from '../../types/internalTypes.js';
+import type { EIP712TypedData } from '../../services/blockchain/IBlockchainService.js';
+import type {
+  EthereumAddress,
+  BaseUrl,
+  HexString,
+} from '../../types/internalTypes.js';
+import {
+  generateRequestSalt,
+  attestResponse,
+} from '../../utils/gatewayAttestation.js';
 import { isBaseURL } from '../../utils/validators.js';
 import type {
   IApiService,
@@ -6,21 +15,43 @@ import type {
   Headers,
   Body,
   ResponseData,
+  ExpectedResponse,
 } from './IApiService.js';
+
+type InternalResponseData = ResponseData & { signature?: string };
 
 /**
  * ApiService implements the IApiService interface abstracting communication with an API.
  */
 export class ApiService implements IApiService {
   private readonly baseUrl: BaseUrl;
+  private readonly attestationConfig: {
+    gatewayAddress: EthereumAddress;
+    chainId: number;
+    verifyTypedData: (
+      data: EIP712TypedData,
+      signature: HexString
+    ) => Promise<EthereumAddress>;
+  };
 
-  constructor(baseUrl: BaseUrl) {
+  constructor(
+    baseUrl: BaseUrl,
+    attestationConfig: {
+      gatewayAddress: EthereumAddress;
+      chainId: number;
+      verifyTypedData: (
+        data: EIP712TypedData,
+        signature: HexString
+      ) => Promise<EthereumAddress>;
+    }
+  ) {
     if (!isBaseURL(baseUrl)) {
       throw new TypeError(
         'Invalid API base URL. It must be a base URL starting with "http://" or "https://" without path segment or query parameters.'
       );
     }
     this.baseUrl = baseUrl;
+    this.attestationConfig = attestationConfig;
   }
 
   async get({
@@ -28,20 +59,42 @@ export class ApiService implements IApiService {
     query,
     headers,
     timeout,
+    expectedResponse,
   }: {
     endpoint: string;
     query?: QueryParameters;
     headers?: Headers;
     timeout?: number;
+    expectedResponse: ExpectedResponse;
   }): Promise<ResponseData> {
-    return makeCall({
+    const salt = generateRequestSalt();
+    const result = await makeCall({
       method: 'GET',
       baseUrl: this.baseUrl,
       endpoint,
-      query,
+      query: { ...query, salt },
       headers,
       timeout,
     });
+    if (result.ok) {
+      await attestResponse({
+        gatewayAddress: this.attestationConfig.gatewayAddress,
+        chainId: this.attestationConfig.chainId,
+        verifyTypedData: this.attestationConfig.verifyTypedData,
+        message: result.data as EIP712TypedData['message'],
+        types: expectedResponse.types,
+        primaryType: expectedResponse.primaryType,
+        requestSalt: salt,
+        signature: result.signature,
+      });
+    } else {
+      // TODO: verify non-ok response provenance when supported
+    }
+    return {
+      ok: result.ok,
+      status: result.status,
+      data: result.data,
+    };
   }
 
   async post({
@@ -50,22 +103,44 @@ export class ApiService implements IApiService {
     body,
     headers,
     timeout,
+    expectedResponse,
   }: {
     endpoint: string;
     query?: QueryParameters;
     body?: Body;
     headers?: Headers;
     timeout?: number;
+    expectedResponse: ExpectedResponse;
   }): Promise<ResponseData> {
-    return makeCall({
+    const salt = generateRequestSalt();
+    const result = await makeCall({
       method: 'POST',
       baseUrl: this.baseUrl,
       endpoint,
-      query,
+      query: { ...query, salt },
       body,
       headers,
       timeout,
     });
+    if (result.ok) {
+      await attestResponse({
+        gatewayAddress: this.attestationConfig.gatewayAddress,
+        chainId: this.attestationConfig.chainId,
+        verifyTypedData: this.attestationConfig.verifyTypedData,
+        message: result.data as EIP712TypedData['message'],
+        types: expectedResponse.types,
+        primaryType: expectedResponse.primaryType,
+        requestSalt: salt,
+        signature: result.signature,
+      });
+    } else {
+      // TODO: verify non-ok response provenance when supported
+    }
+    return {
+      ok: result.ok,
+      status: result.status,
+      data: result.data,
+    };
   }
 }
 
@@ -131,7 +206,7 @@ async function makeCall({
   body?: Body;
   headers?: Headers;
   timeout?: number;
-}): Promise<ResponseData> {
+}): Promise<InternalResponseData> {
   const cleanEndpoint = endpoint.replace(/^\/+/, ''); // remove leading slashes
   const url = new URL(`${cleanEndpoint}${buildQueryString(query)}`, baseUrl);
   const requestInit = buildRequestInit({
@@ -151,7 +226,7 @@ async function makeCall({
   }
 
   try {
-    const result: ResponseData = {
+    const result: InternalResponseData = {
       ok: response.ok,
       status: response.status,
     };

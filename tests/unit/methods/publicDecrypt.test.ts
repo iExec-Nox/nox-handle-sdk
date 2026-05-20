@@ -94,6 +94,7 @@ describe('publicDecrypt', () => {
     } of testCases) {
       it(`should decrypt a solidity ${solidityType} handle into a JS ${jsType}`, async () => {
         mockApiService.get.mockResolvedValueOnce({
+          ok: true,
           status: 200,
           data: {
             decryptionProof:
@@ -160,15 +161,16 @@ describe('publicDecrypt', () => {
     const testCases = [
       {
         name: 'response has non-200 status',
-        apiResponse: { status: 500, data: { error: 'Oops!' } },
+        apiResponse: { ok: true, status: 201, data: { foo: 'Oops!' } },
       },
       {
         name: 'response has missing data',
-        apiResponse: { status: 200 },
+        apiResponse: { ok: true, status: 200 },
       },
       {
         name: 'response has missing data.decryptionProof',
         apiResponse: {
+          ok: true,
           status: 200,
           data: {},
         },
@@ -176,6 +178,7 @@ describe('publicDecrypt', () => {
       {
         name: 'response has invalid data.decryptionProof (non-hex)',
         apiResponse: {
+          ok: true,
           status: 200,
           data: { decryptionProof: 'foo' },
         },
@@ -183,8 +186,17 @@ describe('publicDecrypt', () => {
       {
         name: 'response has invalid data.decryptionProof length',
         apiResponse: {
+          ok: true,
           status: 200,
           data: { decryptionProof: '0xabcd' },
+        },
+      },
+      {
+        name: 'response is not ok',
+        apiResponse: {
+          ok: false,
+          status: 500,
+          data: { error: 'Internal server error' },
         },
       },
     ];
@@ -210,6 +222,7 @@ describe('publicDecrypt', () => {
     it('should throw when decrypted plaintext is invalid', async () => {
       const boolHandle = DUMMY_TYPED_HANDLES.bool;
       mockApiService.get.mockResolvedValueOnce({
+        ok: true,
         status: 200,
         data: {
           decryptionProof:

@@ -80,6 +80,27 @@ export async function decrypt<T extends SolidityType>({
     storageService,
   });
 
+  const getHandleCryptoMaterialFromApi = (authorization: string) => {
+    return apiService.get({
+      endpoint: `/v0/secrets/${handle}`,
+      query: { chain_id: chainId },
+      headers: {
+        Authorization: authorization,
+      },
+      expectedResponse: {
+        types: {
+          HandleCryptoMaterial: [
+            { name: 'handle', type: 'string' },
+            { name: 'ciphertext', type: 'string' },
+            { name: 'encryptedSharedSecret', type: 'string' },
+            { name: 'iv', type: 'string' },
+          ],
+        },
+        primaryType: 'HandleCryptoMaterial',
+      },
+    });
+  };
+
   if (storedDecryptionMaterial) {
     authorization = storedDecryptionMaterial.authorization;
     rsaPrivateKey = storedDecryptionMaterial.rsaPrivateKey;
@@ -94,19 +115,9 @@ export async function decrypt<T extends SolidityType>({
     rsaPrivateKey = decryptionMaterial.rsaPrivateKey;
     isFreshDecryptionMaterial = true;
   }
-
-  let { status, data } = await apiService.get({
-    endpoint: `/v0/secrets/${handle}`,
-    headers: {
-      Authorization: authorization,
-    },
-    query: {
-      chain_id: chainId,
-    },
-  });
-
+  let response = await getHandleCryptoMaterialFromApi(authorization);
   // Clear stored decryption material if authorization is invalid to avoid trying to reuse it on subsequent decryptions
-  if (status === 401 && storedDecryptionMaterial) {
+  if (response.status === 401 && storedDecryptionMaterial) {
     try {
       storageService.removeItem(storageKey);
     } catch {
@@ -122,34 +133,27 @@ export async function decrypt<T extends SolidityType>({
     authorization = decryptionMaterial.authorization;
     rsaPrivateKey = decryptionMaterial.rsaPrivateKey;
     isFreshDecryptionMaterial = true;
-    ({ status, data } = await apiService.get({
-      endpoint: `/v0/secrets/${handle}`,
-      headers: {
-        Authorization: authorization,
-      },
-      query: {
-        chain_id: chainId,
-      },
-    }));
+    response = await getHandleCryptoMaterialFromApi(authorization);
   }
 
   // Validate response
   if (
-    status !== 200 ||
-    typeof data !== 'object' ||
-    data === null ||
-    !isHexString((data as { ciphertext?: unknown })?.ciphertext) ||
-    !isHexString((data as { iv?: unknown })?.iv, 12) ||
+    response.status !== 200 ||
+    typeof response.data !== 'object' ||
+    response.data === null ||
+    !isHexString((response.data as { ciphertext?: unknown })?.ciphertext) ||
+    !isHexString((response.data as { iv?: unknown })?.iv, 12) ||
     !isHexString(
-      (data as { encryptedSharedSecret?: unknown })?.encryptedSharedSecret
+      (response.data as { encryptedSharedSecret?: unknown })
+        ?.encryptedSharedSecret
     )
   ) {
     throw new Error(
-      `Unexpected response from Handle Gateway (status: ${status}, data: ${JSON.stringify(data)})`
+      `Unexpected response from Handle Gateway (status: ${response.status}, data: ${JSON.stringify(response.data)})`
     );
   }
 
-  const { ciphertext, iv, encryptedSharedSecret } = data as {
+  const { ciphertext, iv, encryptedSharedSecret } = response.data as {
     ciphertext: HexString;
     iv: HexString;
     encryptedSharedSecret: HexString;

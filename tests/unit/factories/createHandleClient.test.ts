@@ -1,6 +1,6 @@
 import { Wallet } from 'ethers';
 import { createWalletClient, custom } from 'viem';
-import { it, describe, expect } from 'vitest';
+import { it, describe, expect, beforeEach } from 'vitest';
 import { NETWORK_CONFIGS } from '../../../src/config/networks.js';
 import { createHandleClient } from '../../../src/factories/createHandleClient.js';
 import { EthersBlockchainService } from '../../../src/services/blockchain/EthersBlockchainService.js';
@@ -8,6 +8,7 @@ import { ViemBlockchainService } from '../../../src/services/blockchain/ViemBloc
 import {
   createMockProvider,
   createMockEIP1193Provider,
+  ABI_ENCODED_GATEWAY_ADDRESS,
 } from '../../helpers/mocks.js';
 import {
   SUPPORTED_CHAIN_ID,
@@ -29,10 +30,14 @@ describe('createHandleClient', () => {
   });
 
   describe('with an EthersClient', () => {
-    const ethersClient = new Wallet(
-      TEST_PRIVATE_KEY,
-      createMockProvider(SUPPORTED_CHAIN_ID)
-    );
+    const mockProvider = createMockProvider(SUPPORTED_CHAIN_ID);
+    const ethersClient = new Wallet(TEST_PRIVATE_KEY, mockProvider);
+    beforeEach(() => {
+      mockProvider.mocks.call.mockReset();
+      mockProvider.mocks.call.mockResolvedValueOnce(
+        ABI_ENCODED_GATEWAY_ADDRESS
+      ); // Ensure getGatewayAddress does not fail due to invalid response
+    });
     it('should create a HandleClient instance with a blockchainService of type EthersBlockchainService', async () => {
       const ethersHandleClient = await createHandleClient(ethersClient);
 
@@ -44,10 +49,18 @@ describe('createHandleClient', () => {
   });
 
   describe('with a ViemClient', () => {
+    const mockProvider = createMockEIP1193Provider(
+      SUPPORTED_CHAIN_ID,
+      TEST_PRIVATE_KEY
+    );
     const viemClient = createWalletClient({
-      transport: custom(
-        createMockEIP1193Provider(SUPPORTED_CHAIN_ID, TEST_PRIVATE_KEY)
-      ),
+      transport: custom(mockProvider),
+    });
+    beforeEach(() => {
+      mockProvider.mocks.call.mockReset();
+      mockProvider.mocks.call.mockResolvedValueOnce(
+        ABI_ENCODED_GATEWAY_ADDRESS
+      ); // Ensure getGatewayAddress does not fail due to invalid response
     });
 
     it('should create a HandleClient instance with a blockchainService of type ViemBlockchainService', async () => {

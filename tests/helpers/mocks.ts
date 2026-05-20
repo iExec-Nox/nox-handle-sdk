@@ -8,7 +8,15 @@ import type { SmartAccount } from 'viem/account-abstraction';
 import { vi, type Mock } from 'vitest';
 import type { EIP712TypedData } from '../../src/services/blockchain/IBlockchainService.js';
 import type { HexString } from '../../src/types/internalTypes.js';
-import { SUPPORTED_CHAIN_ID, TEST_GATEWAY_PRIVATE_KEY } from './testData.js';
+import {
+  SUPPORTED_CHAIN_ID,
+  TEST_GATEWAY_ADDRESS,
+  TEST_GATEWAY_PRIVATE_KEY,
+} from './testData.js';
+
+// ABI-encoded TEST_GATEWAY_ADDRESS (address left-padded to 32 bytes)
+export const ABI_ENCODED_GATEWAY_ADDRESS =
+  `0x000000000000000000000000${TEST_GATEWAY_ADDRESS.slice(2)}` as const;
 
 type MockProvider = {
   /**

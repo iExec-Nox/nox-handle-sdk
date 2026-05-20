@@ -143,28 +143,39 @@ export async function encryptInput<T extends SolidityType>({
     blockchainService.getAddress(),
     blockchainService.getChainId(),
   ]);
+
   const response = await apiService.post({
     endpoint: '/v0/secrets',
+    query: { chain_id: chainId },
     body: {
       value: encodedValue,
       solidityType,
       applicationContract,
       owner,
     },
-    query: { chain_id: chainId },
+    expectedResponse: {
+      types: {
+        HandleWithProof: [
+          { name: 'handle', type: 'string' },
+          { name: 'proof', type: 'string' },
+        ],
+      },
+      primaryType: 'HandleWithProof',
+    },
   });
 
-  if (!response.ok) {
+  if (
+    response.status !== 200 ||
+    typeof response.data !== 'object' ||
+    response.data === null ||
+    !isHexString((response.data as { handle?: unknown })?.handle) ||
+    !isHexString((response.data as { proof?: unknown })?.proof)
+  ) {
     throw new Error(
-      `Gateway API error: ${response.status} - ${JSON.stringify(response.data)}`
+      `Unexpected response from Handle Gateway (status: ${response.status}, data: ${JSON.stringify(response.data)})`
     );
   }
-
   const data = response.data as GatewaySecretResponse;
-  if (!data?.handle || !data?.proof) {
-    throw new Error('Invalid gateway response: missing handle or handleProof');
-  }
-
   validateHandle({
     handle: data.handle,
     expectedChainId: chainId,
