@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.0-beta.11](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.10...v0.1.0-beta.11) (2026-05-20)
+
+
+### 🚀 Added
+
+* add gateway utils for server responses attestation ([#78](https://github.com/iExec-Nox/nox-handle-sdk/issues/78)) ([f3459cc](https://github.com/iExec-Nox/nox-handle-sdk/commit/f3459cced7bc16a2ab47dc5408dbf4686bcedcff))
+* pass chain_id query param to gateway API calls ([#87](https://github.com/iExec-Nox/nox-handle-sdk/issues/87)) ([17236ea](https://github.com/iExec-Nox/nox-handle-sdk/commit/17236ea0dce2bd15ec7d85ded8db86bf7dc395ed))
+* verify api responses ([#79](https://github.com/iExec-Nox/nox-handle-sdk/issues/79)) ([d05bb02](https://github.com/iExec-Nox/nox-handle-sdk/commit/d05bb022d34a1b27014f207895febabcfb59f2aa))
+
+
+### 📋 Misc
+
+* **deps:** update typescript@6.0.3 ([#86](https://github.com/iExec-Nox/nox-handle-sdk/issues/86)) ([8d2dfda](https://github.com/iExec-Nox/nox-handle-sdk/commit/8d2dfda157ec5c4d8c74e2bf33907b571e6ebc04))
+
 ## [0.1.0-beta.10](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.9...v0.1.0-beta.10) (2026-03-26)
 
 
