@@ -63,6 +63,10 @@ export async function viewACL({
   };
 
   const response = await retry(getACLFromSubgraph, {
+    // Retry options may need to be adjusted based on observed subgraph sync times
+    delay: 1000,
+    backoff: 2,
+    maxRetries: 3,
     shouldRetry: (error) =>
       error instanceof SubgraphOutOfSyncError && error.lag < 10, // Retry if the subgraph is out of sync by less than 10 blocks
   });
