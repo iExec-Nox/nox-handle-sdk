@@ -22,7 +22,9 @@ describe('isViemSmartAccount', () => {
       type: 'smart',
       getAddress: vi.fn(),
       signTypedData: vi.fn(),
-      client: {},
+      client: {
+        chain: { id: SUPPORTED_CHAIN_ID },
+      },
     };
     expect(isViemSmartAccount(mockSmartAccount)).toBe(true);
   });
@@ -52,6 +54,26 @@ describe('isViemSmartAccount', () => {
       type: 'smart',
       getAddress: vi.fn(),
       signTypedData: vi.fn(),
+    };
+    expect(isViemSmartAccount(account)).toBe(false);
+  });
+
+  it('should return false for object without client chain', () => {
+    const account = {
+      type: 'smart',
+      getAddress: vi.fn(),
+      signTypedData: vi.fn(),
+      client: {},
+    };
+    expect(isViemSmartAccount(account)).toBe(false);
+  });
+
+  it('should return false for object without client chain id', () => {
+    const account = {
+      type: 'smart',
+      getAddress: vi.fn(),
+      signTypedData: vi.fn(),
+      client: { chain: {} },
     };
     expect(isViemSmartAccount(account)).toBe(false);
   });

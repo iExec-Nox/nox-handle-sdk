@@ -94,7 +94,13 @@ export function isViemSmartAccount(object: unknown): object is SmartAccount {
     'signTypedData' in object &&
     typeof object.signTypedData === 'function' &&
     'client' in object &&
-    !!object.client
+    !!object.client &&
+    typeof object.client === 'object' &&
+    'chain' in object.client &&
+    !!object.client.chain &&
+    typeof object.client.chain === 'object' &&
+    'id' in object.client.chain &&
+    typeof object.client.chain.id === 'number'
   );
 }
 
