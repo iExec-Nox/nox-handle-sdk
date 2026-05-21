@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { viewACL } from '../../../src/methods/viewACL.js';
 import type { IBlockchainService } from '../../../src/services/blockchain/IBlockchainService.js';
 import type { ISubgraphService } from '../../../src/services/subgraph/SubgraphService.js';
@@ -171,6 +171,12 @@ describe('viewACL', () => {
   });
 
   describe('when subgraph is out of sync', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
     it('should retry if indexed data is outdated', async () => {
       const mockSubgraphService = createMockSubgraphService({
         request: vi
@@ -197,13 +203,13 @@ describe('viewACL', () => {
             },
           }),
       });
-
-      const acl = await viewACL({
+      const aclPromise = viewACL({
         handle: DUMMY_TYPED_HANDLES.bool,
         blockchainService: mockBlockchainService,
         subgraphService: mockSubgraphService,
       });
-
+      await vi.runAllTimersAsync();
+      const acl = await aclPromise;
       expect(acl).toEqual({
         isPublic: false,
         admins: [],
@@ -227,19 +233,24 @@ describe('viewACL', () => {
           },
         }),
       });
-
-      await expect(
-        viewACL({
-          handle: DUMMY_TYPED_HANDLES.bool,
-          subgraphService: mockSubgraphService,
-          blockchainService: mockBlockchainService,
-        })
-      ).rejects.toThrow(
-        new SubgraphOutOfSyncError({
+      // capture the promise settlement without throwing
+      const aclPromiseSettlementPromise = viewACL({
+        handle: DUMMY_TYPED_HANDLES.bool,
+        blockchainService: mockBlockchainService,
+        subgraphService: mockSubgraphService,
+      }).then(
+        (value) => ({ status: 'fulfilled' as const, value }),
+        (error) => ({ status: 'rejected' as const, reason: error })
+      );
+      await vi.runAllTimersAsync();
+      const aclPromiseSettlement = await aclPromiseSettlementPromise;
+      expect(aclPromiseSettlement).toEqual({
+        status: 'rejected',
+        reason: new SubgraphOutOfSyncError({
           currentBlock: TEST_BLOCK_NUMBER,
           subgraphBlock: TEST_BLOCK_NUMBER - 1,
-        })
-      );
+        }),
+      });
       expect(mockSubgraphService.request).toHaveBeenCalledTimes(4); // Initial try + 3 retries
     });
 
