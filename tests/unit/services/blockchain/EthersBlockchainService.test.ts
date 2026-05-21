@@ -8,6 +8,7 @@ import {
 import {
   SUPPORTED_CHAIN_ID,
   TEST_ADDRESS,
+  TEST_BLOCK_NUMBER,
   TEST_EIP712_TYPED_DATA,
   TEST_PRIVATE_KEY,
 } from '../../../helpers/testData.js';
@@ -39,6 +40,13 @@ describe('EthersBlockchainService', () => {
         it('should return the correct chainId', async () => {
           const chainId = await blockchainService.getChainId();
           expect(chainId).toBe(SUPPORTED_CHAIN_ID);
+        });
+      });
+
+      describe('getBlockNumber', () => {
+        it('should return the correct block number', async () => {
+          const blockNumber = await blockchainService.getBlockNumber();
+          expect(blockNumber).toBe(TEST_BLOCK_NUMBER);
         });
       });
 
@@ -310,6 +318,7 @@ describe('EthersBlockchainService', () => {
       it('should throw wrapped error when provider fails', async () => {
         const failingProvider = {
           getNetwork: vi.fn().mockRejectedValue(new Error('Network error')),
+          getBlockNumber: vi.fn().mockResolvedValue(TEST_BLOCK_NUMBER),
         } as unknown as JsonRpcProvider;
         const signer = new Wallet(TEST_PRIVATE_KEY, failingProvider);
         const service = new EthersBlockchainService(signer);
@@ -324,6 +333,33 @@ describe('EthersBlockchainService', () => {
           const cause = (error as Error).cause as Error;
           expect(cause).toBeInstanceOf(Error);
           expect(cause.message).toBe('Network error');
+        }
+      });
+    });
+
+    describe('getBlockNumber', () => {
+      it('should throw wrapped error when provider fails', async () => {
+        const failingProvider = {
+          getNetwork: vi
+            .fn()
+            .mockResolvedValue({ chainId: SUPPORTED_CHAIN_ID }),
+          getBlockNumber: vi
+            .fn()
+            .mockRejectedValue(new Error('some error cause')),
+        } as unknown as JsonRpcProvider;
+        const signer = new Wallet(TEST_PRIVATE_KEY, failingProvider);
+        const service = new EthersBlockchainService(signer);
+
+        try {
+          await service.getBlockNumber();
+          expect.fail('Should have thrown');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe('Failed to get block number');
+
+          const cause = (error as Error).cause as Error;
+          expect(cause).toBeInstanceOf(Error);
+          expect(cause.message).toBe('some error cause');
         }
       });
     });

@@ -10,6 +10,7 @@ import type { EIP712TypedData } from '../../src/services/blockchain/IBlockchainS
 import type { HexString } from '../../src/types/internalTypes.js';
 import {
   SUPPORTED_CHAIN_ID,
+  TEST_BLOCK_NUMBER,
   TEST_GATEWAY_ADDRESS,
   TEST_GATEWAY_PRIVATE_KEY,
 } from './testData.js';
@@ -36,6 +37,7 @@ export function createMockProvider(
   const callMock = vi.fn().mockResolvedValue('0x');
   return {
     getNetwork: vi.fn().mockResolvedValue({ chainId: BigInt(chainId) }),
+    getBlockNumber: vi.fn().mockResolvedValue(TEST_BLOCK_NUMBER),
     call: callMock,
     mocks: {
       call: callMock,
@@ -58,6 +60,9 @@ export function createMockEIP1193Provider(
       async ({ method, params }: { method: string; params?: string[] }) => {
         if (method === 'eth_chainId') {
           return `0x${chainId.toString(16)}`;
+        }
+        if (method === 'eth_blockNumber') {
+          return `0x${TEST_BLOCK_NUMBER.toString(16)}`;
         }
         if (method === 'eth_requestAccounts' || method === 'eth_accounts') {
           return [wallet.address];
