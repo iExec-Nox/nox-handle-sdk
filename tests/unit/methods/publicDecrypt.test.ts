@@ -1,5 +1,5 @@
 import { BrowserProvider } from 'ethers';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { HandleClientConfig } from '../../../src/index.js';
 import { publicDecrypt } from '../../../src/methods/publicDecrypt.js';
 import { EthersBlockchainService } from '../../../src/services/blockchain/EthersBlockchainService.js';
@@ -179,11 +179,6 @@ describe('publicDecrypt', () => {
       status: 404,
       data: { error: 'Not Found' },
     };
-
-    afterEach(() => {
-      // ensure that fake timers are reset after each test to avoid affecting other tests
-      vi.useRealTimers();
-    });
 
     describe('unique handle (attribute = 1)', () => {
       const uniqueHandle = buildHandle({
