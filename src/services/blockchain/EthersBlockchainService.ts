@@ -1,4 +1,9 @@
-import type { AbstractSigner, BrowserProvider, Provider, Signer } from 'ethers';
+import {
+  BrowserProvider,
+  type AbstractSigner,
+  type Provider,
+  type Signer,
+} from 'ethers';
 import type { EthereumAddress, HexString } from '../../types/internalTypes.js';
 import { safeJsonStringify } from '../../utils/format.js';
 import type {
@@ -37,7 +42,9 @@ export function isEthersSigner(
     !!object.provider &&
     typeof object.provider === 'object' &&
     'getNetwork' in object.provider &&
-    typeof object.provider.getNetwork === 'function'
+    typeof object.provider.getNetwork === 'function' &&
+    'getBlockNumber' in object.provider &&
+    typeof object.provider.getBlockNumber === 'function'
   );
 }
 
@@ -76,7 +83,9 @@ export function isEthersBrowserProvider(
     'getSigner' in object &&
     typeof object.getSigner === 'function' &&
     'getNetwork' in object &&
-    typeof object.getNetwork === 'function'
+    typeof object.getNetwork === 'function' &&
+    'getBlockNumber' in object &&
+    typeof object.getBlockNumber === 'function'
   );
 }
 
@@ -147,6 +156,15 @@ export class EthersBlockchainService implements IBlockchainService {
       return Number(network.chainId);
     } catch (error) {
       throw new Error('Failed to get chain ID', { cause: error });
+    }
+  }
+
+  async getBlockNumber(): Promise<number> {
+    try {
+      const provider = await this.adapter.getProvider();
+      return await provider.getBlockNumber();
+    } catch (error) {
+      throw new Error('Failed to get block number', { cause: error });
     }
   }
 

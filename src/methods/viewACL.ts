@@ -1,9 +1,12 @@
+import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
 import type { ISubgraphService } from '../services/subgraph/SubgraphService.js';
 import {
   VIEW_ACL_QUERY,
   type ViewACLResponse,
 } from '../services/subgraph/queries/viewACL.js';
 import type { Handle, SolidityType } from '../types/publicTypes.js';
+import { SubgraphOutOfSyncError } from '../utils/error.js';
+import { retry } from '../utils/retry.js';
 import { assertRequiredParams } from '../utils/validators.js';
 
 /**
@@ -22,23 +25,53 @@ export type ACL = {
 
 export async function viewACL({
   subgraphService,
+  blockchainService,
   handle,
 }: {
   subgraphService: ISubgraphService;
+  blockchainService: IBlockchainService;
   handle: Handle<SolidityType>;
 }): Promise<ACL> {
   assertRequiredParams({ handle }, ['handle']);
+  const currentBlockNumber = await blockchainService.getBlockNumber();
 
-  const response = (await subgraphService.request(VIEW_ACL_QUERY, {
-    handleId: handle.toString(),
-  })) as ViewACLResponse;
+  const getACLFromSubgraph = async () => {
+    const response = (await subgraphService.request(VIEW_ACL_QUERY, {
+      handleId: handle.toString(),
+    })) as ViewACLResponse;
+    if (
+      !response ||
+      typeof response !== 'object' ||
+      !('_meta' in response) ||
+      !response._meta ||
+      !('block' in response._meta) ||
+      typeof response._meta.block !== 'object' ||
+      !response._meta.block ||
+      !('number' in response._meta.block) ||
+      typeof response._meta.block.number !== 'number' ||
+      !('handle' in response)
+    ) {
+      throw new Error('Invalid response from subgraph');
+    }
+    if (response._meta.block.number < currentBlockNumber) {
+      throw new SubgraphOutOfSyncError({
+        currentBlock: currentBlockNumber,
+        subgraphBlock: response._meta.block.number,
+      });
+    }
+    return response;
+  };
 
-  if (
-    !response ||
-    typeof response !== 'object' ||
-    !('handle' in response) ||
-    response.handle === null
-  ) {
+  const response = await retry(getACLFromSubgraph, {
+    // Retry options may need to be adjusted based on observed subgraph sync times
+    delay: 1000,
+    backoff: 2,
+    maxRetries: 3,
+    shouldRetry: (error) =>
+      error instanceof SubgraphOutOfSyncError && error.lag < 10, // Retry if the subgraph is out of sync by less than 10 blocks
+  });
+
+  if (response.handle === null) {
     throw new Error('Handle not found');
   }
 

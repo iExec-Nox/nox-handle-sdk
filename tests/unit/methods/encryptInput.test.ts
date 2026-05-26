@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { encryptInput } from '../../../src/methods/encryptInput.js';
 import type { IApiService } from '../../../src/services/api/IApiService.js';
 import type { IBlockchainService } from '../../../src/services/blockchain/IBlockchainService.js';
+import { TEST_BLOCK_NUMBER } from '../../helpers/testData.js';
 
 vi.mock('../../../src/utils/validators.js', async (importOriginal) => {
   const actual =
@@ -19,6 +20,7 @@ function createMockBlockchainService(
 ): IBlockchainService {
   return {
     getChainId: vi.fn().mockResolvedValue(1),
+    getBlockNumber: vi.fn().mockResolvedValue(TEST_BLOCK_NUMBER),
     getAddress: vi.fn().mockResolvedValue(TEST_ADDRESS),
     signTypedData: vi.fn().mockResolvedValue('0xsignature'),
     readContract: vi.fn().mockResolvedValue(true),

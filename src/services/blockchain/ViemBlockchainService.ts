@@ -94,14 +94,20 @@ export function isViemSmartAccount(object: unknown): object is SmartAccount {
     'signTypedData' in object &&
     typeof object.signTypedData === 'function' &&
     'client' in object &&
-    !!object.client
+    !!object.client &&
+    typeof object.client === 'object' &&
+    'chain' in object.client &&
+    !!object.client.chain &&
+    typeof object.client.chain === 'object' &&
+    'id' in object.client.chain &&
+    typeof object.client.chain.id === 'number'
   );
 }
 
 /**
  * Adapter for viem SmartAccount
  *
- * @dev ⚠️ Update isSmartAccount function if this class is modified requiring more duck type checks
+ * @dev ⚠️ Update isViemSmartAccount function if this class is modified requiring more duck type checks
  */
 class SmartAccountAdapter implements ViemAdapter {
   private readonly smartAccount: SmartAccount;
@@ -172,6 +178,17 @@ export class ViemBlockchainService implements IBlockchainService {
     }
   }
 
+  async getBlockNumber(): Promise<number> {
+    try {
+      const { publicActions } = await ViemBlockchainService.getViemModule();
+      const clientToExtend = await this.adapter.getClient();
+      const publicClient = clientToExtend.extend(publicActions);
+      return Number(await publicClient.getBlockNumber());
+    } catch (error) {
+      throw new Error('Failed to get block number', { cause: error });
+    }
+  }
+
   async getAddress(): Promise<EthereumAddress> {
     try {
       return await this.adapter.getAddress();
@@ -190,8 +207,7 @@ export class ViemBlockchainService implements IBlockchainService {
 
       // Use the underlying client for SmartAccount
       const clientToExtend = await this.adapter.getClient();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const publicClient = (clientToExtend as any).extend(publicActions);
+      const publicClient = clientToExtend.extend(publicActions);
 
       return (await publicClient.readContract({
         address: contractAddress,

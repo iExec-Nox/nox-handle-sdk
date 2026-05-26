@@ -155,6 +155,7 @@ export class HandleClient {
   async viewACL(handle: Handle<SolidityType>): Promise<ACL> {
     return viewACL({
       subgraphService: this.subgraphService,
+      blockchainService: this.blockchainService,
       handle,
     });
   }

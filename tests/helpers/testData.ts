@@ -31,6 +31,10 @@ export const TEST_RSA_SPKI_PUB_KEY =
  */
 export const SUPPORTED_CHAIN_ID = Number(Object.keys(NETWORK_CONFIGS)[0]);
 /**
+ * A block number for testing purposes
+ */
+export const TEST_BLOCK_NUMBER = 12_345;
+/**
  * An unsupported chain ID for testing purposes
  */
 export const UNSUPPORTED_CHAIN_ID = 999_999;
