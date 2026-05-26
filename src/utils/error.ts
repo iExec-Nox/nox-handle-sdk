@@ -21,3 +21,27 @@ export class SubgraphOutOfSyncError extends Error {
     this.lag = currentBlock - subgraphBlock;
   }
 }
+
+/**
+ * Error thrown when a handle is queried but has not yet been computed by runner.
+ */
+export class NotYetComputedHandleError extends Error {
+  handle: string;
+  constructor(handle: string) {
+    super(`Handle with ID ${handle} has not yet been computed.`);
+    this.name = 'NotYetComputedHandleError';
+    this.handle = handle;
+  }
+}
+
+/**
+ * Error thrown when a handle is queried but is unknown.
+ */
+export class UnknownHandleError extends Error {
+  handle: string;
+  constructor(handle: string) {
+    super(`Handle with ID ${handle} is unknown.`);
+    this.name = 'UnknownHandleError';
+    this.handle = handle;
+  }
+}

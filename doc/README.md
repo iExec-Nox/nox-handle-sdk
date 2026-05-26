@@ -4,6 +4,10 @@
 
 # @iexec-nox/handle
 
+## Classes
+
+- [NotYetComputedHandleError](classes/NotYetComputedHandleError.md)
+
 ## Interfaces
 
 - [HandleClient](interfaces/HandleClient.md)

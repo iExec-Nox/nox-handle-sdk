@@ -186,6 +186,7 @@ export class HandleClient {
       handle,
       apiService: this.apiService,
       blockchainService: this.blockchainService,
+      subgraphService: this.subgraphService,
       config: this.config,
     });
   }
