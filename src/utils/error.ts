@@ -35,7 +35,7 @@ export class NotYetComputedHandleError extends Error {
 }
 
 /**
- * Error thrown when a handle is queried but is unknown.
+ * Error thrown when a handle is queried but was never seen onchain.
  */
 export class UnknownHandleError extends Error {
   handle: string;
