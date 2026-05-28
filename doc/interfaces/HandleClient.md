@@ -14,7 +14,7 @@ A client to interact with encrypted values using Handles on blockchain
 
 > **decrypt**\<`T`\>(`handle`): `Promise`\<\{ `solidityType`: `T`; `value`: [`JsValue`](../type-aliases/JsValue.md)\<`T`\>; \}\>
 
-Request the original value associated with a handle.
+Request the original value and the solidity type associated with a handle.
 
 #### Type Parameters
 
@@ -111,7 +111,7 @@ const { handle, handleProof } = await client.encryptInput(
 
 > **publicDecrypt**\<`T`\>(`handle`): `Promise`\<\{ `decryptionProof`: `` `0x${string}` ``; `solidityType`: `T`; `value`: [`JsValue`](../type-aliases/JsValue.md)\<`T`\>; \}\>
 
-Request the original value and a decryption proof associated with a publicly decryptable handle.
+Request the original value, the solidity type and the decryption proof associated with a publicly decryptable handle.
 
 #### Type Parameters
 
