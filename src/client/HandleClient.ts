@@ -106,7 +106,7 @@ export class HandleClient {
   }
 
   /**
-   * Request the original value associated with a handle.
+   * Request the original value and the solidity type associated with a handle.
    *
    * @param handle The handle representing the encrypted value
    * @returns The decrypted value and its {@link SolidityType}
@@ -161,7 +161,7 @@ export class HandleClient {
   }
 
   /**
-   * Request the original value and a decryption proof associated with a publicly decryptable handle.
+   * Request the original value, the solidity type and the decryption proof associated with a publicly decryptable handle.
    *
    * @param handle The publicly decryptable handle representing the encrypted value
    * @returns The decrypted value, its {@link SolidityType} and the decryptionProof
