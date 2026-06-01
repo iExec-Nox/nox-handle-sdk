@@ -26,6 +26,35 @@ import {
 } from '../utils/types.js';
 import { assertRequiredParams } from '../utils/validators.js';
 
+/**
+ * Requests the original value and the Solidity type associated with a handle.
+ *
+ * @returns A `{ value, solidityType }` object — **not** the bare value. The
+ * decrypted plaintext is in `value` (typed as {@link JsValue}); `solidityType`
+ * is the {@link SolidityType} decoded from the handle. Always destructure the
+ * result: using it directly (e.g. in a template string) silently yields
+ * `[object Object]`.
+ *
+ * @remarks
+ * Before contacting the gateway, this automatically performs an on-chain
+ * `isViewer` pre-check: if the connected wallet is not authorized by the ACL
+ * (or the handle does not exist), it throws immediately without a network call.
+ *
+ * Decryption is gasless — the request is authenticated with an EIP-712
+ * `DataAccessAuthorization` signature (valid for 1 hour) rather than an on-chain
+ * transaction. Authorization material is cached and transparently regenerated
+ * on a `401` response.
+ *
+ * @example
+ * ```ts
+ * // ✅ Destructure to read the plaintext
+ * const { value, solidityType } = await decrypt({ handle, ... });
+ *
+ * // ❌ Wrong — `result` is the { value, solidityType } wrapper
+ * const result = await decrypt({ handle, ... });
+ * console.log(`${result}`); // "[object Object]"
+ * ```
+ */
 export async function decrypt<T extends SolidityType>({
   handle,
   apiService,

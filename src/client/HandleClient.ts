@@ -109,14 +109,21 @@ export class HandleClient {
    * Request the original value and the solidity type associated with a handle.
    *
    * @param handle The handle representing the encrypted value
-   * @returns The decrypted value and its {@link SolidityType}
+   * @returns A `{ value, solidityType }` object — **not** the bare value.
+   * Always destructure it; using the result directly (e.g. in a template
+   * string) silently yields `[object Object]`.
    *
    * @remarks
    * The decryption key is shared with the connected wallet address via public key encryption.
    * To request decryption, the connected wallet must be allowed to view the data and provide an EIP712 DataAccessAuthorization signature.
    *
+   * Before contacting the gateway, an on-chain `isViewer` check is performed
+   * automatically: if the connected wallet is not authorized (or the handle
+   * does not exist), the call throws immediately without a network request.
+   *
    * @example
    * ```ts
+   * // decrypt() returns an object — destructure to read the plaintext
    * const { value, solidityType } = await client.decrypt(handle);
    * ```
    */
