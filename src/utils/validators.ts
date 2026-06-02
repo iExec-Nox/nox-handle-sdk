@@ -8,7 +8,6 @@ import {
   handleToChainId,
   handleToSolidityType,
   handleToVersion,
-  type SolidityType,
 } from './types.js';
 
 export function isBaseURL(url: unknown): url is BaseUrl {
@@ -32,47 +31,54 @@ const INPUT_PROOF_PATTERN = /^0x[0-9a-fA-F]{274}$/;
 const SUPPORTED_VERSIONS = [0];
 const SUPPORTED_ATTRIBUTES = [0, 1];
 
-export function validateHandle({
-  handle,
-  expectedChainId,
-  expectedSolidityType,
-}: {
-  handle: unknown;
-  expectedChainId: number;
-  expectedSolidityType: SolidityType;
-}): void {
+function assertValidHandleFormat(handle: unknown): asserts handle is HexString {
   if (typeof handle !== 'string' || !HANDLE_PATTERN.test(handle)) {
     throw new TypeError(
       `Invalid handle format: expected 0x + 64 hex chars (32 bytes), got ${handle}`
     );
   }
-
-  const attribute = handleToAttribute(handle as HexString);
+  const handleHex = handle as HexString;
+  const attribute = handleToAttribute(handleHex);
   if (!SUPPORTED_ATTRIBUTES.includes(attribute)) {
     throw new Error(
-      `Unsupported handle attribute: expected one of [${SUPPORTED_ATTRIBUTES.join(',')}], got ${attribute}`
+      `Invalid handle format: Unsupported handle attribute: expected one of [${SUPPORTED_ATTRIBUTES.join(',')}], got ${attribute}`
     );
   }
-
-  const chainId = handleToChainId(handle as HexString);
-  if (chainId !== expectedChainId) {
-    throw new Error(
-      `Handle chainId mismatch: expected ${expectedChainId}, got ${chainId}`
-    );
-  }
-
-  const solidityType = handleToSolidityType(handle as HexString);
-  if (solidityType !== expectedSolidityType) {
-    throw new Error(
-      `Handle type mismatch: expected ${expectedSolidityType}, got ${solidityType}`
-    );
-  }
-
-  const version = handleToVersion(handle as HexString);
-
+  handleToSolidityType(handleHex); // throws "Unknown handle type code: X" if type code is not supported
+  const version = handleToVersion(handleHex);
   if (!SUPPORTED_VERSIONS.includes(version)) {
     throw new Error(
-      `Unsupported handle version: ${version}. Supported versions: ${SUPPORTED_VERSIONS}`
+      `Invalid handle format: Unsupported handle version: ${version}. Supported versions: ${SUPPORTED_VERSIONS}`
+    );
+  }
+}
+
+/**
+ * Returns true if the handle has a valid format (correct byte length, supported version,
+ * known type code, and valid attribute). Does not check the chain ID — use this as a
+ * lightweight pre-check before passing the handle to {@link HandleClient} methods.
+ */
+export function isValidHandleFormat(handle: unknown): handle is HexString {
+  try {
+    assertValidHandleFormat(handle);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function validateHandle({
+  handle,
+  expectedChainId,
+}: {
+  handle: unknown;
+  expectedChainId: number;
+}): void {
+  assertValidHandleFormat(handle);
+  const chainId = handleToChainId(handle);
+  if (chainId !== expectedChainId) {
+    throw new Error(
+      `Invalid handle format: Handle chainId mismatch: expected ${expectedChainId}, got ${chainId}`
     );
   }
 }

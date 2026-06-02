@@ -179,7 +179,6 @@ export async function encryptInput<T extends SolidityType>({
   validateHandle({
     handle: data.handle,
     expectedChainId: chainId,
-    expectedSolidityType: solidityType,
   });
   validateHandleProof(data.proof);
 

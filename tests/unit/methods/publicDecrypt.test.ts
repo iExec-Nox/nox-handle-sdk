@@ -166,7 +166,28 @@ describe('publicDecrypt', () => {
         })
       ).rejects.toThrow(
         new Error(
-          `Handle chainId (${SUPPORTED_CHAIN_ID + 1}) does not match connected chainId (${SUPPORTED_CHAIN_ID})`
+          `Invalid handle format: Handle chainId mismatch: expected ${SUPPORTED_CHAIN_ID}, got ${SUPPORTED_CHAIN_ID + 1}`
+        )
+      );
+      expect(mockApiService.get).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('when handle is a zero handle', () => {
+    it('should throw for an all-zero handle (uninitialized Solidity bytes32)', async () => {
+      const zeroHandle =
+        '0x0000000000000000000000000000000000000000000000000000000000000000';
+      await expect(
+        publicDecrypt({
+          handle: zeroHandle,
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          subgraphService: mockSubgraphService,
+          config: mockConfig,
+        })
+      ).rejects.toThrow(
+        new Error(
+          `Invalid handle format: Handle chainId mismatch: expected ${SUPPORTED_CHAIN_ID}, got 0`
         )
       );
       expect(mockApiService.get).not.toHaveBeenCalled();

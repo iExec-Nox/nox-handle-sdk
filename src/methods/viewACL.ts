@@ -7,7 +7,7 @@ import {
 import type { Handle, SolidityType } from '../types/publicTypes.js';
 import { SubgraphOutOfSyncError, UnknownHandleError } from '../utils/error.js';
 import { retry } from '../utils/retry.js';
-import { assertRequiredParams } from '../utils/validators.js';
+import { assertRequiredParams, validateHandle } from '../utils/validators.js';
 
 /**
  * Access Control List (ACL) for a Handle, including public access, admins, and viewers.
@@ -33,7 +33,14 @@ export async function viewACL({
   handle: Handle<SolidityType>;
 }): Promise<ACL> {
   assertRequiredParams({ handle }, ['handle']);
-  const currentBlockNumber = await blockchainService.getBlockNumber();
+  const [chainId, currentBlockNumber] = await Promise.all([
+    blockchainService.getChainId(),
+    blockchainService.getBlockNumber(),
+  ]);
+  validateHandle({
+    handle,
+    expectedChainId: chainId,
+  });
 
   const getACLFromSubgraph = async () => {
     const response = (await subgraphService.request(VIEW_ACL_QUERY, {

@@ -9,6 +9,7 @@ import {
 } from '../../../src/utils/error.js';
 import {
   DUMMY_TYPED_HANDLES,
+  SUPPORTED_CHAIN_ID,
   TEST_BLOCK_NUMBER,
 } from '../../helpers/testData.js';
 
@@ -35,6 +36,7 @@ function createMockSubgraphService(
 
 describe('viewACL', () => {
   const mockBlockchainService = {
+    getChainId: vi.fn().mockResolvedValue(SUPPORTED_CHAIN_ID),
     getBlockNumber: vi.fn().mockResolvedValue(TEST_BLOCK_NUMBER),
   } as unknown as IBlockchainService;
 
@@ -81,6 +83,25 @@ describe('viewACL', () => {
         blockchainService: mockBlockchainService,
       })
     ).rejects.toThrow(/Missing required parameters/);
+  });
+
+  it('should throw for an all-zero handle (uninitialized Solidity bytes32)', async () => {
+    const zeroHandle =
+      '0x0000000000000000000000000000000000000000000000000000000000000000';
+    const mockSubgraphService = createMockSubgraphService();
+
+    await expect(
+      viewACL({
+        handle: zeroHandle,
+        subgraphService: mockSubgraphService,
+        blockchainService: mockBlockchainService,
+      })
+    ).rejects.toThrow(
+      new Error(
+        `Invalid handle format: Handle chainId mismatch: expected ${SUPPORTED_CHAIN_ID}, got 0`
+      )
+    );
+    expect(mockSubgraphService.request).not.toHaveBeenCalled();
   });
 
   it('should throw if subgraph response is invalid', async () => {
