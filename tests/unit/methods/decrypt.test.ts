@@ -1,10 +1,14 @@
 import { BrowserProvider } from 'ethers';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { HandleClientConfig } from '../../../src/index.js';
 import { decrypt } from '../../../src/methods/decrypt.js';
 import { EthersBlockchainService } from '../../../src/services/blockchain/EthersBlockchainService.js';
 import type { IStorageService } from '../../../src/services/storage/IStorageService.js';
 import { InMemoryStorageService } from '../../../src/services/storage/InMemoryStorageService.js';
+import {
+  NotYetComputedHandleError,
+  UnknownHandleError,
+} from '../../../src/utils/error.js';
 import { hexToBytes } from '../../../src/utils/hex.js';
 import * as rsa from '../../../src/utils/rsa.js';
 import { buildHandle, createMockEIP1193Provider } from '../../helpers/mocks.js';
@@ -12,6 +16,7 @@ import {
   DUMMY_TYPED_HANDLES,
   SUPPORTED_CHAIN_ID,
   TEST_ADDRESS,
+  TEST_BLOCK_NUMBER,
   TEST_ENCRYPTED_DATA,
   TEST_PRIVATE_KEY,
   TEST_RSA_PKCS8_PRIV_KEY,
@@ -42,6 +47,10 @@ async function generateRsaKeyPairMock() {
   return { publicKey, privateKey };
 }
 
+async function exportRsaPublicKeyMock() {
+  return TEST_RSA_SPKI_PUB_KEY as `0x${string}`;
+}
+
 describe('decrypt', () => {
   const mockProvider = createMockEIP1193Provider(
     SUPPORTED_CHAIN_ID,
@@ -70,6 +79,13 @@ describe('decrypt', () => {
       .fn()
       .mockImplementation(() => Promise.reject(new Error('Not implemented'))),
     post: vi
+      .fn()
+      .mockImplementation(() => Promise.reject(new Error('Not implemented'))),
+  };
+
+  const mockSubgraphService = {
+    subgraphUrl: mockConfig.subgraphUrl,
+    request: vi
       .fn()
       .mockImplementation(() => Promise.reject(new Error('Not implemented'))),
   };
@@ -149,6 +165,7 @@ describe('decrypt', () => {
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
           storageService: mockStorageService,
+          subgraphService: mockSubgraphService,
           config: mockConfig,
         });
         expect(result).toStrictEqual({
@@ -173,6 +190,7 @@ describe('decrypt', () => {
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
           storageService: mockStorageService,
+          subgraphService: mockSubgraphService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -193,6 +211,7 @@ describe('decrypt', () => {
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
           storageService: mockStorageService,
+          subgraphService: mockSubgraphService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -217,6 +236,7 @@ describe('decrypt', () => {
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
           storageService: mockStorageService,
+          subgraphService: mockSubgraphService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -239,6 +259,7 @@ describe('decrypt', () => {
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
           storageService: mockStorageService,
+          subgraphService: mockSubgraphService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -260,6 +281,7 @@ describe('decrypt', () => {
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
           storageService: mockStorageService,
+          subgraphService: mockSubgraphService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -267,6 +289,198 @@ describe('decrypt', () => {
           cause: new Error('User rejected signing request'),
         })
       );
+    });
+  });
+
+  describe('when gateway returns HTTP 404', () => {
+    const notFoundResponse = {
+      ok: false,
+      status: 404,
+      data: { error: 'Not Found' },
+    };
+
+    beforeEach(() => {
+      // mock generateRsaKeyPair because it relies on crypto.subtle.generateKey that cannot complete when vi.runAllTimersAsync() holds the event loop
+      vi.spyOn(rsa, 'generateRsaKeyPair').mockImplementationOnce(
+        generateRsaKeyPairMock
+      );
+      // mock exportRsaPublicKey because it relies on crypto.subtle.exportKey that cannot complete when vi.runAllTimersAsync() holds the event loop
+      vi.spyOn(rsa, 'exportRsaPublicKey').mockImplementationOnce(
+        exportRsaPublicKeyMock
+      );
+    });
+
+    describe('unique handle (attribute = 1)', () => {
+      const uniqueHandle = buildHandle({
+        chainId: SUPPORTED_CHAIN_ID,
+        typeCode: 0,
+        attribute: 1,
+      });
+
+      it('should throw NotYetComputedHandleError without querying subgraph', async () => {
+        mockApiService.get.mockResolvedValue(notFoundResponse);
+        vi.useFakeTimers();
+        const decryptSettlementPromise = decrypt({
+          handle: uniqueHandle,
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          storageService: mockStorageService,
+          subgraphService: mockSubgraphService,
+          config: mockConfig,
+        }).then(
+          (value) => ({ status: 'fulfilled' as const, value }),
+          (error) => ({ status: 'rejected' as const, reason: error })
+        );
+        await vi.runAllTimersAsync();
+        const decryptSettlement = await decryptSettlementPromise;
+        expect(decryptSettlement).toEqual({
+          status: 'rejected',
+          reason: new NotYetComputedHandleError(uniqueHandle),
+        });
+        expect(mockSubgraphService.request).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('non-unique handle (attribute = 0)', () => {
+      const nonUniqueHandle = buildHandle({
+        chainId: SUPPORTED_CHAIN_ID,
+        typeCode: 0,
+        attribute: 0,
+      });
+
+      it('should throw NotYetComputedHandleError when handle exists in subgraph', async () => {
+        mockApiService.get.mockResolvedValue(notFoundResponse);
+        mockSubgraphService.request.mockResolvedValueOnce({
+          _meta: {
+            block: {
+              number: TEST_BLOCK_NUMBER,
+            },
+          },
+          handle: {
+            isPubliclyDecryptable: true,
+            admins: [],
+            viewers: [],
+          },
+        });
+        vi.useFakeTimers();
+        const decryptSettlementPromise = decrypt({
+          handle: nonUniqueHandle,
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          storageService: mockStorageService,
+          subgraphService: mockSubgraphService,
+          config: mockConfig,
+        }).then(
+          (value) => ({ status: 'fulfilled' as const, value }),
+          (error) => ({ status: 'rejected' as const, reason: error })
+        );
+        await vi.runAllTimersAsync();
+        const decryptSettlement = await decryptSettlementPromise;
+        expect(decryptSettlement).toEqual({
+          status: 'rejected',
+          reason: new NotYetComputedHandleError(nonUniqueHandle),
+        });
+      });
+
+      it('should throw UnknownHandleError when handle does not exist in subgraph', async () => {
+        mockApiService.get.mockResolvedValueOnce(notFoundResponse);
+        mockSubgraphService.request.mockResolvedValueOnce({
+          _meta: {
+            block: {
+              number: TEST_BLOCK_NUMBER,
+            },
+          },
+          // eslint-disable-next-line unicorn/no-null
+          handle: null,
+        });
+        await expect(
+          decrypt({
+            handle: nonUniqueHandle,
+            blockchainService: mockBlockchainService,
+            apiService: mockApiService,
+            storageService: mockStorageService,
+            subgraphService: mockSubgraphService,
+            config: mockConfig,
+          })
+        ).rejects.toThrow(new UnknownHandleError(nonUniqueHandle));
+      });
+
+      it('should throw when subgraph query fails', async () => {
+        mockApiService.get.mockResolvedValueOnce(notFoundResponse);
+        const subgraphError = new Error('Subgraph unavailable');
+        mockSubgraphService.request.mockRejectedValueOnce(subgraphError);
+        await expect(
+          decrypt({
+            handle: nonUniqueHandle,
+            blockchainService: mockBlockchainService,
+            apiService: mockApiService,
+            storageService: mockStorageService,
+            subgraphService: mockSubgraphService,
+            config: mockConfig,
+          })
+        ).rejects.toThrow(
+          new Error('Failed to decrypt, handle existence is not verified.', {
+            cause: subgraphError,
+          })
+        );
+      });
+    });
+
+    describe('when handle is not yet computed', () => {
+      it('should retry to get computed data', async () => {
+        mockApiService.get
+          .mockResolvedValueOnce(notFoundResponse)
+          .mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            data: {
+              encryptedSharedSecret:
+                TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
+              iv: TEST_ENCRYPTED_DATA.bool.iv,
+              ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+            },
+          });
+        vi.useFakeTimers();
+        const decryptionPromise = decrypt({
+          handle: DUMMY_TYPED_HANDLES.bool,
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          storageService: mockStorageService,
+          subgraphService: mockSubgraphService,
+          config: mockConfig,
+        });
+        await vi.runAllTimersAsync();
+        const result = await decryptionPromise;
+
+        expect(result).toStrictEqual({
+          value: TEST_ENCRYPTED_DATA.bool.value,
+          solidityType: 'bool',
+        });
+        expect(mockApiService.get).toHaveBeenCalledTimes(2);
+      });
+
+      it('should throw if computed data is still not available after 3 retries', async () => {
+        mockApiService.get.mockResolvedValue(notFoundResponse);
+        vi.useFakeTimers();
+        const decryptSettlementPromise = decrypt({
+          handle: DUMMY_TYPED_HANDLES.bool,
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          storageService: mockStorageService,
+          subgraphService: mockSubgraphService,
+          config: mockConfig,
+        }).then(
+          (value) => ({ status: 'fulfilled' as const, value }),
+          (error) => ({ status: 'rejected' as const, reason: error })
+        );
+        await vi.runAllTimersAsync();
+        const decryptSettlement = await decryptSettlementPromise;
+        expect(decryptSettlement).toEqual({
+          status: 'rejected',
+          reason: new NotYetComputedHandleError(DUMMY_TYPED_HANDLES.bool),
+        });
+        expect(mockApiService.get).toHaveBeenCalledTimes(4); // initial try + 3 retries
+      });
     });
   });
 
@@ -336,6 +550,7 @@ describe('decrypt', () => {
             blockchainService: mockBlockchainService,
             apiService: mockApiService,
             storageService: mockStorageService,
+            subgraphService: mockSubgraphService,
             config: mockConfig,
           })
         ).rejects.toThrow(
@@ -363,6 +578,7 @@ describe('decrypt', () => {
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
           storageService: mockStorageService,
+          subgraphService: mockSubgraphService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -395,6 +611,7 @@ describe('decrypt', () => {
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
           storageService: mockStorageService,
+          subgraphService: mockSubgraphService,
           config: mockConfig,
         })
       ).rejects.toThrow(
@@ -440,6 +657,7 @@ describe('decrypt', () => {
             blockchainService: mockBlockchainService,
             apiService: mockApiService,
             storageService: mockStorageService,
+            subgraphService: mockSubgraphService,
             config: mockConfig,
           })
         ).rejects.toThrow(
@@ -474,6 +692,7 @@ describe('decrypt', () => {
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
         storageService: storageService,
+        subgraphService: mockSubgraphService,
         config: mockConfig,
       });
       expect(storageService.setItem).toHaveBeenCalledTimes(1);
@@ -501,6 +720,7 @@ describe('decrypt', () => {
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
         storageService: storageService,
+        subgraphService: mockSubgraphService,
         config: mockConfig,
       });
       mockApiService.get.mockResolvedValueOnce({
@@ -518,6 +738,7 @@ describe('decrypt', () => {
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
         storageService: storageService,
+        subgraphService: mockSubgraphService,
         config: mockConfig,
       });
       mockApiService.get.mockResolvedValueOnce({
@@ -535,6 +756,7 @@ describe('decrypt', () => {
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
         storageService: storageService,
+        subgraphService: mockSubgraphService,
         config: mockConfig,
       });
       expect(rsa.generateRsaKeyPair).toHaveBeenCalledTimes(1);
@@ -563,6 +785,7 @@ describe('decrypt', () => {
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
         storageService: storageService,
+        subgraphService: mockSubgraphService,
         config: mockConfig,
       });
       mockApiService.get.mockResolvedValueOnce({
@@ -580,6 +803,7 @@ describe('decrypt', () => {
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
         storageService: storageService,
+        subgraphService: mockSubgraphService,
         config: mockConfig,
       });
       expect(storageService.setItem).toHaveBeenCalledTimes(1);
@@ -621,6 +845,7 @@ describe('decrypt', () => {
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
         storageService: storageService,
+        subgraphService: mockSubgraphService,
         config: mockConfig,
       });
       expect(storageService.removeItem).toHaveBeenCalledTimes(1);
@@ -667,6 +892,7 @@ describe('decrypt', () => {
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
         storageService: storageService,
+        subgraphService: mockSubgraphService,
         config: mockConfig,
       });
 
@@ -706,6 +932,7 @@ describe('decrypt', () => {
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
           storageService: failingStorageService,
+          subgraphService: mockSubgraphService,
           config: mockConfig,
         })
       ).resolves.toStrictEqual({
@@ -736,6 +963,7 @@ describe('decrypt', () => {
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
         storageService: mockStorageService,
+        subgraphService: mockSubgraphService,
         config: mockConfig,
       });
       expect(mockApiService.get).toHaveBeenCalledWith(
@@ -781,6 +1009,7 @@ describe('decrypt', () => {
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
         storageService,
+        subgraphService: mockSubgraphService,
         config: mockConfig,
       });
       expect(mockApiService.get).toHaveBeenCalledTimes(2);

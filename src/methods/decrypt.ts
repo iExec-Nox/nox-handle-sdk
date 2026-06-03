@@ -6,10 +6,16 @@ import type {
 } from '../services/blockchain/IBlockchainService.js';
 import { IS_VIEWER_ABI } from '../services/blockchain/abis/isViewer.abi.js';
 import type { IStorageService } from '../services/storage/IStorageService.js';
+import type { ISubgraphService } from '../services/subgraph/SubgraphService.js';
 import type { HexString } from '../types/internalTypes.js';
 import { eciesDecrypt } from '../utils/ecies.js';
 import { decodeValue } from '../utils/encoding.js';
+import {
+  NotYetComputedHandleError,
+  UnknownHandleError,
+} from '../utils/error.js';
 import { isHexString } from '../utils/hex.js';
+import { retry } from '../utils/retry.js';
 import {
   generateRsaKeyPair,
   exportRsaPublicKey,
@@ -20,22 +26,26 @@ import {
 import {
   handleToChainId,
   handleToSolidityType,
+  isUniqueHandle,
   type Handle,
   type JsValue,
   type SolidityType,
 } from '../utils/types.js';
 import { assertRequiredParams } from '../utils/validators.js';
+import { viewACL } from './viewACL.js';
 
 export async function decrypt<T extends SolidityType>({
   handle,
   apiService,
   blockchainService,
+  subgraphService,
   storageService,
   config,
 }: {
   handle: Handle<T>;
   apiService: IApiService;
   blockchainService: IBlockchainService;
+  subgraphService: ISubgraphService;
   storageService: IStorageService;
   config: HandleClientConfig;
 }): Promise<{ value: JsValue<T>; solidityType: T }> {
@@ -115,26 +125,57 @@ export async function decrypt<T extends SolidityType>({
     rsaPrivateKey = decryptionMaterial.rsaPrivateKey;
     isFreshDecryptionMaterial = true;
   }
-  let response = await getHandleCryptoMaterialFromApi(authorization);
-  // Clear stored decryption material if authorization is invalid to avoid trying to reuse it on subsequent decryptions
-  if (response.status === 401 && storedDecryptionMaterial) {
-    try {
-      storageService.removeItem(storageKey);
-    } catch {
-      // ignore
+  let handleVerifiedToExist = false;
+  const getHandleCryptoMaterial = async () => {
+    let response = await getHandleCryptoMaterialFromApi(authorization);
+    // Clear stored decryption material if authorization is invalid to avoid trying to reuse it on subsequent decryptions
+    if (response.status === 401 && !isFreshDecryptionMaterial) {
+      try {
+        storageService.removeItem(storageKey);
+      } catch {
+        // ignore
+      }
+      // Retry decryption once after clearing stored material in case the failure was due to an invalid stored authorization
+      const decryptionMaterial = await generateDecryptionMaterial({
+        userAddress,
+        chainId,
+        smartContractAddress: config.smartContractAddress,
+        blockchainService,
+      });
+      authorization = decryptionMaterial.authorization;
+      rsaPrivateKey = decryptionMaterial.rsaPrivateKey;
+      isFreshDecryptionMaterial = true;
+      response = await getHandleCryptoMaterialFromApi(authorization);
     }
-    // Retry decryption once after clearing stored material in case the failure was due to an invalid stored authorization
-    const decryptionMaterial = await generateDecryptionMaterial({
-      userAddress,
-      chainId,
-      smartContractAddress: config.smartContractAddress,
-      blockchainService,
-    });
-    authorization = decryptionMaterial.authorization;
-    rsaPrivateKey = decryptionMaterial.rsaPrivateKey;
-    isFreshDecryptionMaterial = true;
-    response = await getHandleCryptoMaterialFromApi(authorization);
-  }
+    if (response.status === 404) {
+      if (!handleVerifiedToExist && !isUniqueHandle(handle)) {
+        await viewACL({ subgraphService, blockchainService, handle }).catch(
+          (error) => {
+            if (error instanceof UnknownHandleError) {
+              throw error;
+            }
+            throw new Error(
+              'Failed to decrypt, handle existence is not verified.',
+              { cause: error }
+            );
+          }
+        );
+      }
+      handleVerifiedToExist = true;
+      throw new NotYetComputedHandleError(handle);
+    }
+    return response;
+  };
+  const response = await retry(
+    getHandleCryptoMaterial,
+    // Retry options may need to be adjusted based on observed gateway sync times
+    {
+      delay: 1000,
+      backoff: 2,
+      maxRetries: 3,
+      shouldRetry: (error) => error instanceof NotYetComputedHandleError,
+    }
+  );
 
   // Validate response
   if (

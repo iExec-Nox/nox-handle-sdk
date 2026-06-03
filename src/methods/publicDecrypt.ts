@@ -2,27 +2,37 @@ import type { HandleClientConfig } from '../client/HandleClient.js';
 import type { IApiService } from '../services/api/IApiService.js';
 import type { IBlockchainService } from '../services/blockchain/IBlockchainService.js';
 import { IS_PUBLICLY_DECRYPTABLE_ABI } from '../services/blockchain/abis/isPubliclyDecryptable.abi.js';
+import type { ISubgraphService } from '../services/subgraph/SubgraphService.js';
 import type { HexString } from '../types/internalTypes.js';
 import { decodeValue } from '../utils/encoding.js';
+import {
+  NotYetComputedHandleError,
+  UnknownHandleError,
+} from '../utils/error.js';
 import { isHexString } from '../utils/hex.js';
+import { retry } from '../utils/retry.js';
 import {
   handleToChainId,
   handleToSolidityType,
+  isUniqueHandle,
   type Handle,
   type JsValue,
   type SolidityType,
 } from '../utils/types.js';
 import { assertRequiredParams } from '../utils/validators.js';
+import { viewACL } from './viewACL.js';
 
 export async function publicDecrypt<T extends SolidityType>({
   handle,
   apiService,
   blockchainService,
+  subgraphService,
   config,
 }: {
   handle: Handle<T>;
   apiService: IApiService;
   blockchainService: IBlockchainService;
+  subgraphService: ISubgraphService;
   config: HandleClientConfig;
 }): Promise<{
   value: JsValue<T>;
@@ -52,14 +62,51 @@ export async function publicDecrypt<T extends SolidityType>({
 
   const solidityType = handleToSolidityType(handle) as T;
 
-  const response = await apiService.get({
-    endpoint: `/v0/public/${handle}`,
-    expectedResponse: {
-      types: {
-        PublicDecryptionResult: [{ name: 'decryptionProof', type: 'string' }],
+  let handleVerifiedToExist = false;
+  const getDecryptionResult = async () => {
+    const response = await apiService.get({
+      endpoint: `/v0/public/${handle}`,
+      expectedResponse: {
+        types: {
+          PublicDecryptionResult: [{ name: 'decryptionProof', type: 'string' }],
+        },
+        primaryType: 'PublicDecryptionResult',
       },
-      primaryType: 'PublicDecryptionResult',
-    },
+    });
+
+    if (response.status === 404) {
+      // public decryption is already known to be unavailable for this handle, but we want to check if the handle exists
+      // if handle is unique, checking isPubliclyDecryptable on-chain is sufficient to determine if the handle exist
+      // if handle is not unique, we need to query the subgraph to check if the handle exists, because isPubliclyDecryptable will return true for non-unique handles even if they don't exist
+      if (!handleVerifiedToExist && !isUniqueHandle(handle)) {
+        await viewACL({
+          subgraphService,
+          blockchainService,
+          handle,
+        }).catch((error) => {
+          if (error instanceof UnknownHandleError) {
+            throw error;
+          }
+          throw new Error(
+            'Failed to decrypt, handle existence is not verified.',
+            {
+              cause: error,
+            }
+          );
+        });
+      }
+      handleVerifiedToExist = true;
+      throw new NotYetComputedHandleError(handle);
+    }
+    return response;
+  };
+
+  const response = await retry(getDecryptionResult, {
+    // Retry options may need to be adjusted based on observed gateway sync times
+    delay: 1000,
+    backoff: 2,
+    maxRetries: 3,
+    shouldRetry: (error) => error instanceof NotYetComputedHandleError,
   });
 
   const { decryptionProof } = validateApiResponse({

@@ -3,7 +3,10 @@ import { viewACL } from '../../../src/methods/viewACL.js';
 import type { IBlockchainService } from '../../../src/services/blockchain/IBlockchainService.js';
 import type { ISubgraphService } from '../../../src/services/subgraph/SubgraphService.js';
 import { VIEW_ACL_QUERY } from '../../../src/services/subgraph/queries/viewACL.js';
-import { SubgraphOutOfSyncError } from '../../../src/utils/error.js';
+import {
+  SubgraphOutOfSyncError,
+  UnknownHandleError,
+} from '../../../src/utils/error.js';
 import {
   DUMMY_TYPED_HANDLES,
   TEST_BLOCK_NUMBER,
@@ -122,7 +125,7 @@ describe('viewACL', () => {
         subgraphService: mockSubgraphService,
         blockchainService: mockBlockchainService,
       })
-    ).rejects.toThrow(/Handle not found/);
+    ).rejects.toThrow(new UnknownHandleError(DUMMY_TYPED_HANDLES.bool));
   });
 
   it('should handle empty admins and viewers arrays', async () => {
