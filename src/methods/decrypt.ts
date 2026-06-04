@@ -24,13 +24,17 @@ import {
   importRsaPrivateKey,
 } from '../utils/rsa.js';
 import {
+  handleToChainId,
   handleToSolidityType,
   isUniqueHandle,
   type Handle,
   type JsValue,
   type SolidityType,
 } from '../utils/types.js';
-import { assertRequiredParams, validateHandle } from '../utils/validators.js';
+import {
+  assertRequiredParams,
+  assertValidHandleFormat,
+} from '../utils/validators.js';
 import { viewACL } from './viewACL.js';
 
 export async function decrypt<T extends SolidityType>({
@@ -49,16 +53,19 @@ export async function decrypt<T extends SolidityType>({
   config: HandleClientConfig;
 }): Promise<{ value: JsValue<T>; solidityType: T }> {
   assertRequiredParams({ handle }, ['handle']);
+  assertValidHandleFormat(handle);
 
   const [chainId, userAddress] = await Promise.all([
     blockchainService.getChainId(),
     blockchainService.getAddress(),
   ]);
 
-  validateHandle({
-    handle,
-    expectedChainId: chainId,
-  });
+  const chainIdFromHandle = handleToChainId(handle); // validate chainId
+  if (chainIdFromHandle !== chainId) {
+    throw new Error(
+      `Handle chainId (${chainIdFromHandle}) does not match connected chainId (${chainId})`
+    );
+  }
 
   const isViewer = await blockchainService.readContract(
     config.smartContractAddress,

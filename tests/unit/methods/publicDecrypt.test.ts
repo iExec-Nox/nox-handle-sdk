@@ -165,9 +165,7 @@ describe('publicDecrypt', () => {
           config: mockConfig,
         })
       ).rejects.toThrow(
-        new Error(
-          `Invalid handle format: Handle chainId mismatch: expected ${SUPPORTED_CHAIN_ID}, got ${SUPPORTED_CHAIN_ID + 1}`
-        )
+        `Handle chainId (${SUPPORTED_CHAIN_ID + 1}) does not match connected chainId (${SUPPORTED_CHAIN_ID})`
       );
       expect(mockApiService.get).not.toHaveBeenCalled();
     });
@@ -185,11 +183,7 @@ describe('publicDecrypt', () => {
           subgraphService: mockSubgraphService,
           config: mockConfig,
         })
-      ).rejects.toThrow(
-        new Error(
-          `Invalid handle format: Handle chainId mismatch: expected ${SUPPORTED_CHAIN_ID}, got 0`
-        )
-      );
+      ).rejects.toThrow('Invalid handle: zero hash is not a valid handle');
       expect(mockApiService.get).not.toHaveBeenCalled();
     });
   });

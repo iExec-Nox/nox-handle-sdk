@@ -12,13 +12,17 @@ import {
 import { isHexString } from '../utils/hex.js';
 import { retry } from '../utils/retry.js';
 import {
+  handleToChainId,
   handleToSolidityType,
   isUniqueHandle,
   type Handle,
   type JsValue,
   type SolidityType,
 } from '../utils/types.js';
-import { assertRequiredParams, validateHandle } from '../utils/validators.js';
+import {
+  assertRequiredParams,
+  assertValidHandleFormat,
+} from '../utils/validators.js';
 import { viewACL } from './viewACL.js';
 
 export async function publicDecrypt<T extends SolidityType>({
@@ -39,12 +43,15 @@ export async function publicDecrypt<T extends SolidityType>({
   decryptionProof: HexString;
 }> {
   assertRequiredParams({ handle }, ['handle']);
+  assertValidHandleFormat(handle);
 
   const chainId = await blockchainService.getChainId();
-  validateHandle({
-    handle,
-    expectedChainId: chainId,
-  });
+  const chainIdFromHandle = handleToChainId(handle); // validate chainId
+  if (chainIdFromHandle !== chainId) {
+    throw new Error(
+      `Handle chainId (${chainIdFromHandle}) does not match connected chainId (${chainId})`
+    );
+  }
 
   const isPubliclyDecryptable = await blockchainService.readContract(
     config.smartContractAddress,

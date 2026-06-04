@@ -112,22 +112,22 @@ describe('validateHandle', () => {
         validateHandle({
           handle,
           expectedChainId: 1,
+          expectedSolidityType: 'bool',
         })
       ).not.toThrow();
     });
   });
 
   describe('chain ID validation (bytes 1-4)', () => {
-    it('rejects zero handle (chainId=0 ≠ expectedChainId)', () => {
+    it('rejects zero handle', () => {
       const zeroHandle = '0x' + '00'.repeat(32);
       expect(() =>
         validateHandle({
           handle: zeroHandle,
           expectedChainId: 1,
+          expectedSolidityType: 'bool',
         })
-      ).toThrow(
-        'Invalid handle format: Handle chainId mismatch: expected 1, got 0'
-      );
+      ).toThrow('Invalid handle: zero hash is not a valid handle');
     });
 
     it('accepts matching chain ID', () => {
@@ -136,6 +136,7 @@ describe('validateHandle', () => {
         validateHandle({
           handle,
           expectedChainId: 421_614,
+          expectedSolidityType: 'bool',
         })
       ).not.toThrow();
     });
@@ -146,6 +147,7 @@ describe('validateHandle', () => {
         validateHandle({
           handle,
           expectedChainId: 421_614,
+          expectedSolidityType: 'bool',
         })
       ).toThrow('Handle chainId mismatch: expected 421614, got 1');
     });
@@ -161,6 +163,7 @@ describe('validateHandle', () => {
         validateHandle({
           handle,
           expectedChainId: maxChainId,
+          expectedSolidityType: 'bool',
         })
       ).not.toThrow();
     });
@@ -174,10 +177,22 @@ describe('validateHandle', () => {
           validateHandle({
             handle,
             expectedChainId: 1,
+            expectedSolidityType: type,
           })
         ).not.toThrow();
       });
     }
+
+    it('should reject handle with mismatched type', () => {
+      const handle = buildHandle({ chainId: 1, typeCode: 0, version: 0 }); // bool
+      expect(() =>
+        validateHandle({
+          handle,
+          expectedChainId: 1,
+          expectedSolidityType: 'uint256',
+        })
+      ).toThrow('Handle type mismatch: expected uint256, got bool');
+    });
 
     it('should reject handle with reserved type code (100)', () => {
       const handle = buildHandle({ chainId: 1, typeCode: 100, version: 0 });
@@ -185,6 +200,7 @@ describe('validateHandle', () => {
         validateHandle({
           handle,
           expectedChainId: 1,
+          expectedSolidityType: 'bool',
         })
       ).toThrow('Unknown handle type code: 100');
     });
@@ -195,6 +211,7 @@ describe('validateHandle', () => {
         validateHandle({
           handle,
           expectedChainId: 1,
+          expectedSolidityType: 'bool',
         })
       ).toThrow('Unknown handle type code: 255');
     });
@@ -212,6 +229,7 @@ describe('validateHandle', () => {
         validateHandle({
           handle,
           expectedChainId: 1,
+          expectedSolidityType: 'bool',
         })
       ).not.toThrow();
     });
@@ -227,6 +245,7 @@ describe('validateHandle', () => {
         validateHandle({
           handle,
           expectedChainId: 1,
+          expectedSolidityType: 'bool',
         })
       ).not.toThrow();
     });
@@ -242,6 +261,7 @@ describe('validateHandle', () => {
         validateHandle({
           handle,
           expectedChainId: 1,
+          expectedSolidityType: 'bool',
         })
       ).toThrow(`Unsupported handle attribute: expected one of [0,1], got 2`);
     });
@@ -254,6 +274,7 @@ describe('validateHandle', () => {
         validateHandle({
           handle,
           expectedChainId: 1,
+          expectedSolidityType: 'bool',
         })
       ).not.toThrow();
     });
@@ -265,6 +286,7 @@ describe('validateHandle', () => {
         validateHandle({
           handle,
           expectedChainId: 1,
+          expectedSolidityType: 'bool',
         })
       ).toThrow(
         `Unsupported handle version: 1. Supported versions: ${SUPPORTED_VERSIONS.join(', ')}`
@@ -277,6 +299,7 @@ describe('validateHandle', () => {
         validateHandle({
           handle,
           expectedChainId: 1,
+          expectedSolidityType: 'bool',
         })
       ).toThrow(
         `Unsupported handle version: 255. Supported versions: ${SUPPORTED_VERSIONS.join(', ')}`
@@ -303,6 +326,7 @@ describe('validateHandle', () => {
         validateHandle({
           handle: handle1,
           expectedChainId: 1,
+          expectedSolidityType: 'bool',
         })
       ).not.toThrow();
 
@@ -310,6 +334,7 @@ describe('validateHandle', () => {
         validateHandle({
           handle: handle2,
           expectedChainId: 1,
+          expectedSolidityType: 'bool',
         })
       ).toThrow('Handle chainId mismatch');
     });
@@ -330,9 +355,9 @@ describe('isValidHandleFormat', () => {
       }
     });
 
-    it('accepts a zero handle (valid format — chainId=0 is only rejected at decrypt time)', () => {
+    it('rejects zero hash', () => {
       const zeroHandle = '0x' + '00'.repeat(32);
-      expect(isValidHandleFormat(zeroHandle)).toBe(true);
+      expect(isValidHandleFormat(zeroHandle)).toBe(false);
     });
 
     it('accepts handle with attribute 0', () => {

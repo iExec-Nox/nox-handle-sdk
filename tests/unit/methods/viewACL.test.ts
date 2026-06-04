@@ -96,11 +96,7 @@ describe('viewACL', () => {
         subgraphService: mockSubgraphService,
         blockchainService: mockBlockchainService,
       })
-    ).rejects.toThrow(
-      new Error(
-        `Invalid handle format: Handle chainId mismatch: expected ${SUPPORTED_CHAIN_ID}, got 0`
-      )
-    );
+    ).rejects.toThrow('Invalid handle: zero hash is not a valid handle');
     expect(mockSubgraphService.request).not.toHaveBeenCalled();
   });
 
