@@ -116,6 +116,48 @@ describe('validateHandle', () => {
         })
       ).not.toThrow();
     });
+
+    it('should reject handle with wrong length', () => {
+      expect(() =>
+        validateHandle({
+          handle: '0x1234',
+          expectedChainId: 1,
+          expectedSolidityType: 'bool',
+        })
+      ).toThrow('Invalid handle format: expected 0x + 64 hex chars (32 bytes)');
+    });
+
+    it('should reject handle with wrong length', () => {
+      const longHandle = '0x' + 'ab'.repeat(33);
+      expect(() =>
+        validateHandle({
+          handle: longHandle,
+          expectedChainId: 1,
+          expectedSolidityType: 'bool',
+        })
+      ).toThrow('Invalid handle format');
+    });
+
+    it('should reject handle with invalid hex characters', () => {
+      const invalidHandle = '0x' + 'gg'.repeat(32);
+      expect(() =>
+        validateHandle({
+          handle: invalidHandle,
+          expectedChainId: 1,
+          expectedSolidityType: 'bool',
+        })
+      ).toThrow(TypeError);
+    });
+
+    it('rejects non-string handle', () => {
+      expect(() =>
+        validateHandle({
+          handle: 12_345,
+          expectedChainId: 1,
+          expectedSolidityType: 'bool',
+        })
+      ).toThrow(TypeError);
+    });
   });
 
   describe('chain ID validation (bytes 1-4)', () => {

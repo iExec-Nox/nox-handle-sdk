@@ -215,7 +215,9 @@ describe('decrypt', () => {
           config: mockConfig,
         })
       ).rejects.toThrow(
-        `Handle chainId (${SUPPORTED_CHAIN_ID + 1}) does not match connected chainId (${SUPPORTED_CHAIN_ID})`
+        new Error(
+          `Handle chainId (${SUPPORTED_CHAIN_ID + 1}) does not match connected chainId (${SUPPORTED_CHAIN_ID})`
+        )
       );
       expect(signTypedDataSpy).not.toHaveBeenCalled();
       expect(mockApiService.get).not.toHaveBeenCalled();
