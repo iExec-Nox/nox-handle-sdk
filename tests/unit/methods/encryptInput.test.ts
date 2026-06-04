@@ -534,6 +534,66 @@ describe('encryptInput', () => {
         })
       ).rejects.toThrow('Network error');
     });
+
+    it('rejects mismatched chainId in gateway response', async () => {
+      mockApiService = createMockApiService(
+        {},
+        buildMockHandle(0x00, 2) // chainId=2, but getChainId returns 1
+      );
+      await expect(
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          value: true,
+          solidityType: 'bool',
+          applicationContract: TEST_ADDRESS,
+        })
+      ).rejects.toThrow(
+        'Unexpected handle from gateway: expected chainId 1, got 2'
+      );
+    });
+
+    it('rejects mismatched type in gateway response', async () => {
+      mockApiService = createMockApiService(
+        {},
+        buildMockHandle(0x00, 1) // bool handle, but solidityType is uint256
+      );
+      await expect(
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          value: 1_000_000n,
+          solidityType: 'uint256',
+          applicationContract: TEST_ADDRESS,
+        })
+      ).rejects.toThrow(
+        'Unexpected handle from gateway: expected uint256, got bool'
+      );
+    });
+
+    it('rejects invalid handleProof in gateway response', async () => {
+      mockApiService = createMockApiService({
+        post: vi.fn().mockResolvedValue({
+          ok: true,
+          status: 200,
+          data: {
+            handle: buildMockHandle(0x00, 1),
+            proof: '0x' + 'ab'.repeat(10), // too short
+          },
+        }),
+      });
+      await expect(
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          value: true,
+          solidityType: 'bool',
+          applicationContract: TEST_ADDRESS,
+        })
+      ).rejects.toThrow(
+        'Unexpected handleProof in Handle Gateway response: expected 0x + 274 hex chars (137 bytes)'
+      );
+    });
   });
 
   describe('blockchain service integration', () => {
