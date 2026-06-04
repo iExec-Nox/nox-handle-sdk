@@ -16,6 +16,8 @@ import {
   UNSUPPORTED_CHAIN_ID,
 } from '../../helpers/testData.js';
 
+const SUPPORTED_CHAIN_IDS = Object.keys(NETWORK_CONFIGS).join(', ');
+
 describe('createHandleClient', () => {
   describe('with an invalid client', () => {
     it('should throw an error', async () => {
@@ -92,7 +94,7 @@ describe('createHandleClient', () => {
 
       await expect(createHandleClient(viemClient)).rejects.toThrow(
         new Error(
-          `Chain ${UNSUPPORTED_CHAIN_ID} is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.`
+          `Chain ${UNSUPPORTED_CHAIN_ID} is not supported. Supported chains: ${SUPPORTED_CHAIN_IDS}. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.`
         )
       );
     });
