@@ -11,9 +11,22 @@ vi.mock('../../../src/utils/validators.js', async (importOriginal) => {
 });
 
 const TEST_ADDRESS = '0x1234567890123456789012345678901234567890';
-const MOCK_HANDLE =
-  '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
 const MOCK_INPUT_PROOF = '0x' + 'ab'.repeat(137);
+
+// Handle layout: byte0=version, bytes1-4=chainId, byte5=typeCode, byte6=attribute, bytes7-31=filler
+// bool=0x00, uint256=0x23
+function buildMockHandle(
+  typeCode: number,
+  chainId: number,
+  attribute: 0 | 1 = 0
+): string {
+  const chainIdHex = chainId.toString(16).padStart(8, '0');
+  const typeCodeHex = typeCode.toString(16).padStart(2, '0');
+  const attributeHex = attribute.toString(16).padStart(2, '0');
+  return `0x00${chainIdHex}${typeCodeHex}${attributeHex}${'ab'.repeat(25)}`;
+}
+
+const MOCK_HANDLE = buildMockHandle(0x00, 1); // bool, chainId=1
 
 function createMockBlockchainService(
   overrides: Partial<IBlockchainService> = {}
@@ -30,10 +43,11 @@ function createMockBlockchainService(
 }
 
 function createMockApiService(
-  overrides: Partial<IApiService> = {}
+  overrides: Partial<IApiService> = {},
+  handle: string = MOCK_HANDLE
 ): IApiService {
   const data = {
-    handle: MOCK_HANDLE,
+    handle,
     proof: MOCK_INPUT_PROOF,
   };
 
@@ -180,6 +194,7 @@ describe('encryptInput', () => {
     });
 
     it('encodes uint256 as padded hex', async () => {
+      mockApiService = createMockApiService({}, buildMockHandle(0x23, 1));
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
@@ -588,6 +603,7 @@ describe('encryptInput', () => {
       mockBlockchainService = createMockBlockchainService({
         getChainId: vi.fn().mockResolvedValue(421_614),
       });
+      mockApiService = createMockApiService({}, buildMockHandle(0x00, 421_614));
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,

@@ -9,6 +9,8 @@ import {
   uintXToHex,
 } from '../utils/hex.js';
 import {
+  handleToChainId,
+  handleToSolidityType,
   SOLIDITY_TYPES_SET,
   type Handle,
   type JsValue,
@@ -16,8 +18,7 @@ import {
 } from '../utils/types.js';
 import {
   assertRequiredParams,
-  validateHandle,
-  validateHandleProof,
+  assertValidHandleFormat,
 } from '../utils/validators.js';
 
 interface GatewaySecretResponse {
@@ -39,13 +40,13 @@ interface EncryptInputParameters {
  */
 const NOX_SUPPORTED_TYPES = ['bool', 'uint16', 'uint256', 'int16', 'int256'];
 const NOX_SUPPORTED_TYPES_SET = new Set(NOX_SUPPORTED_TYPES);
+const INPUT_PROOF_PATTERN = /^0x[0-9a-fA-F]{274}$/;
 
 function assertValidSolidityType(type: string): asserts type is SolidityType {
   if (!SOLIDITY_TYPES_SET.has(type)) {
     throw new TypeError(`Invalid Solidity type: ${type}`);
   }
 }
-
 function assertNoxSupportedType(type: string): void {
   if (!NOX_SUPPORTED_TYPES_SET.has(type)) {
     throw new TypeError(
@@ -176,12 +177,33 @@ export async function encryptInput<T extends SolidityType>({
     );
   }
   const data = response.data as GatewaySecretResponse;
-  validateHandle({
-    handle: data.handle,
-    expectedChainId: chainId,
-    expectedSolidityType: solidityType,
-  });
-  validateHandleProof(data.proof);
+
+  const handleProof = data.proof;
+  if (
+    typeof handleProof !== 'string' ||
+    !INPUT_PROOF_PATTERN.test(handleProof)
+  ) {
+    throw new TypeError(
+      `Unexpected handleProof in Handle Gateway response: expected 0x + 274 hex chars (137 bytes), got ${handleProof}`
+    );
+  }
+
+  const handle = data.handle as HexString;
+  assertValidHandleFormat(handle);
+
+  const resolvedChainId = handleToChainId(handle);
+  if (resolvedChainId !== chainId) {
+    throw new Error(
+      `Unexpected handle from gateway: expected chainId ${chainId}, got ${resolvedChainId}`
+    );
+  }
+
+  const resolvedSolidityType = handleToSolidityType(handle);
+  if (resolvedSolidityType !== solidityType) {
+    throw new Error(
+      `Unexpected handle from gateway: expected ${solidityType}, got ${resolvedSolidityType}`
+    );
+  }
 
   return {
     handle: data.handle as HexString,

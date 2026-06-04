@@ -173,19 +173,21 @@ describe('publicDecrypt', () => {
     });
   });
 
-  describe('when handle is a zero handle', () => {
+  describe('when handle is uninitialized', () => {
     it('should throw for an all-zero handle (uninitialized Solidity bytes32)', async () => {
-      const zeroHandle =
+      const uninitializedHandle =
         '0x0000000000000000000000000000000000000000000000000000000000000000';
       await expect(
         publicDecrypt({
-          handle: zeroHandle,
+          handle: uninitializedHandle,
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
           subgraphService: mockSubgraphService,
           config: mockConfig,
         })
-      ).rejects.toThrow('Invalid handle: zero hash is not a valid handle');
+      ).rejects.toThrow(
+        'Invalid handle: received an uninitialized handle — ensure the handle has been stored on-chain before use'
+      );
       expect(mockApiService.get).not.toHaveBeenCalled();
     });
   });

@@ -5,10 +5,8 @@ import {
 } from '../types/internalTypes.js';
 import {
   handleToAttribute,
-  handleToChainId,
   handleToSolidityType,
   handleToVersion,
-  type SolidityType,
 } from './types.js';
 
 export function isBaseURL(url: unknown): url is BaseUrl {
@@ -28,7 +26,6 @@ export function isEthereumAddress(
 }
 
 const HANDLE_PATTERN = /^0x[0-9a-fA-F]{64}$/;
-const INPUT_PROOF_PATTERN = /^0x[0-9a-fA-F]{274}$/;
 const SUPPORTED_VERSIONS = [0];
 const SUPPORTED_ATTRIBUTES = [0, 1];
 const ZERO_HASH = ('0x' + '0'.repeat(64)) as HexString;
@@ -42,7 +39,9 @@ export function assertValidHandleFormat(
     );
   }
   if (handle === ZERO_HASH) {
-    throw new TypeError(`Invalid handle: zero hash is not a valid handle`);
+    throw new TypeError(
+      `Invalid handle: received an uninitialized handle — ensure the handle has been stored on-chain before use`
+    );
   }
   const attribute = handleToAttribute(handle as HexString);
   if (!SUPPORTED_ATTRIBUTES.includes(attribute)) {
@@ -65,43 +64,6 @@ export function isValidHandleFormat(handle: unknown): handle is HexString {
     return true;
   } catch {
     return false;
-  }
-}
-
-export function validateHandle({
-  handle,
-  expectedChainId,
-  expectedSolidityType,
-}: {
-  handle: unknown;
-  expectedChainId: number;
-  expectedSolidityType: SolidityType;
-}): void {
-  assertValidHandleFormat(handle);
-
-  const chainId = handleToChainId(handle);
-  if (chainId !== expectedChainId) {
-    throw new Error(
-      `Handle chainId mismatch: expected ${expectedChainId}, got ${chainId}`
-    );
-  }
-
-  const solidityType = handleToSolidityType(handle as HexString);
-  if (solidityType !== expectedSolidityType) {
-    throw new Error(
-      `Handle type mismatch: expected ${expectedSolidityType}, got ${solidityType}`
-    );
-  }
-}
-
-export function validateHandleProof(handleProof: unknown): void {
-  if (
-    typeof handleProof !== 'string' ||
-    !INPUT_PROOF_PATTERN.test(handleProof)
-  ) {
-    throw new TypeError(
-      `Invalid handleProof: expected 0x + 274 hex chars (137 bytes), got ${handleProof}`
-    );
   }
 }
 

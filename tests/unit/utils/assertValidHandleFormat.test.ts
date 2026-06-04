@@ -60,9 +60,9 @@ describe('assertValidHandleFormat', () => {
     });
   });
 
-  it('throws for zero hash', () => {
+  it('throws for uninitialized handle', () => {
     expect(() => assertValidHandleFormat(ZERO_HASH)).toThrow(
-      'Invalid handle: zero hash is not a valid handle'
+      'Invalid handle: received an uninitialized handle — ensure the handle has been stored on-chain before use'
     );
   });
 
