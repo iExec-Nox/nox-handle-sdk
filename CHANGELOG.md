@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.0-beta.12](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.11...v0.1.0-beta.12) (2026-06-05)
+
+
+### 🚀 Added
+
+* add Sepolia Ethereum network config ([#94](https://github.com/iExec-Nox/nox-handle-sdk/issues/94)) ([9693363](https://github.com/iExec-Nox/nox-handle-sdk/commit/9693363c7049d8ae4049df43461a8e55537fe462))
+* auto retry decryption before throwing NotYetComputedHandleError ([#90](https://github.com/iExec-Nox/nox-handle-sdk/issues/90)) ([c32fd85](https://github.com/iExec-Nox/nox-handle-sdk/commit/c32fd852d7d55dfcd004358e1aea7ff898bf29a2))
+
+
+### ✍️ Changed
+
+* ensure viewACL data freshness ([#88](https://github.com/iExec-Nox/nox-handle-sdk/issues/88)) ([4dd7bde](https://github.com/iExec-Nox/nox-handle-sdk/commit/4dd7bde4901e7963551a4c0b95f2bdd54981c640))
+
 ## [0.1.0-beta.11](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.10...v0.1.0-beta.11) (2026-05-20)
 
 
