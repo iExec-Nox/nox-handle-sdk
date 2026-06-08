@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-beta.13](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.12...v0.1.0-beta.13) (2026-06-08)
+
+
+### ✍️ Changed
+
+* **config:** update subgraph URL for chainId 11_155_111 (Ethereum Sepolia) ([#95](https://github.com/iExec-Nox/nox-handle-sdk/issues/95)) ([00521d9](https://github.com/iExec-Nox/nox-handle-sdk/commit/00521d99ae4397cceae70ef4456d6f294d42ddf6))
+
 ## [0.1.0-beta.12](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.11...v0.1.0-beta.12) (2026-06-05)
 
 
