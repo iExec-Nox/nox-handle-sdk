@@ -18,6 +18,8 @@ import {
   UNSUPPORTED_CHAIN_ID,
 } from '../../helpers/testData.js';
 
+const SUPPORTED_CHAIN_IDS = Object.keys(NETWORK_CONFIGS).join(', ');
+
 describe('createEthersHandleClient', () => {
   describe('with an AbstractSigner connected to a provider', () => {
     const mockProvider = createMockProvider(SUPPORTED_CHAIN_ID);
@@ -144,7 +146,7 @@ describe('createEthersHandleClient', () => {
       it('should throw if chainId not supported and no config provided', async () => {
         await expect(createEthersHandleClient(ethersClient)).rejects.toThrow(
           new Error(
-            'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.'
+            `Chain 999999 is not supported. Supported chains: ${SUPPORTED_CHAIN_IDS}. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.`
           )
         );
       });
@@ -174,7 +176,7 @@ describe('createEthersHandleClient', () => {
           })
         ).rejects.toThrow(
           new Error(
-            'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.'
+            `Chain 999999 is not supported. Supported chains: ${SUPPORTED_CHAIN_IDS}. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.`
           )
         );
       });

@@ -50,7 +50,7 @@ describe('resolveNetworkConfig', () => {
   describe('with unsupported chain', () => {
     it('should throw if no config provided', () => {
       expect(() => resolveNetworkConfig(UNSUPPORTED_CHAIN_ID)).toThrow(
-        'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.'
+        `Chain ${UNSUPPORTED_CHAIN_ID} is not supported. Supported chains: ${Object.keys(NETWORK_CONFIGS).join(', ')}. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.`
       );
     });
 
@@ -60,7 +60,7 @@ describe('resolveNetworkConfig', () => {
           gatewayUrl: OVERRIDE_GATEWAY_URL,
         })
       ).toThrow(
-        'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.'
+        `Chain ${UNSUPPORTED_CHAIN_ID} is not supported. Supported chains: ${Object.keys(NETWORK_CONFIGS).join(', ')}. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.`
       );
     });
 
@@ -70,7 +70,7 @@ describe('resolveNetworkConfig', () => {
           smartContractAddress: OVERRIDE_CONTRACT_ADDRESS,
         })
       ).toThrow(
-        'Chain 999999 is not supported. Supported chains: 421614. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.'
+        `Chain ${UNSUPPORTED_CHAIN_ID} is not supported. Supported chains: ${Object.keys(NETWORK_CONFIGS).join(', ')}. To use an unsupported chain, provide both gatewayUrl, smartContractAddress and subgraphUrl.`
       );
     });
 
