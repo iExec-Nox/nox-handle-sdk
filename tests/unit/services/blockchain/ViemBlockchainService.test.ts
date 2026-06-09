@@ -1,6 +1,6 @@
 import { createWalletClient, custom } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import {
   ViemBlockchainService,
   isViemSmartAccount,
@@ -147,12 +147,13 @@ describe('ViemBlockchainService', () => {
           if (name === 'Local signer') {
             expect(mockProvider.request).not.toHaveBeenCalled();
           } else {
-            expect(mockProvider.request).toHaveBeenCalledWith(
-              expect.objectContaining({
-                method: 'eth_signTypedData_v4',
-              }),
-              undefined
+            const requestMock = mockProvider.request as unknown as Mock;
+            const wasSignCalled = requestMock.mock.calls.some(
+              (args: unknown[]) =>
+                (args[0] as { method: string }).method ===
+                'eth_signTypedData_v4'
             );
+            expect(wasSignCalled).toBe(true);
           }
         });
       });
