@@ -495,7 +495,7 @@ describe('encryptInput', () => {
           applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow(
-        `Unexpected response from Handle Gateway (status: 400, data: {"error":"Bad request"})`
+        `Unexpected response from Handle Gateway: status: 400, data: {"error":"Bad request"}`
       );
     });
 
@@ -516,7 +516,7 @@ describe('encryptInput', () => {
           applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow(
-        'Unexpected response from Handle Gateway (status: 200, data: {"proof":"0xababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab"})'
+        'Unexpected response from Handle Gateway: status: 200, data: {"proof":"0xababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab"}'
       );
     });
 
@@ -549,7 +549,7 @@ describe('encryptInput', () => {
           applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow(
-        'Unexpected handle from gateway: expected chainId 1, got 2'
+        'Unexpected response from Handle Gateway: handle chainId mismatch: expected 1, got 2'
       );
     });
 
@@ -567,7 +567,7 @@ describe('encryptInput', () => {
           applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow(
-        'Unexpected handle from gateway: expected uint256, got bool'
+        'Unexpected response from Handle Gateway: handle type mismatch: expected uint256, got bool'
       );
     });
 
@@ -591,7 +591,7 @@ describe('encryptInput', () => {
           applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow(
-        'Unexpected handleProof in Handle Gateway response: expected 0x + 274 hex chars (137 bytes)'
+        'Unexpected response from Handle Gateway: invalid handleProof: expected 0x + 274 hex chars (137 bytes)'
       );
     });
   });

@@ -165,48 +165,57 @@ export async function encryptInput<T extends SolidityType>({
     },
   });
 
-  if (
-    response.status !== 200 ||
-    typeof response.data !== 'object' ||
-    response.data === null ||
-    !isHexString((response.data as { handle?: unknown })?.handle) ||
-    !isHexString((response.data as { proof?: unknown })?.proof)
-  ) {
+  try {
+    if (
+      response.status !== 200 ||
+      typeof response.data !== 'object' ||
+      response.data === null ||
+      !isHexString((response.data as { handle?: unknown })?.handle) ||
+      !isHexString((response.data as { proof?: unknown })?.proof)
+    ) {
+      throw new Error(
+        `status: ${response.status}, data: ${JSON.stringify(response.data)}`
+      );
+    }
+    const data = response.data as GatewaySecretResponse;
+
+    const handleProof = data.proof;
+    if (
+      typeof handleProof !== 'string' ||
+      !INPUT_PROOF_PATTERN.test(handleProof)
+    ) {
+      throw new TypeError(
+        `invalid handleProof: expected 0x + 274 hex chars (137 bytes), got ${handleProof}`
+      );
+    }
+
+    const handle = data.handle as HexString;
+    assertValidHandleFormat(handle);
+
+    const resolvedChainId = handleToChainId(handle);
+    if (resolvedChainId !== chainId) {
+      throw new Error(
+        `handle chainId mismatch: expected ${chainId}, got ${resolvedChainId}`
+      );
+    }
+
+    const resolvedSolidityType = handleToSolidityType(handle);
+    if (resolvedSolidityType !== solidityType) {
+      throw new Error(
+        `handle type mismatch: expected ${solidityType}, got ${resolvedSolidityType}`
+      );
+    }
+  } catch (error) {
     throw new Error(
-      `Unexpected response from Handle Gateway (status: ${response.status}, data: ${JSON.stringify(response.data)})`
-    );
-  }
-  const data = response.data as GatewaySecretResponse;
-
-  const handleProof = data.proof;
-  if (
-    typeof handleProof !== 'string' ||
-    !INPUT_PROOF_PATTERN.test(handleProof)
-  ) {
-    throw new TypeError(
-      `Unexpected handleProof in Handle Gateway response: expected 0x + 274 hex chars (137 bytes), got ${handleProof}`
+      `Unexpected response from Handle Gateway: ${(error as Error).message}`,
+      { cause: error }
     );
   }
 
-  const handle = data.handle as HexString;
-  assertValidHandleFormat(handle);
-
-  const resolvedChainId = handleToChainId(handle);
-  if (resolvedChainId !== chainId) {
-    throw new Error(
-      `Unexpected handle from gateway: expected chainId ${chainId}, got ${resolvedChainId}`
-    );
-  }
-
-  const resolvedSolidityType = handleToSolidityType(handle);
-  if (resolvedSolidityType !== solidityType) {
-    throw new Error(
-      `Unexpected handle from gateway: expected ${solidityType}, got ${resolvedSolidityType}`
-    );
-  }
+  const { handle, proof } = response.data as GatewaySecretResponse;
 
   return {
-    handle: data.handle as HexString,
-    handleProof: data.proof as HexString,
+    handle: handle as HexString,
+    handleProof: proof as HexString,
   };
 }

@@ -150,7 +150,8 @@ describe('ViemBlockchainService', () => {
             expect(mockProvider.request).toHaveBeenCalledWith(
               expect.objectContaining({
                 method: 'eth_signTypedData_v4',
-              })
+              }),
+              undefined
             );
           }
         });
