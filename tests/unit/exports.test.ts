@@ -3,6 +3,7 @@ import {
   createHandleClient,
   createEthersHandleClient,
   createViemHandleClient,
+  isValidHandleFormat,
 } from '../../src/index.js';
 
 describe('SDK Exports', () => {
@@ -19,5 +20,10 @@ describe('SDK Exports', () => {
   it('should export createViemHandleClient', () => {
     expect(createViemHandleClient).toBeDefined();
     expect(typeof createViemHandleClient).toBe('function');
+  });
+
+  it('should export isValidHandleFormat', () => {
+    expect(isValidHandleFormat).toBeDefined();
+    expect(typeof isValidHandleFormat).toBe('function');
   });
 });

@@ -173,6 +173,25 @@ describe('publicDecrypt', () => {
     });
   });
 
+  describe('when handle is uninitialized', () => {
+    it('should throw for an all-zero handle (uninitialized Solidity bytes32)', async () => {
+      const uninitializedHandle =
+        '0x0000000000000000000000000000000000000000000000000000000000000000';
+      await expect(
+        publicDecrypt({
+          handle: uninitializedHandle,
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          subgraphService: mockSubgraphService,
+          config: mockConfig,
+        })
+      ).rejects.toThrow(
+        'Invalid handle: received an uninitialized handle — ensure the handle has been stored on-chain before use'
+      );
+      expect(mockApiService.get).not.toHaveBeenCalled();
+    });
+  });
+
   describe('when gateway returns HTTP 404', () => {
     const notFoundResponse = {
       ok: false,

@@ -11,9 +11,22 @@ vi.mock('../../../src/utils/validators.js', async (importOriginal) => {
 });
 
 const TEST_ADDRESS = '0x1234567890123456789012345678901234567890';
-const MOCK_HANDLE =
-  '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
 const MOCK_INPUT_PROOF = '0x' + 'ab'.repeat(137);
+
+// Handle layout: byte0=version, bytes1-4=chainId, byte5=typeCode, byte6=attribute, bytes7-31=filler
+// bool=0x00, uint256=0x23
+function buildMockHandle(
+  typeCode: number,
+  chainId: number,
+  attribute: 0 | 1 = 0
+): string {
+  const chainIdHex = chainId.toString(16).padStart(8, '0');
+  const typeCodeHex = typeCode.toString(16).padStart(2, '0');
+  const attributeHex = attribute.toString(16).padStart(2, '0');
+  return `0x00${chainIdHex}${typeCodeHex}${attributeHex}${'ab'.repeat(25)}`;
+}
+
+const MOCK_HANDLE = buildMockHandle(0x00, 1); // bool, chainId=1
 
 function createMockBlockchainService(
   overrides: Partial<IBlockchainService> = {}
@@ -30,10 +43,11 @@ function createMockBlockchainService(
 }
 
 function createMockApiService(
-  overrides: Partial<IApiService> = {}
+  overrides: Partial<IApiService> = {},
+  handle: string = MOCK_HANDLE
 ): IApiService {
   const data = {
-    handle: MOCK_HANDLE,
+    handle,
     proof: MOCK_INPUT_PROOF,
   };
 
@@ -180,6 +194,7 @@ describe('encryptInput', () => {
     });
 
     it('encodes uint256 as padded hex', async () => {
+      mockApiService = createMockApiService({}, buildMockHandle(0x23, 1));
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
@@ -480,7 +495,7 @@ describe('encryptInput', () => {
           applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow(
-        `Unexpected response from Handle Gateway (status: 400, data: {"error":"Bad request"})`
+        `Unexpected response from Handle Gateway: status: 400, data: {"error":"Bad request"}`
       );
     });
 
@@ -501,7 +516,7 @@ describe('encryptInput', () => {
           applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow(
-        'Unexpected response from Handle Gateway (status: 200, data: {"proof":"0xababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab"})'
+        'Unexpected response from Handle Gateway: status: 200, data: {"proof":"0xababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab"}'
       );
     });
 
@@ -518,6 +533,66 @@ describe('encryptInput', () => {
           applicationContract: TEST_ADDRESS,
         })
       ).rejects.toThrow('Network error');
+    });
+
+    it('rejects mismatched chainId in gateway response', async () => {
+      mockApiService = createMockApiService(
+        {},
+        buildMockHandle(0x00, 2) // chainId=2, but getChainId returns 1
+      );
+      await expect(
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          value: true,
+          solidityType: 'bool',
+          applicationContract: TEST_ADDRESS,
+        })
+      ).rejects.toThrow(
+        'Unexpected response from Handle Gateway: handle chainId mismatch: expected 1, got 2'
+      );
+    });
+
+    it('rejects mismatched type in gateway response', async () => {
+      mockApiService = createMockApiService(
+        {},
+        buildMockHandle(0x00, 1) // bool handle, but solidityType is uint256
+      );
+      await expect(
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          value: 1_000_000n,
+          solidityType: 'uint256',
+          applicationContract: TEST_ADDRESS,
+        })
+      ).rejects.toThrow(
+        'Unexpected response from Handle Gateway: handle type mismatch: expected uint256, got bool'
+      );
+    });
+
+    it('rejects invalid handleProof in gateway response', async () => {
+      mockApiService = createMockApiService({
+        post: vi.fn().mockResolvedValue({
+          ok: true,
+          status: 200,
+          data: {
+            handle: buildMockHandle(0x00, 1),
+            proof: '0x' + 'ab'.repeat(10), // too short
+          },
+        }),
+      });
+      await expect(
+        encryptInput({
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          value: true,
+          solidityType: 'bool',
+          applicationContract: TEST_ADDRESS,
+        })
+      ).rejects.toThrow(
+        'Unexpected response from Handle Gateway: invalid handleProof: expected 0x + 274 hex chars (137 bytes)'
+      );
     });
   });
 
@@ -588,6 +663,7 @@ describe('encryptInput', () => {
       mockBlockchainService = createMockBlockchainService({
         getChainId: vi.fn().mockResolvedValue(421_614),
       });
+      mockApiService = createMockApiService({}, buildMockHandle(0x00, 421_614));
       await encryptInput({
         blockchainService: mockBlockchainService,
         apiService: mockApiService,
