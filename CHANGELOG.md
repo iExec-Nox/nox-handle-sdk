@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-beta.14](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.13...v0.1.0-beta.14) (2026-06-09)
+
+
+### ✍️ Changed
+
+* validate handle format and chain id ([#93](https://github.com/iExec-Nox/nox-handle-sdk/issues/93)) ([0a3e2dd](https://github.com/iExec-Nox/nox-handle-sdk/commit/0a3e2dd28f2cf6a865ee642c9bc06e986b943fb8))
+
 ## [0.1.0-beta.13](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.12...v0.1.0-beta.13) (2026-06-08)
 
 
