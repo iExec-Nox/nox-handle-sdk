@@ -34,16 +34,23 @@ The handle representing the encrypted value
 
 `Promise`\<\{ `solidityType`: `T`; `value`: [`JsValue`](../type-aliases/JsValue.md)\<`T`\>; \}\>
 
-The decrypted value and its [SolidityType](../type-aliases/SolidityType.md)
+A `{ value, solidityType }` object — **not** the bare value.
+Always destructure it; using the result directly (e.g. in a template
+string) silently yields `[object Object]`.
 
 #### Remarks
 
 The decryption key is shared with the connected wallet address via public key encryption.
 To request decryption, the connected wallet must be allowed to view the data and provide an EIP712 DataAccessAuthorization signature.
 
+Before contacting the gateway, an on-chain `isViewer` check is performed
+automatically: if the connected wallet is not authorized (or the handle
+does not exist), the call throws immediately without a network request.
+
 #### Example
 
 ```ts
+// decrypt() returns an object — destructure to read the plaintext
 const { value, solidityType } = await client.decrypt(handle);
 ```
 
