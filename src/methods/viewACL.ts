@@ -5,9 +5,12 @@ import {
   type ViewACLResponse,
 } from '../services/subgraph/queries/viewACL.js';
 import type { Handle, SolidityType } from '../types/publicTypes.js';
-import { SubgraphOutOfSyncError } from '../utils/error.js';
+import { SubgraphOutOfSyncError, UnknownHandleError } from '../utils/error.js';
 import { retry } from '../utils/retry.js';
-import { assertRequiredParams } from '../utils/validators.js';
+import {
+  assertRequiredParams,
+  assertValidHandleFormat,
+} from '../utils/validators.js';
 
 /**
  * Access Control List (ACL) for a Handle, including public access, admins, and viewers.
@@ -33,6 +36,8 @@ export async function viewACL({
   handle: Handle<SolidityType>;
 }): Promise<ACL> {
   assertRequiredParams({ handle }, ['handle']);
+  assertValidHandleFormat(handle);
+
   const currentBlockNumber = await blockchainService.getBlockNumber();
 
   const getACLFromSubgraph = async () => {
@@ -72,7 +77,7 @@ export async function viewACL({
   });
 
   if (response.handle === null) {
-    throw new Error('Handle not found');
+    throw new UnknownHandleError(handle);
   }
 
   const admins = response.handle.admins?.map((admin) => admin.account) ?? [];

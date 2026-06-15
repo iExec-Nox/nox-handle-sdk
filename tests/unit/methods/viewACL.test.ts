@@ -3,9 +3,13 @@ import { viewACL } from '../../../src/methods/viewACL.js';
 import type { IBlockchainService } from '../../../src/services/blockchain/IBlockchainService.js';
 import type { ISubgraphService } from '../../../src/services/subgraph/SubgraphService.js';
 import { VIEW_ACL_QUERY } from '../../../src/services/subgraph/queries/viewACL.js';
-import { SubgraphOutOfSyncError } from '../../../src/utils/error.js';
+import {
+  SubgraphOutOfSyncError,
+  UnknownHandleError,
+} from '../../../src/utils/error.js';
 import {
   DUMMY_TYPED_HANDLES,
+  SUPPORTED_CHAIN_ID,
   TEST_BLOCK_NUMBER,
 } from '../../helpers/testData.js';
 
@@ -32,6 +36,7 @@ function createMockSubgraphService(
 
 describe('viewACL', () => {
   const mockBlockchainService = {
+    getChainId: vi.fn().mockResolvedValue(SUPPORTED_CHAIN_ID),
     getBlockNumber: vi.fn().mockResolvedValue(TEST_BLOCK_NUMBER),
   } as unknown as IBlockchainService;
 
@@ -80,6 +85,23 @@ describe('viewACL', () => {
     ).rejects.toThrow(/Missing required parameters/);
   });
 
+  it('should throw for an all-zero handle (uninitialized Solidity bytes32)', async () => {
+    const uninitializedHandle =
+      '0x0000000000000000000000000000000000000000000000000000000000000000';
+    const mockSubgraphService = createMockSubgraphService();
+
+    await expect(
+      viewACL({
+        handle: uninitializedHandle,
+        subgraphService: mockSubgraphService,
+        blockchainService: mockBlockchainService,
+      })
+    ).rejects.toThrow(
+      'Invalid handle: received an uninitialized handle — ensure the handle has been stored on-chain before use'
+    );
+    expect(mockSubgraphService.request).not.toHaveBeenCalled();
+  });
+
   it('should throw if subgraph response is invalid', async () => {
     const mockSubgraphService = createMockSubgraphService({
       request: vi.fn().mockResolvedValue({
@@ -122,7 +144,7 @@ describe('viewACL', () => {
         subgraphService: mockSubgraphService,
         blockchainService: mockBlockchainService,
       })
-    ).rejects.toThrow(/Handle not found/);
+    ).rejects.toThrow(new UnknownHandleError(DUMMY_TYPED_HANDLES.bool));
   });
 
   it('should handle empty admins and viewers arrays', async () => {

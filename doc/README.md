@@ -4,6 +4,11 @@
 
 # @iexec-nox/handle
 
+## Classes
+
+- [NotYetComputedHandleError](classes/NotYetComputedHandleError.md)
+- [UnknownHandleError](classes/UnknownHandleError.md)
+
 ## Interfaces
 
 - [HandleClient](interfaces/HandleClient.md)
@@ -26,3 +31,4 @@
 - [createEthersHandleClient](functions/createEthersHandleClient.md)
 - [createHandleClient](functions/createHandleClient.md)
 - [createViemHandleClient](functions/createViemHandleClient.md)
+- [isValidHandleFormat](functions/isValidHandleFormat.md)

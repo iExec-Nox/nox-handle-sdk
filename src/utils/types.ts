@@ -313,3 +313,7 @@ export function handleToAttribute(handle: HexString): number {
   const attributeHex = handle.slice(2 + 6 * 2, 2 + 7 * 2); // byte 6
   return Number.parseInt(attributeHex, 16); // Currently reserved for future use, should be 0 or 1
 }
+
+export function isUniqueHandle(handle: HexString): boolean {
+  return handleToAttribute(handle) === 1;
+}
