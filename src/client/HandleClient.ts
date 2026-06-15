@@ -12,7 +12,12 @@ import type {
   EthereumAddress,
   HexString,
 } from '../types/internalTypes.js';
-import type { Handle, JsValue, SolidityType } from '../utils/types.js';
+import type {
+  Handle,
+  HandleProof,
+  JsValue,
+  SolidityType,
+} from '../utils/types.js';
 
 export interface HandleClientConfig {
   gatewayUrl: BaseUrl;
@@ -94,7 +99,7 @@ export class HandleClient {
     applicationContract: EthereumAddress
   ): Promise<{
     handle: Handle<T>;
-    handleProof: HexString;
+    handleProof: HandleProof;
   }> {
     return encryptInput({
       value,

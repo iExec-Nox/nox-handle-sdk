@@ -6,8 +6,8 @@ import {
 import type { EIP1193Provider as ViemEIP1193Provider } from 'viem';
 import type { SmartAccount } from 'viem/account-abstraction';
 import { vi, type Mock } from 'vitest';
+import type { Handle, SolidityType } from '../../src/index.js';
 import type { EIP712TypedData } from '../../src/services/blockchain/IBlockchainService.js';
-import type { HexString } from '../../src/types/internalTypes.js';
 import {
   SUPPORTED_CHAIN_ID,
   TEST_BLOCK_NUMBER,
@@ -130,13 +130,13 @@ export function buildHandle(options: {
   typeCode?: number;
   version?: number;
   attribute?: 0 | 1;
-}): HexString {
+}): Handle<SolidityType> {
   const versionHex = (options.version ?? 0).toString(16).padStart(2, '0');
   const chainIdHex = (options.chainId ?? 1).toString(16).padStart(8, '0');
   const typeHex = (options.typeCode ?? 0).toString(16).padStart(2, '0');
   const attributeHex = (options.attribute ?? 1).toString(16).padStart(2, '0');
   const prehandle = options.prehandle ?? 'ab'.repeat(25);
-  return `0x${versionHex}${chainIdHex}${typeHex}${attributeHex}${prehandle}`;
+  return `0x${versionHex}${chainIdHex}${typeHex}${attributeHex}${prehandle}` as Handle<SolidityType>;
 }
 
 const GATEWAY_WALLET_MOCK = new Wallet(TEST_GATEWAY_PRIVATE_KEY);
