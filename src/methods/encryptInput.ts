@@ -13,6 +13,7 @@ import {
   handleToSolidityType,
   SOLIDITY_TYPES_SET,
   type Handle,
+  type HandleProof,
   type JsValue,
   type SolidityType,
 } from '../utils/types.js';
@@ -128,7 +129,7 @@ export async function encryptInput<T extends SolidityType>({
   applicationContract,
 }: EncryptInputParameters): Promise<{
   handle: Handle<T>;
-  handleProof: HexString;
+  handleProof: HandleProof;
 }> {
   assertRequiredParams({ value, solidityType, applicationContract }, [
     'value',
@@ -215,7 +216,7 @@ export async function encryptInput<T extends SolidityType>({
   const { handle, proof } = response.data as GatewaySecretResponse;
 
   return {
-    handle: handle as HexString,
-    handleProof: proof as HexString,
+    handle: handle as Handle<T>,
+    handleProof: proof as HandleProof,
   };
 }

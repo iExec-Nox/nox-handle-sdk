@@ -28,7 +28,13 @@ type BigIntLike<T extends SolidityType> = T extends
  * Handle type representing an off-chain encrypted value manipulable on-chain.
  * The generic parameter T indicates the Solidity type of the represented value.
  */
-export type Handle<T extends SolidityType> = HexString & { __solidityType?: T };
+export type Handle<T extends SolidityType> = HexString & { __solidityType: T };
+/**
+ * Branded type for a handle proof returned by the Handle Gateway.
+ * It is an opaque hex string (0x + 274 hex chars, 137 bytes) that proves
+ * the encryption was performed correctly and can be submitted on-chain.
+ */
+export type HandleProof = HexString & { __brand: 'HandleProof' };
 
 /**
  * Supported Solidity types for encryption.

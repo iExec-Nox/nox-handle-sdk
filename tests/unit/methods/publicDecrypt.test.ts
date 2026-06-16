@@ -1,6 +1,6 @@
 import { BrowserProvider } from 'ethers';
 import { describe, expect, it, vi } from 'vitest';
-import type { HandleClientConfig } from '../../../src/index.js';
+import type { Handle, HandleClientConfig } from '../../../src/index.js';
 import { publicDecrypt } from '../../../src/methods/publicDecrypt.js';
 import { EthersBlockchainService } from '../../../src/services/blockchain/EthersBlockchainService.js';
 import type { ISubgraphService } from '../../../src/services/subgraph/SubgraphService.js';
@@ -179,7 +179,7 @@ describe('publicDecrypt', () => {
         '0x0000000000000000000000000000000000000000000000000000000000000000';
       await expect(
         publicDecrypt({
-          handle: uninitializedHandle,
+          handle: uninitializedHandle as Handle<'bytes32'>,
           blockchainService: mockBlockchainService,
           apiService: mockApiService,
           subgraphService: mockSubgraphService,

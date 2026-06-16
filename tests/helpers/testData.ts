@@ -1,7 +1,6 @@
 import { NETWORK_CONFIGS } from '../../src/config/networks.js';
 import type { EIP712TypedData } from '../../src/services/blockchain/IBlockchainService.js';
-import type { HexString } from '../../src/types/internalTypes.js';
-import type { SolidityType } from '../../src/utils/types.js';
+import type { Handle, SolidityType } from '../../src/utils/types.js';
 
 /**
  * Well-known private key for testing purposes
@@ -53,107 +52,205 @@ export const TEST_GATEWAY_ADDRESS =
 /**
  * Dummy typed handles for each Solidity type for testing purposes
  */
-export const DUMMY_TYPED_HANDLES: Record<SolidityType, HexString> = {
-  bool: '0x0000066eee0001aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  address: '0x0000066eee0101aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes: '0x0000066eee0201aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  string: '0x0000066eee0301aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint8: '0x0000066eee0401aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint16: '0x0000066eee0501aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint24: '0x0000066eee0601aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint32: '0x0000066eee0701aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint40: '0x0000066eee0801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint48: '0x0000066eee0901aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint56: '0x0000066eee0a01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint64: '0x0000066eee0b01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint72: '0x0000066eee0c01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint80: '0x0000066eee0d01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint88: '0x0000066eee0e01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint96: '0x0000066eee0f01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint104: '0x0000066eee1001aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint112: '0x0000066eee1101aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint120: '0x0000066eee1201aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint128: '0x0000066eee1301aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint136: '0x0000066eee1401aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint144: '0x0000066eee1501aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint152: '0x0000066eee1601aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint160: '0x0000066eee1701aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint168: '0x0000066eee1801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint176: '0x0000066eee1901aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint184: '0x0000066eee1a01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint192: '0x0000066eee1b01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint200: '0x0000066eee1c01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint208: '0x0000066eee1d01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint216: '0x0000066eee1e01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint224: '0x0000066eee1f01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint232: '0x0000066eee2001aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint240: '0x0000066eee2101aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint248: '0x0000066eee2201aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  uint256: '0x0000066eee2301aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int8: '0x0000066eee2401aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int16: '0x0000066eee2501aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int24: '0x0000066eee2601aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int32: '0x0000066eee2701aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int40: '0x0000066eee2801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int48: '0x0000066eee2901aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int56: '0x0000066eee2a01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int64: '0x0000066eee2b01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int72: '0x0000066eee2c01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int80: '0x0000066eee2d01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int88: '0x0000066eee2e01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int96: '0x0000066eee2f01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int104: '0x0000066eee3001aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int112: '0x0000066eee3101aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int120: '0x0000066eee3201aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int128: '0x0000066eee3301aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int136: '0x0000066eee3401aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int144: '0x0000066eee3501aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int152: '0x0000066eee3601aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int160: '0x0000066eee3701aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int168: '0x0000066eee3801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int176: '0x0000066eee3901aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int184: '0x0000066eee3a01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int192: '0x0000066eee3b01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int200: '0x0000066eee3c01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int208: '0x0000066eee3d01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int216: '0x0000066eee3e01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int224: '0x0000066eee3f01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int232: '0x0000066eee4001aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int240: '0x0000066eee4101aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int248: '0x0000066eee4201aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  int256: '0x0000066eee4301aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes1: '0x0000066eee4401aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes2: '0x0000066eee4501aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes3: '0x0000066eee4601aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes4: '0x0000066eee4701aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes5: '0x0000066eee4801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes6: '0x0000066eee4901aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes7: '0x0000066eee4a01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes8: '0x0000066eee4b01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes9: '0x0000066eee4c01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes10: '0x0000066eee4d01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes11: '0x0000066eee4e01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes12: '0x0000066eee4f01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes13: '0x0000066eee5001aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes14: '0x0000066eee5101aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes15: '0x0000066eee5201aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes16: '0x0000066eee5301aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes17: '0x0000066eee5401aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes18: '0x0000066eee5501aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes19: '0x0000066eee5601aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes20: '0x0000066eee5701aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes21: '0x0000066eee5801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes22: '0x0000066eee5901aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes23: '0x0000066eee5a01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes24: '0x0000066eee5b01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes25: '0x0000066eee5c01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes26: '0x0000066eee5d01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes27: '0x0000066eee5e01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes28: '0x0000066eee5f01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes29: '0x0000066eee6001aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes30: '0x0000066eee6101aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes31: '0x0000066eee6201aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  bytes32: '0x0000066eee6301aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+export const DUMMY_TYPED_HANDLES: Record<SolidityType, Handle<SolidityType>> = {
+  bool: '0xaa00066eee0001aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bool'>,
+  address:
+    '0xaa00066eee0101aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'address'>,
+  bytes:
+    '0xaa00066eee0201aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes'>,
+  string:
+    '0xaa00066eee0301aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'string'>,
+  uint8:
+    '0xaa00066eee0401aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint8'>,
+  uint16:
+    '0xaa00066eee0501aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint16'>,
+  uint24:
+    '0xaa00066eee0601aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint24'>,
+  uint32:
+    '0xaa00066eee0701aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint32'>,
+  uint40:
+    '0xaa00066eee0801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint40'>,
+  uint48:
+    '0xaa00066eee0901aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint48'>,
+  uint56:
+    '0xaa00066eee0a01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint56'>,
+  uint64:
+    '0xaa00066eee0b01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint64'>,
+  uint72:
+    '0xaa00066eee0c01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint72'>,
+  uint80:
+    '0xaa00066eee0d01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint80'>,
+  uint88:
+    '0xaa00066eee0e01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint88'>,
+  uint96:
+    '0xaa00066eee0f01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint96'>,
+  uint104:
+    '0xaa00066eee1001aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint104'>,
+  uint112:
+    '0xaa00066eee1101aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint112'>,
+  uint120:
+    '0xaa00066eee1201aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint120'>,
+  uint128:
+    '0xaa00066eee1301aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint128'>,
+  uint136:
+    '0xaa00066eee1401aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint136'>,
+  uint144:
+    '0xaa00066eee1501aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint144'>,
+  uint152:
+    '0xaa00066eee1601aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint152'>,
+  uint160:
+    '0xaa00066eee1701aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint160'>,
+  uint168:
+    '0xaa00066eee1801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint168'>,
+  uint176:
+    '0xaa00066eee1901aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint176'>,
+  uint184:
+    '0xaa00066eee1a01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint184'>,
+  uint192:
+    '0xaa00066eee1b01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint192'>,
+  uint200:
+    '0xaa00066eee1c01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint200'>,
+  uint208:
+    '0xaa00066eee1d01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint208'>,
+  uint216:
+    '0xaa00066eee1e01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint216'>,
+  uint224:
+    '0xaa00066eee1f01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint224'>,
+  uint232:
+    '0xaa00066eee2001aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint232'>,
+  uint240:
+    '0xaa00066eee2101aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint240'>,
+  uint248:
+    '0xaa00066eee2201aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint248'>,
+  uint256:
+    '0xaa00066eee2301aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'uint256'>,
+  int8: '0xaa00066eee2401aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int8'>,
+  int16:
+    '0xaa00066eee2501aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int16'>,
+  int24:
+    '0xaa00066eee2601aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int24'>,
+  int32:
+    '0xaa00066eee2701aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int32'>,
+  int40:
+    '0xaa00066eee2801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int40'>,
+  int48:
+    '0xaa00066eee2901aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int48'>,
+  int56:
+    '0xaa00066eee2a01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int56'>,
+  int64:
+    '0xaa00066eee2b01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int64'>,
+  int72:
+    '0xaa00066eee2c01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int72'>,
+  int80:
+    '0xaa00066eee2d01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int80'>,
+  int88:
+    '0xaa00066eee2e01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int88'>,
+  int96:
+    '0xaa00066eee2f01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int96'>,
+  int104:
+    '0xaa00066eee3001aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int104'>,
+  int112:
+    '0xaa00066eee3101aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int112'>,
+  int120:
+    '0xaa00066eee3201aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int120'>,
+  int128:
+    '0xaa00066eee3301aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int128'>,
+  int136:
+    '0xaa00066eee3401aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int136'>,
+  int144:
+    '0xaa00066eee3501aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int144'>,
+  int152:
+    '0xaa00066eee3601aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int152'>,
+  int160:
+    '0xaa00066eee3701aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int160'>,
+  int168:
+    '0xaa00066eee3801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int168'>,
+  int176:
+    '0xaa00066eee3901aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int176'>,
+  int184:
+    '0xaa00066eee3a01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int184'>,
+  int192:
+    '0xaa00066eee3b01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int192'>,
+  int200:
+    '0xaa00066eee3c01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int200'>,
+  int208:
+    '0xaa00066eee3d01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int208'>,
+  int216:
+    '0xaa00066eee3e01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int216'>,
+  int224:
+    '0xaa00066eee3f01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int224'>,
+  int232:
+    '0xaa00066eee4001aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int232'>,
+  int240:
+    '0xaa00066eee4101aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int240'>,
+  int248:
+    '0xaa00066eee4201aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int248'>,
+  int256:
+    '0xaa00066eee4301aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'int256'>,
+  bytes1:
+    '0xaa00066eee4401aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes1'>,
+  bytes2:
+    '0xaa00066eee4501aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes2'>,
+  bytes3:
+    '0xaa00066eee4601aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes3'>,
+  bytes4:
+    '0xaa00066eee4701aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes4'>,
+  bytes5:
+    '0xaa00066eee4801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes5'>,
+  bytes6:
+    '0xaa00066eee4901aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes6'>,
+  bytes7:
+    '0xaa00066eee4a01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes7'>,
+  bytes8:
+    '0xaa00066eee4b01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes8'>,
+  bytes9:
+    '0xaa00066eee4c01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes9'>,
+  bytes10:
+    '0xaa00066eee4d01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes10'>,
+  bytes11:
+    '0xaa00066eee4e01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes11'>,
+  bytes12:
+    '0xaa00066eee4f01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes12'>,
+  bytes13:
+    '0xaa00066eee5001aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes13'>,
+  bytes14:
+    '0xaa00066eee5101aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes14'>,
+  bytes15:
+    '0xaa00066eee5201aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes15'>,
+  bytes16:
+    '0xaa00066eee5301aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes16'>,
+  bytes17:
+    '0xaa00066eee5401aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes17'>,
+  bytes18:
+    '0xaa00066eee5501aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes18'>,
+  bytes19:
+    '0xaa00066eee5601aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes19'>,
+  bytes20:
+    '0xaa00066eee5701aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes20'>,
+  bytes21:
+    '0xaa00066eee5801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes21'>,
+  bytes22:
+    '0xaa00066eee5901aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes22'>,
+  bytes23:
+    '0xaa00066eee5a01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes23'>,
+  bytes24:
+    '0xaa00066eee5b01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes24'>,
+  bytes25:
+    '0xaa00066eee5c01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes25'>,
+  bytes26:
+    '0xaa00066eee5d01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes26'>,
+  bytes27:
+    '0xaa00066eee5e01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes27'>,
+  bytes28:
+    '0xaa00066eee5f01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes28'>,
+  bytes29:
+    '0xaa00066eee6001aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes29'>,
+  bytes30:
+    '0xaa00066eee6101aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes30'>,
+  bytes31:
+    '0xaa00066eee6201aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes31'>,
+  bytes32:
+    '0xaa00066eee6301aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Handle<'bytes32'>,
 };
 
 export const DUMMY_DECRYPTION_PROOF_SIGNATURE = `0x${'deadbeef'.padStart(65 * 2, '0')}`;

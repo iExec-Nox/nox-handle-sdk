@@ -1,3 +1,5 @@
+import type { Handle, SolidityType } from '../index.js';
+
 /**
  * Error thrown when the subgraph is out of sync with the current block number.
  */
@@ -26,8 +28,8 @@ export class SubgraphOutOfSyncError extends Error {
  * Error thrown when a handle is queried but has not yet been computed by runner.
  */
 export class NotYetComputedHandleError extends Error {
-  handle: string;
-  constructor(handle: string) {
+  handle: Handle<SolidityType>;
+  constructor(handle: Handle<SolidityType>) {
     super(`Handle with ID ${handle} has not yet been computed.`);
     this.name = 'NotYetComputedHandleError';
     this.handle = handle;
@@ -38,8 +40,8 @@ export class NotYetComputedHandleError extends Error {
  * Error thrown when a handle is queried but was never seen onchain.
  */
 export class UnknownHandleError extends Error {
-  handle: string;
-  constructor(handle: string) {
+  handle: Handle<SolidityType>;
+  constructor(handle: Handle<SolidityType>) {
     super(`Handle with ID ${handle} is unknown.`);
     this.name = 'UnknownHandleError';
     this.handle = handle;

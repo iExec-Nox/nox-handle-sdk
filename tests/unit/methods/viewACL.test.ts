@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Handle } from '../../../src/index.js';
 import { viewACL } from '../../../src/methods/viewACL.js';
 import type { IBlockchainService } from '../../../src/services/blockchain/IBlockchainService.js';
 import type { ISubgraphService } from '../../../src/services/subgraph/SubgraphService.js';
@@ -92,7 +93,7 @@ describe('viewACL', () => {
 
     await expect(
       viewACL({
-        handle: uninitializedHandle,
+        handle: uninitializedHandle as Handle<'bytes32'>,
         subgraphService: mockSubgraphService,
         blockchainService: mockBlockchainService,
       })

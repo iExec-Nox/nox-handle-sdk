@@ -58,6 +58,16 @@ export function assertValidHandleFormat(
   }
 }
 
+/**
+ * Returns `true` if `handle` is a structurally valid Handle string, `false` otherwise.
+ *
+ * Checks performed:
+ * - format: `0x` + 64 hex characters (32 bytes)
+ * - not the zero hash (uninitialized handle)
+ * - known attribute byte (0 or 1)
+ * - known Solidity type code (byte 5)
+ * - supported version (byte 0)
+ */
 export function isValidHandleFormat(handle: unknown): handle is HexString {
   try {
     assertValidHandleFormat(handle);
