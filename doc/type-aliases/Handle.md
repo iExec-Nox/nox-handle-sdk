@@ -13,9 +13,9 @@ The generic parameter T indicates the Solidity type of the represented value.
 
 ## Type Declaration
 
-### \_\_solidityType?
+### \_\_solidityType
 
-> `optional` **\_\_solidityType?**: `T`
+> **\_\_solidityType**: `T`
 
 ## Type Parameters
 
