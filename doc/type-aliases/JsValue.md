@@ -6,7 +6,7 @@
 
 # Type Alias: JsValue\<T\>
 
-> **JsValue**\<`T`\> = `BoolLike`\<`T`\> \| `StringLike`\<`T`\> \| `BigIntLike`\<`T`\>
+> **JsValue**\<`T`\> = `T` *extends* `"bool"` ? `boolean` : `T` *extends* `"string"` \| `"address"` \| `"bytes"` \| `` `bytes${number}` `` ? `string` : `T` *extends* `` `uint${number}` `` \| `` `int${number}` `` ? `bigint` : `never`
 
 Value types associated to Solidity type:
 - bool → boolean
