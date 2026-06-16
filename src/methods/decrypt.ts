@@ -31,7 +31,10 @@ import {
   type JsValue,
   type SolidityType,
 } from '../utils/types.js';
-import { assertRequiredParams } from '../utils/validators.js';
+import {
+  assertRequiredParams,
+  assertValidHandleFormat,
+} from '../utils/validators.js';
 import { viewACL } from './viewACL.js';
 
 export async function decrypt<T extends SolidityType>({
@@ -50,6 +53,7 @@ export async function decrypt<T extends SolidityType>({
   config: HandleClientConfig;
 }): Promise<{ value: JsValue<T>; solidityType: T }> {
   assertRequiredParams({ handle }, ['handle']);
+  assertValidHandleFormat(handle);
 
   const [chainId, userAddress] = await Promise.all([
     blockchainService.getChainId(),

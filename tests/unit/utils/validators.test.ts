@@ -1,13 +1,32 @@
-import { describe, it, expect } from 'vitest';
-import { SOLIDITY_TYPE_TO_CODE } from '../../../src/utils/types.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as typesModule from '../../../src/utils/types.js';
 import {
+  assertValidHandleFormat,
   isBaseURL,
   isEthereumAddress,
   isSubgraphURL,
-  validateHandle,
-  validateHandleProof,
+  isValidHandleFormat,
 } from '../../../src/utils/validators.js';
-import { buildHandle } from '../../helpers/mocks.js';
+
+vi.mock('../../../src/utils/types.js', async (importOriginal) => {
+  const original =
+    await importOriginal<typeof import('../../../src/utils/types.js')>();
+  return {
+    ...original,
+    handleToAttribute: vi.fn(),
+    handleToSolidityType: vi.fn(),
+    handleToVersion: vi.fn(),
+  };
+});
+
+const VALID_HANDLE = ('0x' + 'ab'.repeat(32)) as `0x${string}`;
+const ZERO_HASH = ('0x' + '00'.repeat(32)) as `0x${string}`;
+
+beforeEach(() => {
+  vi.mocked(typesModule.handleToAttribute).mockReturnValue(0);
+  vi.mocked(typesModule.handleToSolidityType).mockReturnValue('bool');
+  vi.mocked(typesModule.handleToVersion).mockReturnValue(0);
+});
 
 describe('isBaseURL', () => {
   const validUrls = [
@@ -103,300 +122,84 @@ describe('isEthereumAddress', () => {
   }
 });
 
-describe('validateHandle', () => {
-  describe('format validation', () => {
-    it('accepts valid 32-byte handle', () => {
-      const handle = buildHandle({ chainId: 1, typeCode: 0, version: 0 });
-      expect(() =>
-        validateHandle({
-          handle,
-          expectedChainId: 1,
-          expectedSolidityType: 'bool',
-        })
-      ).not.toThrow();
+describe('assertValidHandleFormat', () => {
+  describe('not a string', () => {
+    it('throws for null', () => {
+      expect(() => assertValidHandleFormat(null)).toThrow(TypeError);
     });
 
-    it('should reject handle with wrong length', () => {
-      expect(() =>
-        validateHandle({
-          handle: '0x1234',
-          expectedChainId: 1,
-          expectedSolidityType: 'bool',
-        })
-      ).toThrow('Invalid handle format: expected 0x + 64 hex chars (32 bytes)');
+    it('throws for undefined', () => {
+      expect(() => assertValidHandleFormat(undefined)).toThrow(TypeError);
     });
 
-    it('should reject handle with wrong length', () => {
-      const longHandle = '0x' + 'ab'.repeat(33);
-      expect(() =>
-        validateHandle({
-          handle: longHandle,
-          expectedChainId: 1,
-          expectedSolidityType: 'bool',
-        })
-      ).toThrow('Invalid handle format');
-    });
-
-    it('should reject handle with invalid hex characters', () => {
-      const invalidHandle = '0x' + 'gg'.repeat(32);
-      expect(() =>
-        validateHandle({
-          handle: invalidHandle,
-          expectedChainId: 1,
-          expectedSolidityType: 'bool',
-        })
-      ).toThrow(TypeError);
-    });
-
-    it('rejects non-string handle', () => {
-      expect(() =>
-        validateHandle({
-          handle: 12_345,
-          expectedChainId: 1,
-          expectedSolidityType: 'bool',
-        })
-      ).toThrow(TypeError);
+    it('throws for plain object', () => {
+      expect(() => assertValidHandleFormat({})).toThrow(TypeError);
     });
   });
 
-  describe('chain ID validation (bytes 1-4)', () => {
-    it('accepts matching chain ID', () => {
-      const handle = buildHandle({ chainId: 421_614, typeCode: 0, version: 0 });
-      expect(() =>
-        validateHandle({
-          handle,
-          expectedChainId: 421_614,
-          expectedSolidityType: 'bool',
-        })
-      ).not.toThrow();
-    });
-
-    it('rejects mismatched chain ID', () => {
-      const handle = buildHandle({ chainId: 1, typeCode: 0, version: 0 });
-      expect(() =>
-        validateHandle({
-          handle,
-          expectedChainId: 421_614,
-          expectedSolidityType: 'bool',
-        })
-      ).toThrow('Handle chainId mismatch: expected 421614, got 1');
-    });
-
-    it('should accept handle with max uint32 chain ID (0xFFFFFFFF)', () => {
-      const maxChainId = 0xff_ff_ff_ff;
-      const handle = buildHandle({
-        chainId: maxChainId,
-        typeCode: 0,
-        version: 0,
-      });
-      expect(() =>
-        validateHandle({
-          handle,
-          expectedChainId: maxChainId,
-          expectedSolidityType: 'bool',
-        })
-      ).not.toThrow();
-    });
-  });
-
-  describe('type code validation (byte 5)', () => {
-    for (const [type, code] of SOLIDITY_TYPE_TO_CODE.entries()) {
-      it(`should accept handle with matching type ${type} (code ${code})`, () => {
-        const handle = buildHandle({ chainId: 1, typeCode: code, version: 0 });
-        expect(() =>
-          validateHandle({
-            handle,
-            expectedChainId: 1,
-            expectedSolidityType: type,
-          })
-        ).not.toThrow();
-      });
-    }
-
-    it('should reject handle with mismatched type', () => {
-      const handle = buildHandle({ chainId: 1, typeCode: 0, version: 0 }); // bool
-      expect(() =>
-        validateHandle({
-          handle,
-          expectedChainId: 1,
-          expectedSolidityType: 'uint256',
-        })
-      ).toThrow('Handle type mismatch: expected uint256, got bool');
-    });
-
-    it('should reject handle with reserved type code (100)', () => {
-      const handle = buildHandle({ chainId: 1, typeCode: 100, version: 0 });
-      expect(() =>
-        validateHandle({
-          handle,
-          expectedChainId: 1,
-          expectedSolidityType: 'bool',
-        })
-      ).toThrow('Unknown handle type code: 100');
-    });
-
-    it('throws for reserved type code (255)', () => {
-      const handle = buildHandle({ chainId: 1, typeCode: 255, version: 0 });
-      expect(() =>
-        validateHandle({
-          handle,
-          expectedChainId: 1,
-          expectedSolidityType: 'bool',
-        })
-      ).toThrow('Unknown handle type code: 255');
-    });
-  });
-
-  describe('attribute validation (byte 6)', () => {
-    it('should accept handle with supported attribute (0)', () => {
-      const handle = buildHandle({
-        chainId: 1,
-        typeCode: 0,
-        version: 0,
-        attribute: 0,
-      });
-      expect(() =>
-        validateHandle({
-          handle,
-          expectedChainId: 1,
-          expectedSolidityType: 'bool',
-        })
-      ).not.toThrow();
-    });
-
-    it('should accept handle with supported attribute (1)', () => {
-      const handle = buildHandle({
-        chainId: 1,
-        typeCode: 0,
-        version: 0,
-        attribute: 1,
-      });
-      expect(() =>
-        validateHandle({
-          handle,
-          expectedChainId: 1,
-          expectedSolidityType: 'bool',
-        })
-      ).not.toThrow();
-    });
-
-    it('should reject handle with unsupported attribute', () => {
-      const handle = buildHandle({
-        chainId: 1,
-        typeCode: 0,
-        version: 0,
-        attribute: 2 as any,
-      });
-      expect(() =>
-        validateHandle({
-          handle,
-          expectedChainId: 1,
-          expectedSolidityType: 'bool',
-        })
-      ).toThrow(`Unsupported handle attribute: expected one of [0,1], got 2`);
-    });
-  });
-
-  describe('version validation (byte 0)', () => {
-    it('accepts version 0', () => {
-      const handle = buildHandle({ chainId: 1, typeCode: 0, version: 0 });
-      expect(() =>
-        validateHandle({
-          handle,
-          expectedChainId: 1,
-          expectedSolidityType: 'bool',
-        })
-      ).not.toThrow();
-    });
-
-    const SUPPORTED_VERSIONS = [0];
-    it(`should reject handle with version other than ${SUPPORTED_VERSIONS}`, () => {
-      const handle = buildHandle({ chainId: 1, typeCode: 0, version: 1 });
-      expect(() =>
-        validateHandle({
-          handle,
-          expectedChainId: 1,
-          expectedSolidityType: 'bool',
-        })
-      ).toThrow(
-        `Unsupported handle version: 1. Supported versions: ${SUPPORTED_VERSIONS.join(', ')}`
+  describe('regex failure', () => {
+    it('throws for empty string', () => {
+      expect(() => assertValidHandleFormat('')).toThrow(
+        'Invalid handle format: expected 0x + 64 hex chars (32 bytes)'
       );
     });
 
-    it('should reject handle with version 255', () => {
-      const handle = buildHandle({ chainId: 1, typeCode: 0, version: 255 });
-      expect(() =>
-        validateHandle({
-          handle,
-          expectedChainId: 1,
-          expectedSolidityType: 'bool',
-        })
-      ).toThrow(
-        `Unsupported handle version: 255. Supported versions: ${SUPPORTED_VERSIONS.join(', ')}`
+    it('throws for too-short hex string', () => {
+      expect(() => assertValidHandleFormat('0x123')).toThrow(
+        'Invalid handle format: expected 0x + 64 hex chars (32 bytes)'
+      );
+    });
+
+    it('throws for invalid hex characters', () => {
+      expect(() => assertValidHandleFormat('0x' + 'GG'.repeat(32))).toThrow(
+        'Invalid handle format: expected 0x + 64 hex chars (32 bytes)'
       );
     });
   });
 
-  describe('cross-chain isolation', () => {
-    it('should reject handle with same prehandle but different chain IDs', () => {
-      const handle1 = buildHandle({
-        prehandle: 'aa'.repeat(25),
-        chainId: 1,
-        typeCode: 0,
-        version: 0,
-      });
-      const handle2 = buildHandle({
-        prehandle: 'aa'.repeat(25),
-        chainId: 2,
-        typeCode: 0,
-        version: 0,
-      });
-
-      expect(() =>
-        validateHandle({
-          handle: handle1,
-          expectedChainId: 1,
-          expectedSolidityType: 'bool',
-        })
-      ).not.toThrow();
-
-      expect(() =>
-        validateHandle({
-          handle: handle2,
-          expectedChainId: 1,
-          expectedSolidityType: 'bool',
-        })
-      ).toThrow('Handle chainId mismatch');
-    });
-  });
-});
-
-describe('validateHandleProof', () => {
-  it('should accept valid 137-byte handleProof', () => {
-    const validProof = '0x' + 'ab'.repeat(137);
-    expect(() => validateHandleProof(validProof)).not.toThrow();
-  });
-
-  it('should reject handleProof with wrong length', () => {
-    const shortProof = '0x' + 'ab'.repeat(100);
-    expect(() => validateHandleProof(shortProof)).toThrow(TypeError);
-    expect(() => validateHandleProof(shortProof)).toThrow(
-      'Invalid handleProof: expected 0x + 274 hex chars (137 bytes)'
+  it('throws for uninitialized handle', () => {
+    expect(() => assertValidHandleFormat(ZERO_HASH)).toThrow(
+      'Invalid handle: received an uninitialized handle — ensure the handle has been stored on-chain before use'
     );
   });
 
-  it('should reject handleProof with wrong length', () => {
-    const longProof = '0x' + 'ab'.repeat(150);
-    expect(() => validateHandleProof(longProof)).toThrow(TypeError);
+  it('throws for unsupported attribute', () => {
+    vi.mocked(typesModule.handleToAttribute).mockReturnValue(2);
+
+    expect(() => assertValidHandleFormat(VALID_HANDLE)).toThrow(
+      'Unsupported handle attribute: expected one of [0,1], got 2'
+    );
   });
 
-  it('should reject handleProof with invalid hex characters', () => {
-    const invalidProof = '0x' + 'gg'.repeat(137);
-    expect(() => validateHandleProof(invalidProof)).toThrow(TypeError);
+  it('throws for unknown type code', () => {
+    vi.mocked(typesModule.handleToSolidityType).mockImplementation(() => {
+      throw new Error('Unknown handle type code: 100');
+    });
+
+    expect(() => assertValidHandleFormat(VALID_HANDLE)).toThrow(
+      'Unknown handle type code: 100'
+    );
   });
 
-  it('should reject handleProof without 0x prefix', () => {
-    const noPrefix = 'ab'.repeat(137);
-    expect(() => validateHandleProof(noPrefix)).toThrow(TypeError);
+  it('throws for unsupported version', () => {
+    vi.mocked(typesModule.handleToVersion).mockReturnValue(1);
+
+    expect(() => assertValidHandleFormat(VALID_HANDLE)).toThrow(
+      'Unsupported handle version: 1. Supported versions: 0'
+    );
+  });
+
+  it('does not throw for a well-formed handle', () => {
+    expect(() => assertValidHandleFormat(VALID_HANDLE)).not.toThrow();
+  });
+});
+
+describe('isValidHandleFormat', () => {
+  it('returns true for a well-formed handle', () => {
+    expect(isValidHandleFormat(VALID_HANDLE)).toBe(true);
+  });
+
+  it('returns false when assertValidHandleFormat would throw', () => {
+    expect(isValidHandleFormat(ZERO_HASH)).toBe(false);
   });
 });

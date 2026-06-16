@@ -31,3 +31,4 @@
 - [createEthersHandleClient](functions/createEthersHandleClient.md)
 - [createHandleClient](functions/createHandleClient.md)
 - [createViemHandleClient](functions/createViemHandleClient.md)
+- [isValidHandleFormat](functions/isValidHandleFormat.md)

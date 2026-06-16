@@ -224,6 +224,27 @@ describe('decrypt', () => {
     });
   });
 
+  describe('when handle is uninitialized', () => {
+    it('should throw for an all-zero handle (uninitialized Solidity bytes32)', async () => {
+      const uninitializedHandle =
+        '0x0000000000000000000000000000000000000000000000000000000000000000' as ;
+      await expect(
+        decrypt({
+          handle: uninitializedHandle,
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          storageService: mockStorageService,
+          subgraphService: mockSubgraphService,
+          config: mockConfig,
+        })
+      ).rejects.toThrow(
+        'Invalid handle: received an uninitialized handle — ensure the handle has been stored on-chain before use'
+      );
+      expect(signTypedDataSpy).not.toHaveBeenCalled();
+      expect(mockApiService.get).not.toHaveBeenCalled();
+    });
+  });
+
   describe('when RSA key generation fails', () => {
     it('should throw', async () => {
       vi.spyOn(rsa, 'generateRsaKeyPair').mockImplementationOnce(() =>
