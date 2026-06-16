@@ -1,6 +1,6 @@
 import { BrowserProvider } from 'ethers';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { HandleClientConfig } from '../../../src/index.js';
+import type { Handle, HandleClientConfig } from '../../../src/index.js';
 import { decrypt } from '../../../src/methods/decrypt.js';
 import { EthersBlockchainService } from '../../../src/services/blockchain/EthersBlockchainService.js';
 import type { IStorageService } from '../../../src/services/storage/IStorageService.js';
@@ -227,7 +227,7 @@ describe('decrypt', () => {
   describe('when handle is uninitialized', () => {
     it('should throw for an all-zero handle (uninitialized Solidity bytes32)', async () => {
       const uninitializedHandle =
-        '0x0000000000000000000000000000000000000000000000000000000000000000' as ;
+        '0x0000000000000000000000000000000000000000000000000000000000000000' as Handle<'bytes32'>;
       await expect(
         decrypt({
           handle: uninitializedHandle,
