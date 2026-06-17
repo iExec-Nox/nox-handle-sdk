@@ -29,5 +29,11 @@ export default defineConfig({
     // Timeouts
     testTimeout: 10_000,
     hookTimeout: 10_000,
+
+    // Type tests
+    typecheck: {
+      enabled: true,
+      include: ['tests/types/**/*.type-test.ts'],
+    },
   },
 });

@@ -113,7 +113,12 @@ export class HandleClient {
    *
    * @remarks
    * The decryption key is shared with the connected wallet address via public key encryption.
+   *
    * To request decryption, the connected wallet must be allowed to view the data and provide an EIP712 DataAccessAuthorization signature.
+   *
+   * The `value` type is inferred by TypeScript from the type of the `handle` input if correctly typed (ex: `decrypt(handle as Handle<'uint256'>)` infers `value` as `bigint`).
+   * If `handle` is not typed, the `value` type will be `JsValue<SolidityType>`, which is a union of all possible types.
+   * It is recommended to use typed handles for better type safety and inference when the handle type is known.
    *
    * @example
    * ```ts
@@ -169,7 +174,12 @@ export class HandleClient {
    *
    * @remarks
    * To request public decryption, the handle must be publicly decryptable.
+   *
    * The decryption proof can be verified in a smart contract and used to produce a plaintext value onchain.
+   *
+   * The `value` type is inferred by TypeScript from the type of the `handle` input if correctly typed (ex: `publicDecrypt(handle as Handle<'uint256'>)` infers `value` as `bigint`).
+   * If `handle` is not typed, the `value` type will be `JsValue<SolidityType>`, which is a union of all possible types.
+   * It is recommended to use typed handles for better type safety and inference when the handle type is known.
    *
    * @example
    * ```ts

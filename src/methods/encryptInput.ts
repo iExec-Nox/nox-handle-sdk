@@ -215,7 +215,7 @@ export async function encryptInput<T extends SolidityType>({
   const { handle, proof } = response.data as GatewaySecretResponse;
 
   return {
-    handle: handle as HexString,
+    handle: handle as Handle<T>,
     handleProof: proof as HexString,
   };
 }

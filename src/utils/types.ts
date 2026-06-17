@@ -8,27 +8,24 @@ import { isHexString } from './hex.js';
  * - address, bytes, bytes* → string (hex)
  * - uint*, int* → bigint
  */
-export type JsValue<T extends SolidityType> =
-  | BoolLike<T>
-  | StringLike<T>
-  | BigIntLike<T>;
-type BoolLike<T extends SolidityType> = T extends 'bool' ? boolean : never;
-type StringLike<T extends SolidityType> = T extends 'string'
-  ? string
-  : T extends 'address' | 'bytes' | `bytes${number}`
+export type JsValue<T extends SolidityType> = T extends 'bool'
+  ? boolean
+  : T extends 'string' | 'address' | 'bytes' | `bytes${number}`
     ? string
-    : never;
-type BigIntLike<T extends SolidityType> = T extends
-  | `uint${number}`
-  | `int${number}`
-  ? bigint
-  : never;
+    : T extends `uint${number}` | `int${number}`
+      ? bigint
+      : never;
 
 /**
  * Handle type representing an off-chain encrypted value manipulable on-chain.
- * The generic parameter T indicates the Solidity type of the represented value.
+ *
+ * The generic parameter T indicates the {@link SolidityType} of the represented value.
+ *
+ * Handle format is checked at runtime. A handle must be a 32-byte hex string (`0x` + 64 hex chars).
  */
-export type Handle<T extends SolidityType> = HexString & { __solidityType?: T };
+export type Handle<T extends SolidityType> = string & {
+  __solidityType?: T;
+};
 
 /**
  * Supported Solidity types for encryption.
