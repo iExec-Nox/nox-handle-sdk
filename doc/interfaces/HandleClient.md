@@ -92,6 +92,23 @@ The address of the contract allowed to use the input
 
 [Handle](../type-aliases/Handle.md) and handleProof for smart contract usage
 
+#### Remarks
+
+**Encrypting multiple values concurrently**
+
+You can encrypt several values in parallel using `Promise.all` or `Promise.allSettled`:
+
+- **`Promise.all`** — all calls start at the same time and resolve together.
+  Simple to use, but if any single call rejects, the entire `Promise.all` rejects
+  and all results (including the successful ones) are discarded.
+
+- **`Promise.allSettled`** — all calls start at the same time and each settles
+  independently. Returns an indexed array of `{ status, value | reason }` — a rejection
+  on one item never discards the others. Requires checking each result individually.
+
+The Handle Gateway enforces a rate limit. Sending more than ~100 concurrent calls
+may result in `429 Too Many Requests` errors.
+
 #### Example
 
 ```ts
@@ -108,6 +125,27 @@ const { handle, handleProof } = await client.encryptInput(
   'bool',
   '0x123...abc'
 );
+
+// Multiple values — Promise.all (throws if any call rejects)
+const [sell, minBuy, bid] = await Promise.all([
+  client.encryptInput(sellAmount, 'uint256', contract),
+  client.encryptInput(minBuyAmount, 'uint256', contract),
+  client.encryptInput(bidAmount, 'uint256', contract),
+]);
+
+// Multiple values — Promise.allSettled (each result is independent)
+const results = await Promise.allSettled([
+  client.encryptInput(sellAmount, 'uint256', contract),
+  client.encryptInput(minBuyAmount, 'uint256', contract),
+  client.encryptInput(bidAmount, 'uint256', contract),
+]);
+for (const [i, result] of results.entries()) {
+  if (result.status === 'fulfilled') {
+    const { handle, handleProof } = result.value;
+  } else {
+    console.error(`input[${i}] failed:`, result.reason);
+  }
+}
 ```
 
 ***
