@@ -26,4 +26,4 @@ jobs:
       tag: ${{ inputs.tag }}
       version: ${{ inputs.version }}
       environment: ${{ (!inputs.dry-run && inputs.tag) || '' }}
-      provenance: ${{ !inputs.dry-run }}
+      provenance: true
