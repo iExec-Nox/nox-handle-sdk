@@ -78,7 +78,7 @@ export class HandleClient {
    *
    * - **`Promise.all`** — all calls start at the same time and resolve together.
    *   Simple to use, but if any single call rejects, the entire `Promise.all` rejects
-   *   and all results (including the successful ones) are discarded.
+   *   and fulfilled results become inaccessible — in-flight calls are not cancelled.
    *
    * - **`Promise.allSettled`** — all calls start at the same time and each settles
    *   independently. Returns an indexed array of `{ status, value | reason }` — a rejection
@@ -105,16 +105,16 @@ export class HandleClient {
    *
    * // Multiple values — Promise.all (throws if any call rejects)
    * const [sell, minBuy, bid] = await Promise.all([
-   *   client.encryptInput(sellAmount, 'uint256', contract),
-   *   client.encryptInput(minBuyAmount, 'uint256', contract),
-   *   client.encryptInput(bidAmount, 'uint256', contract),
+   *   client.encryptInput(sellAmount, 'uint256', applicationContract),
+   *   client.encryptInput(minBuyAmount, 'uint256', applicationContract),
+   *   client.encryptInput(bidAmount, 'uint256', applicationContract),
    * ]);
    *
    * // Multiple values — Promise.allSettled (each result is independent)
    * const results = await Promise.allSettled([
-   *   client.encryptInput(sellAmount, 'uint256', contract),
-   *   client.encryptInput(minBuyAmount, 'uint256', contract),
-   *   client.encryptInput(bidAmount, 'uint256', contract),
+   *   client.encryptInput(sellAmount, 'uint256', applicationContract),
+   *   client.encryptInput(minBuyAmount, 'uint256', applicationContract),
+   *   client.encryptInput(bidAmount, 'uint256', applicationContract),
    * ]);
    * for (const [i, result] of results.entries()) {
    *   if (result.status === 'fulfilled') {

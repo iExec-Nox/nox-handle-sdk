@@ -158,20 +158,21 @@ const { handle, handleProof } = await handleClient.encryptInput(
 
 // Encrypt multiple values concurrently with Promise.all
 // All calls start at the same time. If any single call rejects,
-// the entire Promise.all rejects and all results are discarded.
+// the entire Promise.all rejects — fulfilled results become inaccessible,
+// but in-flight calls are not cancelled.
 const [sell, minBuy, bid] = await Promise.all([
-  handleClient.encryptInput(sellAmount, 'uint256', contract),
-  handleClient.encryptInput(minBuyAmount, 'uint256', contract),
-  handleClient.encryptInput(bidAmount, 'uint256', contract),
+  handleClient.encryptInput(sellAmount, 'uint256', applicationContract),
+  handleClient.encryptInput(minBuyAmount, 'uint256', applicationContract),
+  handleClient.encryptInput(bidAmount, 'uint256', applicationContract),
 ]);
 
 // Encrypt multiple values concurrently with Promise.allSettled
 // All calls start at the same time. Each settles independently:
 // fulfilled results are never lost if another call rejects.
 const results = await Promise.allSettled([
-  handleClient.encryptInput(sellAmount, 'uint256', contract),
-  handleClient.encryptInput(minBuyAmount, 'uint256', contract),
-  handleClient.encryptInput(bidAmount, 'uint256', contract),
+  handleClient.encryptInput(sellAmount, 'uint256', applicationContract),
+  handleClient.encryptInput(minBuyAmount, 'uint256', applicationContract),
+  handleClient.encryptInput(bidAmount, 'uint256', applicationContract),
 ]);
 
 ```
