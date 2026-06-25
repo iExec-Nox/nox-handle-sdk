@@ -49,6 +49,9 @@
     "url": "https://github.com/iExec-Nox/nox-handle-sdk/issues"
   },
   "homepage": "https://github.com/iExec-Nox/nox-handle-sdk#readme",
+  "publishConfig": {
+    "provenance": true
+  },
   "dependencies": {
     "graphql-request": "^7.4.0"
   },
