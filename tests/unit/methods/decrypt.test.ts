@@ -1140,6 +1140,5 @@ describe('decrypt', () => {
 
       expect(rsaDecryptSpy).not.toHaveBeenCalled();
     });
-
   });
 });

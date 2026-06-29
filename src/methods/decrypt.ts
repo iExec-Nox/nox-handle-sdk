@@ -192,7 +192,8 @@ export async function decrypt<T extends SolidityType>({
     !isHexString((response.data as { ciphertext?: unknown }).ciphertext) ||
     !isHexString((response.data as { iv?: unknown }).iv, 12) ||
     !isHexString(
-      (response.data as { encryptedSharedSecret?: unknown }).encryptedSharedSecret
+      (response.data as { encryptedSharedSecret?: unknown })
+        .encryptedSharedSecret
     )
   ) {
     throw new Error(
@@ -200,13 +201,17 @@ export async function decrypt<T extends SolidityType>({
     );
   }
 
-  const { handle: responseHandle, ciphertext, iv, encryptedSharedSecret } =
-    response.data as {
-      handle: string;
-      ciphertext: HexString;
-      iv: HexString;
-      encryptedSharedSecret: HexString;
-    };
+  const {
+    handle: responseHandle,
+    ciphertext,
+    iv,
+    encryptedSharedSecret,
+  } = response.data as {
+    handle: string;
+    ciphertext: HexString;
+    iv: HexString;
+    encryptedSharedSecret: HexString;
+  };
 
   if (responseHandle.toLowerCase() !== handle.toLowerCase()) {
     throw new GatewayTrustError(
