@@ -45,3 +45,14 @@ export class UnknownHandleError extends Error {
     this.handle = handle;
   }
 }
+
+/**
+ * Custom error class for gateway server verification failures.
+ * This error is thrown when the gateway response fails signature verification, indicating a potential tampering of the response.
+ */
+export class GatewayTrustError extends Error {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'GatewayTrustError';
+  }
+}

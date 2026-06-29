@@ -2,8 +2,8 @@ import { verifyTypedData as ethersVerifyTypedData, Wallet } from 'ethers';
 import { describe, it, expect, vi } from 'vitest';
 import type { EthereumAddress, HexString } from '../../../src/index.js';
 import type { EIP712TypedData } from '../../../src/services/blockchain/IBlockchainService.js';
+import { GatewayTrustError } from '../../../src/utils/error.js';
 import {
-  GatewayTrustError,
   generateRequestSalt,
   attestResponse,
 } from '../../../src/utils/gatewayAttestation.js';

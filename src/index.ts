@@ -8,4 +8,5 @@ export { isValidHandleFormat } from './utils/validators.js';
 export {
   NotYetComputedHandleError,
   UnknownHandleError,
+  GatewayTrustError,
 } from './utils/error.js';
