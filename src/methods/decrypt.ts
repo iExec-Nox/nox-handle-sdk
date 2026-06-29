@@ -11,6 +11,7 @@ import type { HexString } from '../types/internalTypes.js';
 import { eciesDecrypt } from '../utils/ecies.js';
 import { decodeValue } from '../utils/encoding.js';
 import {
+  GatewayTrustError,
   NotYetComputedHandleError,
   UnknownHandleError,
 } from '../utils/error.js';
@@ -132,6 +133,7 @@ export async function decrypt<T extends SolidityType>({
   let handleVerifiedToExist = false;
   const getHandleCryptoMaterial = async () => {
     let response = await getHandleCryptoMaterialFromApi(authorization);
+
     // Clear stored decryption material if authorization is invalid to avoid trying to reuse it on subsequent decryptions
     if (response.status === 401 && !isFreshDecryptionMaterial) {
       try {
@@ -181,16 +183,16 @@ export async function decrypt<T extends SolidityType>({
     }
   );
 
-  // Validate response
+  // Validate response format
   if (
     response.status !== 200 ||
     typeof response.data !== 'object' ||
     response.data === null ||
-    !isHexString((response.data as { ciphertext?: unknown })?.ciphertext) ||
-    !isHexString((response.data as { iv?: unknown })?.iv, 12) ||
+    typeof (response.data as { handle?: unknown }).handle !== 'string' ||
+    !isHexString((response.data as { ciphertext?: unknown }).ciphertext) ||
+    !isHexString((response.data as { iv?: unknown }).iv, 12) ||
     !isHexString(
-      (response.data as { encryptedSharedSecret?: unknown })
-        ?.encryptedSharedSecret
+      (response.data as { encryptedSharedSecret?: unknown }).encryptedSharedSecret
     )
   ) {
     throw new Error(
@@ -198,11 +200,19 @@ export async function decrypt<T extends SolidityType>({
     );
   }
 
-  const { ciphertext, iv, encryptedSharedSecret } = response.data as {
-    ciphertext: HexString;
-    iv: HexString;
-    encryptedSharedSecret: HexString;
-  };
+  const { handle: responseHandle, ciphertext, iv, encryptedSharedSecret } =
+    response.data as {
+      handle: string;
+      ciphertext: HexString;
+      iv: HexString;
+      encryptedSharedSecret: HexString;
+    };
+
+  if (responseHandle.toLowerCase() !== handle.toLowerCase()) {
+    throw new GatewayTrustError(
+      `Handle mismatch: requested ${handle}, got ${responseHandle}`
+    );
+  }
 
   if (isFreshDecryptionMaterial) {
     await storeDecryptionMaterial({
