@@ -6,6 +6,7 @@
 
 ## Classes
 
+- [GatewayTrustError](classes/GatewayTrustError.md)
 - [NotYetComputedHandleError](classes/NotYetComputedHandleError.md)
 - [UnknownHandleError](classes/UnknownHandleError.md)
 
