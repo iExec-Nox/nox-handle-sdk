@@ -6,8 +6,9 @@
 
 # Class: GatewayTrustError
 
-Custom error class for gateway server verification failures.
-This error is thrown when the gateway response fails signature verification, indicating a potential tampering of the response.
+Custom error class for gateway trust / attestation failures.
+
+This error is thrown when the SDK detects that a gateway response cannot be trusted (e.g. signature verification fails, or the response handle does not match the requested handle).
 
 ## Extends
 
