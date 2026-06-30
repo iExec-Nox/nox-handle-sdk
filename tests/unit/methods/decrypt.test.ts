@@ -51,6 +51,23 @@ async function exportRsaPublicKeyMock() {
   return TEST_RSA_SPKI_PUB_KEY as `0x${string}`;
 }
 
+function buildStoredDecryptionMaterial({
+  notBefore,
+  expiresAt,
+}: {
+  notBefore: number;
+  expiresAt: number;
+}): string {
+  const payload = JSON.stringify({
+    payload: { notBefore, expiresAt },
+    signature: '0x' + 'ab'.repeat(65),
+  });
+  return JSON.stringify({
+    authorization: `EIP712 ${btoa(payload)}`,
+    pkcs8: TEST_RSA_PKCS8_PRIV_KEY,
+  });
+}
+
 describe('decrypt', () => {
   const mockProvider = createMockEIP1193Provider(
     SUPPORTED_CHAIN_ID,
@@ -921,6 +938,106 @@ describe('decrypt', () => {
       expect(storageService.removeItem).toHaveBeenCalledTimes(1);
       expect(rsa.generateRsaKeyPair).toHaveBeenCalledTimes(1);
       expect(storageService.setItem).toHaveBeenCalledTimes(1);
+    });
+
+    describe('clock leeway', () => {
+      it('should clear and regenerate auth when expiresAt is within the 60s leeway window', async () => {
+        const now = Math.floor(Date.now() / 1000);
+        vi.spyOn(rsa, 'generateRsaKeyPair').mockImplementationOnce(
+          generateRsaKeyPairMock
+        );
+        const storageService = new InMemoryStorageService();
+        vi.spyOn(storageService, 'getItem').mockReturnValueOnce(
+          buildStoredDecryptionMaterial({
+            notBefore: now - 60,
+            expiresAt: now + 59,
+          })
+        );
+        vi.spyOn(storageService, 'removeItem');
+        mockApiService.get.mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          data: {
+            encryptedSharedSecret:
+              TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
+            iv: TEST_ENCRYPTED_DATA.bool.iv,
+            ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+          },
+        });
+        await decrypt({
+          handle: DUMMY_TYPED_HANDLES.bool,
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          storageService,
+          subgraphService: mockSubgraphService,
+          config: mockConfig,
+        });
+        expect(storageService.removeItem).toHaveBeenCalledTimes(1);
+        expect(signTypedDataSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it('should reuse stored auth when expiresAt is outside the 60s leeway window', async () => {
+        const now = Math.floor(Date.now() / 1000);
+        const storageService = new InMemoryStorageService();
+        vi.spyOn(storageService, 'getItem').mockReturnValueOnce(
+          buildStoredDecryptionMaterial({
+            notBefore: now - 60,
+            expiresAt: now + 61,
+          })
+        );
+        vi.spyOn(storageService, 'removeItem');
+        mockApiService.get.mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          data: {
+            encryptedSharedSecret:
+              TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
+            iv: TEST_ENCRYPTED_DATA.bool.iv,
+            ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+          },
+        });
+        await decrypt({
+          handle: DUMMY_TYPED_HANDLES.bool,
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          storageService,
+          subgraphService: mockSubgraphService,
+          config: mockConfig,
+        });
+        expect(signTypedDataSpy).not.toHaveBeenCalled();
+        expect(storageService.removeItem).not.toHaveBeenCalled();
+      });
+
+      it('should generate authorization backdated 60s with a validity window that does not exceed the gateway limit', async () => {
+        const now = Math.floor(Date.now() / 1000);
+        vi.spyOn(rsa, 'generateRsaKeyPair').mockImplementationOnce(
+          generateRsaKeyPairMock
+        );
+        mockApiService.get.mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          data: {
+            encryptedSharedSecret:
+              TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
+            iv: TEST_ENCRYPTED_DATA.bool.iv,
+            ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+          },
+        });
+        await decrypt({
+          handle: DUMMY_TYPED_HANDLES.bool,
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          storageService: mockStorageService,
+          subgraphService: mockSubgraphService,
+          config: mockConfig,
+        });
+        const message = signTypedDataSpy.mock.calls[0]?.[0].message as {
+          notBefore: number;
+          expiresAt: number;
+        };
+        expect(message.notBefore).toBe(now - 60);
+        expect(message.expiresAt - message.notBefore).toBe(3600);
+      });
     });
 
     it('should handle errors from storage service gracefully', async () => {

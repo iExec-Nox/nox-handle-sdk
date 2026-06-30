@@ -37,6 +37,9 @@ import {
 } from '../utils/validators.js';
 import { viewACL } from './viewACL.js';
 
+const CLOCK_LEEWAY_S = 60;
+const AUTHORIZATION_VALIDITY_WINDOW_S = 3600;
+
 export async function decrypt<T extends SolidityType>({
   handle,
   apiService,
@@ -315,8 +318,8 @@ async function generateDecryptionMaterial({
     message: {
       userAddress: userAddress,
       encryptionPubKey: spkiHexRsaPubKey,
-      notBefore: now,
-      expiresAt: now + 3600, // valid for 1 hour
+      notBefore: now - CLOCK_LEEWAY_S,
+      expiresAt: now - CLOCK_LEEWAY_S + AUTHORIZATION_VALIDITY_WINDOW_S, // fenêtre = exactement AUTHORIZATION_VALIDITY_WINDOW_S, borne haute acceptée par le Gateway
     },
   };
   const signature = await blockchainService
@@ -376,7 +379,7 @@ async function retrieveDecryptionMaterial({
       typeof authPayload.payload.notBefore !== 'number' ||
       now < authPayload.payload.notBefore ||
       typeof authPayload.payload.expiresAt !== 'number' ||
-      now > authPayload.payload.expiresAt - 10 // invalid if expired or will expire in the next 10 seconds
+      now > authPayload.payload.expiresAt - CLOCK_LEEWAY_S
     ) {
       throw new Error('Invalid stored authorization');
     }
