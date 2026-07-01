@@ -45,15 +45,3 @@ export class UnknownHandleError extends Error {
     this.handle = handle;
   }
 }
-
-/**
- * Custom error class for gateway trust / attestation failures.
- *
- * This error is thrown when the SDK detects that a gateway response cannot be trusted (e.g. signature verification fails, or the response handle does not match the requested handle).
- */
-export class GatewayTrustError extends Error {
-  constructor(message: string, options?: ErrorOptions) {
-    super(message, options);
-    this.name = 'GatewayTrustError';
-  }
-}

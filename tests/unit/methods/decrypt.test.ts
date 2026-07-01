@@ -6,7 +6,6 @@ import { EthersBlockchainService } from '../../../src/services/blockchain/Ethers
 import type { IStorageService } from '../../../src/services/storage/IStorageService.js';
 import { InMemoryStorageService } from '../../../src/services/storage/InMemoryStorageService.js';
 import {
-  GatewayTrustError,
   NotYetComputedHandleError,
   UnknownHandleError,
 } from '../../../src/utils/error.js';
@@ -1133,8 +1132,8 @@ describe('decrypt', () => {
           config: mockConfig,
         })
       ).rejects.toThrow(
-        new GatewayTrustError(
-          `Handle mismatch: requested ${DUMMY_TYPED_HANDLES.string}, got ${DUMMY_TYPED_HANDLES.bool}`
+        new Error(
+          `Unexpected response from Handle Gateway, Handle mismatch: requested ${DUMMY_TYPED_HANDLES.string}, got ${DUMMY_TYPED_HANDLES.bool}`
         )
       );
 

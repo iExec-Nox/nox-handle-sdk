@@ -4,8 +4,18 @@ import type {
 } from '../services/blockchain/IBlockchainService.js';
 import { GATEWAY_ABI } from '../services/blockchain/abis/gateway.abi.js';
 import type { EthereumAddress, HexString } from '../types/internalTypes.js';
-import { GatewayTrustError } from './error.js';
 import { bytesToHex, isHexString } from './hex.js';
+
+/**
+ * Custom error class for gateway server verification failures.
+ * This error is thrown when the gateway response fails signature verification, indicating a potential tampering of the response.
+ */
+export class GatewayTrustError extends Error {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'GatewayTrustError';
+  }
+}
 
 /**
  * Retrieves the gateway address from the smart contract.

@@ -11,7 +11,6 @@ import type { HexString } from '../types/internalTypes.js';
 import { eciesDecrypt } from '../utils/ecies.js';
 import { decodeValue } from '../utils/encoding.js';
 import {
-  GatewayTrustError,
   NotYetComputedHandleError,
   UnknownHandleError,
 } from '../utils/error.js';
@@ -214,8 +213,8 @@ export async function decrypt<T extends SolidityType>({
   };
 
   if (responseHandle.toLowerCase() !== handle.toLowerCase()) {
-    throw new GatewayTrustError(
-      `Handle mismatch: requested ${handle}, got ${responseHandle}`
+    throw new Error(
+      `Unexpected response from Handle Gateway, Handle mismatch: requested ${handle}, got ${responseHandle}`
     );
   }
 

@@ -9,7 +9,7 @@ import {
 } from 'vitest';
 import { ApiService } from '../../../../src/services/api/ApiService.js';
 import type { ExpectedResponse } from '../../../../src/services/api/IApiService.js';
-import { GatewayTrustError } from '../../../../src/utils/error.js';
+import { GatewayTrustError } from '../../../../src/utils/gatewayAttestation.js';
 
 const MOCK_GATEWAY_ADDRESS =
   '0x1234567890123456789012345678901234567890' as const;
