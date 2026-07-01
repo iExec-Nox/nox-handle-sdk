@@ -77,15 +77,11 @@ export class HandleClient {
    * You can encrypt several values in parallel using `Promise.all` or `Promise.allSettled`:
    *
    * - **`Promise.all`** — all calls start at the same time and resolve together.
-   *   Simple to use, but if any single call rejects, the entire `Promise.all` rejects
-   *   and fulfilled results become inaccessible — in-flight calls are not cancelled.
+   *   Simple to use, but if any single call rejects, the entire `Promise.all` rejects and fulfilled results become inaccessible — in-flight calls are not cancelled.
    *
-   * - **`Promise.allSettled`** — all calls start at the same time and each settles
-   *   independently. Returns an indexed array of `{ status, value | reason }` — a rejection
-   *   on one item never discards the others. Requires checking each result individually.
+   * - **`Promise.allSettled`** — all calls start at the same time and each settles independently. Returns an indexed array of `{ status, value | reason }` — a rejection on one item never discards the others. Requires checking each result individually.
    *
-   * The Handle Gateway enforces a rate limit. Sending more than ~100 concurrent calls
-   * may result in `429 Too Many Requests` errors.
+   * The Handle Gateway enforces a rate limit. Sending more than ~100 concurrent calls may result in `429 Too Many Requests` errors.
    *
    * @example
    * ```ts
