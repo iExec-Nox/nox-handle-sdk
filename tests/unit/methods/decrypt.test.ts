@@ -175,6 +175,7 @@ describe('decrypt', () => {
             encryptedSharedSecret: encryptedData.encryptedSharedSecret,
             iv: encryptedData.iv,
             ciphertext: encryptedData.ciphertext,
+            handle: dummyTypedHandle,
           },
         });
         const result = await decrypt({
@@ -476,6 +477,7 @@ describe('decrypt', () => {
                 TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
               iv: TEST_ENCRYPTED_DATA.bool.iv,
               ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+              handle: DUMMY_TYPED_HANDLES.bool,
             },
           });
         vi.useFakeTimers();
@@ -577,6 +579,22 @@ describe('decrypt', () => {
           data: { iv, encryptedSharedSecret: 'foo', ciphertext },
         },
       },
+      {
+        name: 'response has missing data.handle',
+        apiResponse: {
+          ok: true,
+          status: 200,
+          data: { iv, ciphertext, encryptedSharedSecret },
+        },
+      },
+      {
+        name: 'response has invalid data.handle type',
+        apiResponse: {
+          ok: true,
+          status: 200,
+          data: { handle: 123, iv, ciphertext, encryptedSharedSecret },
+        },
+      },
     ];
 
     for (const { name, apiResponse } of testCases) {
@@ -607,7 +625,12 @@ describe('decrypt', () => {
       mockApiService.get.mockResolvedValueOnce({
         ok: true,
         status: 200,
-        data: { iv, ciphertext, encryptedSharedSecret },
+        data: {
+          iv,
+          ciphertext,
+          encryptedSharedSecret,
+          handle: DUMMY_TYPED_HANDLES.bool,
+        },
       });
       // no mock to generate random RSA key pair that won't match the encrypted shared secret
       await expect(
@@ -641,6 +664,7 @@ describe('decrypt', () => {
           iv,
           ciphertext: ciphertext.slice(0, -2) + '00', // Corrupt ciphertext to trigger decryption failure
           encryptedSharedSecret,
+          handle: DUMMY_TYPED_HANDLES.bool,
         },
       });
       await expect(
@@ -686,6 +710,7 @@ describe('decrypt', () => {
             encryptedSharedSecret: encryptedData.encryptedSharedSecret,
             iv: encryptedData.iv,
             ciphertext: encryptedData.ciphertext,
+            handle,
           },
         });
 
@@ -723,6 +748,7 @@ describe('decrypt', () => {
           encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
           iv: TEST_ENCRYPTED_DATA.bool.iv,
           ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+          handle: DUMMY_TYPED_HANDLES.bool,
         },
       });
       await decrypt({
@@ -751,6 +777,7 @@ describe('decrypt', () => {
           encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
           iv: TEST_ENCRYPTED_DATA.bool.iv,
           ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+          handle: DUMMY_TYPED_HANDLES.bool,
         },
       });
       await decrypt({
@@ -769,6 +796,7 @@ describe('decrypt', () => {
             TEST_ENCRYPTED_DATA.bytes8.encryptedSharedSecret,
           iv: TEST_ENCRYPTED_DATA.bytes8.iv,
           ciphertext: TEST_ENCRYPTED_DATA.bytes8.ciphertext,
+          handle: DUMMY_TYPED_HANDLES.bytes8,
         },
       });
       await decrypt({
@@ -787,6 +815,7 @@ describe('decrypt', () => {
             TEST_ENCRYPTED_DATA.uint256.encryptedSharedSecret,
           iv: TEST_ENCRYPTED_DATA.uint256.iv,
           ciphertext: TEST_ENCRYPTED_DATA.uint256.ciphertext,
+          handle: DUMMY_TYPED_HANDLES.uint256,
         },
       });
       await decrypt({
@@ -816,6 +845,7 @@ describe('decrypt', () => {
           encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
           iv: TEST_ENCRYPTED_DATA.bool.iv,
           ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+          handle: DUMMY_TYPED_HANDLES.bool,
         },
       });
       await decrypt({
@@ -834,6 +864,7 @@ describe('decrypt', () => {
             TEST_ENCRYPTED_DATA.uint256.encryptedSharedSecret,
           iv: TEST_ENCRYPTED_DATA.uint256.iv,
           ciphertext: TEST_ENCRYPTED_DATA.uint256.ciphertext,
+          handle: DUMMY_TYPED_HANDLES.uint256,
         },
       });
       await decrypt({
@@ -876,6 +907,7 @@ describe('decrypt', () => {
           encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
           iv: TEST_ENCRYPTED_DATA.bool.iv,
           ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+          handle: DUMMY_TYPED_HANDLES.bool,
         },
       });
       await decrypt({
@@ -923,6 +955,7 @@ describe('decrypt', () => {
           encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
           iv: TEST_ENCRYPTED_DATA.bool.iv,
           ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+          handle: DUMMY_TYPED_HANDLES.bool,
         },
       });
       await decrypt({
@@ -962,6 +995,7 @@ describe('decrypt', () => {
               TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
             iv: TEST_ENCRYPTED_DATA.bool.iv,
             ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+            handle: DUMMY_TYPED_HANDLES.bool,
           },
         });
         await decrypt({
@@ -994,6 +1028,7 @@ describe('decrypt', () => {
               TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
             iv: TEST_ENCRYPTED_DATA.bool.iv,
             ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+            handle: DUMMY_TYPED_HANDLES.bool,
           },
         });
         await decrypt({
@@ -1009,7 +1044,7 @@ describe('decrypt', () => {
       });
 
       it('should generate authorization backdated 60s with a validity window that does not exceed the gateway limit', async () => {
-        const now = Math.floor(Date.now() / 1000);
+        const before = Math.floor(Date.now() / 1000);
         vi.spyOn(rsa, 'generateRsaKeyPair').mockImplementationOnce(
           generateRsaKeyPairMock
         );
@@ -1021,6 +1056,7 @@ describe('decrypt', () => {
               TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
             iv: TEST_ENCRYPTED_DATA.bool.iv,
             ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+            handle: DUMMY_TYPED_HANDLES.bool,
           },
         });
         await decrypt({
@@ -1031,11 +1067,13 @@ describe('decrypt', () => {
           subgraphService: mockSubgraphService,
           config: mockConfig,
         });
+        const after = Math.floor(Date.now() / 1000);
         const message = signTypedDataSpy.mock.calls[0]?.[0].message as {
           notBefore: number;
           expiresAt: number;
         };
-        expect(message.notBefore).toBe(now - 60);
+        expect(message.notBefore).toBeGreaterThanOrEqual(before - 60);
+        expect(message.notBefore).toBeLessThanOrEqual(after - 60);
         expect(message.expiresAt - message.notBefore).toBe(3600);
       });
     });
@@ -1062,6 +1100,7 @@ describe('decrypt', () => {
           encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
           iv: TEST_ENCRYPTED_DATA.bool.iv,
           ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+          handle: DUMMY_TYPED_HANDLES.bool,
         },
       });
       await expect(
@@ -1094,6 +1133,7 @@ describe('decrypt', () => {
           encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
           iv: TEST_ENCRYPTED_DATA.bool.iv,
           ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+          handle: DUMMY_TYPED_HANDLES.bool,
         },
       });
       await decrypt({
@@ -1140,6 +1180,7 @@ describe('decrypt', () => {
           encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
           iv: TEST_ENCRYPTED_DATA.bool.iv,
           ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+          handle: DUMMY_TYPED_HANDLES.bool,
         },
       });
       await decrypt({
@@ -1174,6 +1215,51 @@ describe('decrypt', () => {
           handle: undefined,
         })
       ).rejects.toThrow('Missing required parameters: handle');
+    });
+  });
+
+  describe('when gateway response handle does not match requested handle', () => {
+    it('should throw GatewayTrustError before decryption', async () => {
+      const storageService = new InMemoryStorageService();
+      vi.spyOn(storageService, 'getItem').mockImplementationOnce(() => {
+        const now = Math.floor(Date.now() / 1000);
+        const json = JSON.stringify({
+          payload: { notBefore: now - 60, expiresAt: now + 300 },
+          signature: '0x',
+        });
+        const authorization = `EIP712 ${btoa(json)}`;
+        return JSON.stringify({
+          authorization,
+          pkcs8: TEST_RSA_PKCS8_PRIV_KEY,
+        });
+      });
+      mockApiService.get.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        data: {
+          encryptedSharedSecret: TEST_ENCRYPTED_DATA.bool.encryptedSharedSecret,
+          iv: TEST_ENCRYPTED_DATA.bool.iv,
+          ciphertext: TEST_ENCRYPTED_DATA.bool.ciphertext,
+          handle: DUMMY_TYPED_HANDLES.bool,
+        },
+      });
+      const rsaDecryptSpy = vi.spyOn(rsa, 'rsaDecrypt');
+      await expect(
+        decrypt({
+          handle: DUMMY_TYPED_HANDLES.string,
+          blockchainService: mockBlockchainService,
+          apiService: mockApiService,
+          storageService,
+          subgraphService: mockSubgraphService,
+          config: mockConfig,
+        })
+      ).rejects.toThrow(
+        new Error(
+          `Unexpected response from Handle Gateway, Handle mismatch: requested ${DUMMY_TYPED_HANDLES.string}, got ${DUMMY_TYPED_HANDLES.bool}`
+        )
+      );
+
+      expect(rsaDecryptSpy).not.toHaveBeenCalled();
     });
   });
 });
