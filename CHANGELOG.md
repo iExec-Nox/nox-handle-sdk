@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.0-beta.14](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.13...v0.1.0-beta.14) (2026-07-07)
+
+
+### ✍️ Changed
+
+* **decrypt:** add 60s clock leeway to notBefore and expiresAt ([#103](https://github.com/iExec-Nox/nox-handle-sdk/issues/103)) ([b1cbfad](https://github.com/iExec-Nox/nox-handle-sdk/commit/b1cbfade5ea51b1ce54b51f5d9ad8e49fa8c7f5e))
+* **decrypt:** verify gateway response handle matches requested ([#102](https://github.com/iExec-Nox/nox-handle-sdk/issues/102)) ([ffda8ec](https://github.com/iExec-Nox/nox-handle-sdk/commit/ffda8ec452175ced1dd4d0c442bb1da01151ff63))
+* **types:** improve Handle&lt;T&gt; inference ([#99](https://github.com/iExec-Nox/nox-handle-sdk/issues/99)) ([514f98d](https://github.com/iExec-Nox/nox-handle-sdk/commit/514f98de95a66b23546aac28e4c666cace4de410))
+* validate handle format and chain id ([#93](https://github.com/iExec-Nox/nox-handle-sdk/issues/93)) ([0a3e2dd](https://github.com/iExec-Nox/nox-handle-sdk/commit/0a3e2dd28f2cf6a865ee642c9bc06e986b943fb8))
+
 ## [0.1.0-beta.13](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.12...v0.1.0-beta.13) (2026-06-08)
 
 
