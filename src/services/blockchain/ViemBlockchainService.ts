@@ -62,6 +62,9 @@ class WalletClientAdapter implements ViemAdapter {
   }
 
   async getAddress(): Promise<EthereumAddress> {
+    if (this.walletClient.account) {
+      return this.walletClient.account.address;
+    }
     const addresses = await this.walletClient.getAddresses();
     const address = addresses[0];
     if (!address) {

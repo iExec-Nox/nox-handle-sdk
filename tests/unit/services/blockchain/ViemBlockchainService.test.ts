@@ -501,6 +501,34 @@ describe('ViemBlockchainService', () => {
           expect(cause.message).toBe('No connected account');
         }
       });
+
+      it('should return the address the client is bound to, not account[0] of the provider (json-rpc account)', async () => {
+        const boundAddress = '0x0000000000000000000000000000000000000002';
+        const otherProviderAddress =
+          '0x0000000000000000000000000000000000000001';
+        // Mirrors how hardhat-viem's getWalletClients() builds a WalletClient:
+        // account is a plain address string (type 'json-rpc'), and the underlying
+        // provider knows about other accounts too, with the bound one not first.
+        const client = createWalletClient({
+          account: boundAddress,
+          transport: custom({
+            request: vi.fn().mockImplementation(({ method }) => {
+              if (
+                method === 'eth_accounts' ||
+                method === 'eth_requestAccounts'
+              ) {
+                return Promise.resolve([otherProviderAddress, boundAddress]);
+              }
+              throw new Error(`Unexpected method: ${method}`);
+            }),
+          }),
+        });
+        const service = new ViemBlockchainService(client);
+
+        const address = await service.getAddress();
+
+        expect(address).toBe(boundAddress);
+      });
     });
 
     describe('signTypedData', () => {
