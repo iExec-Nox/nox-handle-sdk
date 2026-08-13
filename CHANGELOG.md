@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-beta.15](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.14...v0.1.0-beta.15) (2026-08-13)
+
+
+### ✍️ Changed
+
+* **encryptInput:** restore HexString compatibility for the returned handle ([#107](https://github.com/iExec-Nox/nox-handle-sdk/issues/107)) ([36a4e83](https://github.com/iExec-Nox/nox-handle-sdk/commit/36a4e83a8b34972e710d6754c7822b2ee20e01e0))
+
 ## [0.1.0-beta.14](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.13...v0.1.0-beta.14) (2026-08-13)
 
 
