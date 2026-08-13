@@ -9,11 +9,12 @@ import type {
 const handleClient = {} as HandleClient;
 const CONTRACT: HexString = '0x1234567890123456789012345678901234567890';
 
-// encryptInput returns Handle<T>
+// encryptInput returns Handle<T> & HexString, so the resolved handle is
+// directly assignable to `0x${string}` (viem, wagmi, etc.) with no cast.
 expectTypeOf(
   handleClient.encryptInput(true, 'bool', CONTRACT)
 ).resolves.toEqualTypeOf<{
-  handle: Handle<'bool'>;
+  handle: Handle<'bool'> & HexString;
   handleProof: HexString;
 }>();
 
@@ -24,21 +25,21 @@ expectTypeOf(
     CONTRACT
   )
 ).resolves.toEqualTypeOf<{
-  handle: Handle<'address'>;
+  handle: Handle<'address'> & HexString;
   handleProof: HexString;
 }>();
 
 expectTypeOf(
   handleClient.encryptInput(123n, 'uint256', CONTRACT)
 ).resolves.toEqualTypeOf<{
-  handle: Handle<'uint256'>;
+  handle: Handle<'uint256'> & HexString;
   handleProof: HexString;
 }>();
 
 expectTypeOf(
   handleClient.encryptInput(-123n, 'int256', CONTRACT)
 ).resolves.toEqualTypeOf<{
-  handle: Handle<'int256'>;
+  handle: Handle<'int256'> & HexString;
   handleProof: HexString;
 }>();
 
