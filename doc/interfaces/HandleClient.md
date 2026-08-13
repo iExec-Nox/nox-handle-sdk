@@ -56,7 +56,7 @@ const { value, solidityType } = await client.decrypt(handle);
 
 ### encryptInput()
 
-> **encryptInput**\<`T`\>(`value`, `solidityType`, `applicationContract`): `Promise`\<\{ `handle`: [`Handle`](../type-aliases/Handle.md)\<`T`\>; `handleProof`: `` `0x${string}` ``; \}\>
+> **encryptInput**\<`T`\>(`value`, `solidityType`, `applicationContract`): `Promise`\<\{ `handle`: `object` & `` `0x${string}` ``; `handleProof`: `` `0x${string}` ``; \}\>
 
 Encrypts a value and returns a handle for use in smart contracts.
 
@@ -88,7 +88,7 @@ The address of the contract allowed to use the input
 
 #### Returns
 
-`Promise`\<\{ `handle`: [`Handle`](../type-aliases/Handle.md)\<`T`\>; `handleProof`: `` `0x${string}` ``; \}\>
+`Promise`\<\{ `handle`: `object` & `` `0x${string}` ``; `handleProof`: `` `0x${string}` ``; \}\>
 
 [Handle](../type-aliases/Handle.md) and handleProof for smart contract usage
 

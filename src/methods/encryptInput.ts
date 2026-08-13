@@ -127,7 +127,7 @@ export async function encryptInput<T extends SolidityType>({
   solidityType,
   applicationContract,
 }: EncryptInputParameters): Promise<{
-  handle: Handle<T>;
+  handle: Handle<T> & HexString;
   handleProof: HexString;
 }> {
   assertRequiredParams({ value, solidityType, applicationContract }, [
@@ -215,7 +215,7 @@ export async function encryptInput<T extends SolidityType>({
   const { handle, proof } = response.data as GatewaySecretResponse;
 
   return {
-    handle: handle as Handle<T>,
+    handle: handle as Handle<T> & HexString,
     handleProof: proof as HexString,
   };
 }

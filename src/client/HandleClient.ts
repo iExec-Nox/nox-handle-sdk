@@ -126,7 +126,7 @@ export class HandleClient {
     solidityType: T,
     applicationContract: EthereumAddress
   ): Promise<{
-    handle: Handle<T>;
+    handle: Handle<T> & HexString;
     handleProof: HexString;
   }> {
     return encryptInput({
