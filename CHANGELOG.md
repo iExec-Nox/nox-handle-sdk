@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-beta.16](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.15...v0.1.0-beta.16) (2026-09-11)
+
+
+### 📋 Misc
+
+* **ci:** harden ci ([#109](https://github.com/iExec-Nox/nox-handle-sdk/issues/109)) ([e5d3bca](https://github.com/iExec-Nox/nox-handle-sdk/commit/e5d3bca308a213fd34e1cc3690fc300d3e0ebea4))
+
 ## [0.1.0-beta.15](https://github.com/iExec-Nox/nox-handle-sdk/compare/v0.1.0-beta.14...v0.1.0-beta.15) (2026-08-13)
 
 
